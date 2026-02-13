@@ -10,9 +10,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "SceneICA2.h"
+#include "Scene.h"
+#include "BaseScene.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
+#include "AudioManager.h"
 
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
@@ -127,12 +129,16 @@ void Application::Init()
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 		//return -1;
 	}
+
+	// audio init
+	AudioManager::GetInstance().InitSystem();
+	AudioManager::GetInstance().OpenMixer();
 }
 
 void Application::Run()
 {
 	//Main Loop
-	Scene *scene = new SceneICA2();
+	Scene *scene = new BaseScene();
 	scene->Init();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
@@ -162,6 +168,9 @@ void Application::Run()
 void Application::Exit()
 {
 	KeyboardController::DestroyInstance();
+
+	AudioManager::GetInstance().CloseMixer();
+	AudioManager::GetInstance().ExitSystem();
 	
 	//Close OpenGL window and terminate GLFW
 	glfwDestroyWindow(m_window);
