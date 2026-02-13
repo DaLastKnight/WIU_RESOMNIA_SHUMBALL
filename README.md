@@ -2,4 +2,4 @@
 The repository containing project files for GDT Y1S2 WIU
 
 ## Project Description
-This project was made on Visual Studio 2022, using a pre-configured OpenGL framework on x86
+This project was made on Visual Studio 2022, using a edited pre-configured OpenGL framework on x64
