@@ -14,7 +14,7 @@ struct Material
 	float kShininess;
 	unsigned size;
 
-	Material() : kAmbient(0.f, 0.f, 0.f), kDiffuse(0.f, 0.f, 0.f), kSpecular(0.f, 0.f, 0.f), kShininess(1.f), size(0) {}
+	Material() : kAmbient(0.1f), kDiffuse(0.8f), kSpecular(0.5f), kShininess(4.f), size(0) {}
 
 	Material& operator=(const Material& rhs)
 	{

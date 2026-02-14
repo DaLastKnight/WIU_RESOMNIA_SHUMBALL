@@ -20,8 +20,6 @@ struct Light {
 	vec3 spotDirection;
 	float cosCutoff;
 	float cosInner;
-	float exponent;
-	float blurThreshold;
 };
 
 struct Material {
@@ -46,30 +44,11 @@ float getAttenuation(Light light, float distance) {
 		return 1 / max(1, light.kC + light.kL * distance + light.kQ * distance * distance);
 }
 
-// my sepcial function
-//float getSpotlightEffect(Light light, vec3 lightDirection, float distance) {
-//	vec3 S = normalize(light.spotDirection);
-//	vec3 L = normalize(lightDirection);
-//	float cosDirection = dot(L, S);
-//	if (cosDirection < light.cosCutoff - distance / light.blurThreshold)
-//		return 0;
-//	else if (cosDirection > light.cosCutoff + distance / light.blurThreshold)
-//		return 1;
-//	else {
-//		float t = (cosDirection - (light.cosCutoff - distance / light.blurThreshold)) / (distance / light.blurThreshold * 2);
-//		return t * t * t - 3 * t * t + 3 * t; // cubic ease out 
-//	}
-//}
-
 float getSpotlightEffect(Light light, vec3 lightDirection) {
 	vec3 S = normalize(light.spotDirection);
 	vec3 L = normalize(lightDirection);
 	float cosDirection = dot(L, S);
 	return smoothstep(light.cosCutoff, light.cosInner, cosDirection);
-	if (cosDirection < light.cosCutoff)
-		return 0;
-	else
-		return pow(cosDirection, light.exponent);
 }
 
 // Constant values
@@ -137,7 +116,7 @@ void main() {
 			float distance = length(lightDirection_cameraspace);
 
 			if (lights[i].type == 2)
-				spotlightEffect = getSpotlightEffect(lights[i], lightDirection_cameraspace, distance);
+				spotlightEffect = getSpotlightEffect(lights[i], lightDirection_cameraspace);
 
 			// Light attenuation
 			float attenuationFactor = getAttenuation(lights[i], distance);

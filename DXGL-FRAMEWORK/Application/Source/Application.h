@@ -12,7 +12,10 @@ public:
 	void Init();
 	void Run();
 	void Exit();
-	static bool IsKeyPressed(unsigned short key);
+
+	static constexpr float SCREEN_WIDTH = 1600.f;
+	static constexpr float SCREEN_HEIGHT = 900.f;
+	static constexpr float ASPECT_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT;
 
 private:
 
@@ -21,6 +24,7 @@ private:
 
 	bool enablePointer = true;
 	bool showPointer = true;
+
 };
 
 #endif

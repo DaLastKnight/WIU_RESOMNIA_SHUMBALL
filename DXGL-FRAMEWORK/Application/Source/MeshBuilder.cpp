@@ -363,7 +363,7 @@ Mesh* MeshBuilder::GenerateFrustum(const std::string& meshName, glm::vec3 color,
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float length, float width, float height)
+Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height)
 {
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;
@@ -373,16 +373,16 @@ Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, fl
 	v.normal = glm::vec3(0.f, 0.f, 1.f);
 
 	// Add the vertices here
-	v.pos = glm::vec3(0.5f * length, -0.5f * height, 0.f); // Bottom right
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, 0.f); // Bottom right
 	v.texCoord = glm::vec2(1.f, 0.f);
 	vertex_buffer_data.push_back(v); //v3
-	v.pos = glm::vec3(0.5f * length, 0.5f * height, 0.f); // Top right
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, 0.f); // Top right
 	v.texCoord = glm::vec2(1.f, 1.f);
 	vertex_buffer_data.push_back(v); //v0
-	v.pos = glm::vec3(-0.5f * length, 0.5f * height, 0.f); // Top left
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, 0.f); // Top left
 	v.texCoord = glm::vec2(0.f, 1.f);
 	vertex_buffer_data.push_back(v); //v1
-	v.pos = glm::vec3(-0.5f * length, -0.5f * height, 0.f); // Bottom left
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, 0.f); // Bottom left
 	v.texCoord = glm::vec2(0.f, 0.f);
 	vertex_buffer_data.push_back(v); //v2
 

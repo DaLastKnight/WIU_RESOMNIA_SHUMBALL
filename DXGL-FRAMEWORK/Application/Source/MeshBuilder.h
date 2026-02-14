@@ -19,7 +19,7 @@ public:
 	static Mesh* GenerateCone(const std::string& meshName, glm::vec3 color, int numSlice, float radius, float height, float bottomOffset = 0);
 	static Mesh* GenerateTorus(const std::string& meshName, glm::vec3 color, float innerR = 1.f, float outerR = 1.f, float numSlice = 360, float numStack = 360);
 	static Mesh* GenerateFrustum(const std::string& meshName, glm::vec3 color, float baseRadius, float topRadius, float height, float numSlice = 360);
-	static Mesh* GenerateQuad(const std::string& meshName, glm::vec3 color, float length, float width, float height);
+	static Mesh* GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height);
 	static Mesh* GenerateCube(const std::string& meshName, glm::vec3 color, float length);
 	static Mesh* GenerateTrap(const std::string& meshName, glm::vec3 color, float baseLength, float baseWidth, float topLength, float topWidth, float height);
 	static Mesh* GenerateHemisphere(const std::string& meshName, glm::vec3 color, int numStack, int numSlice, float radius);

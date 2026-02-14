@@ -57,11 +57,6 @@ void resize_callback(GLFWwindow* window, int w, int h)
 	glViewport(0, 0, w, h); //update opengl the new window size
 }
 
-bool Application::IsKeyPressed(unsigned short key)
-{
-    return ((GetAsyncKeyState(key) & 0x8001) != 0);
-}
-
 Application::Application()
 {
 }
@@ -89,7 +84,7 @@ void Application::Init()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL
 
 	//Create a window and create its OpenGL context
-	m_window = glfwCreateWindow(1600, 900, "250493N_DX1132_ICA2", NULL, NULL);
+	m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "technival", NULL, NULL);
 
 	//If the window couldn't be created
 	if (!m_window)
@@ -142,7 +137,7 @@ void Application::Run()
 	scene->Init();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
-	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_ESCAPE))
+	while (!glfwWindowShouldClose(m_window) && !KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ESCAPE))
 	{
 		scene->Update(m_timer.getElapsedTime());
 		scene->Render();
@@ -155,6 +150,10 @@ void Application::Run()
 		double mouse_x, mouse_y;
 		glfwGetCursorPos(m_window, &mouse_x, &mouse_y);
 		MouseController::GetInstance()->UpdateMousePosition(mouse_x, mouse_y);
+		if (MouseController::GetInstance()->GetMouseEnabled())
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		else
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...
 		glfwPollEvents();

@@ -25,9 +25,8 @@ struct Light
 	glm::vec3 spotDirection;
 	float cosCutoff;
 	float cosInner;
-	float exponent;
 
-	Light() : position(0.f, 20.f, 0.f), color(1.f, 1.f, 1.f), power(1.f), kC(1.f), kL(0.1f), kQ(0.001f), type(LIGHT_POINT), spotDirection(1.f), cosCutoff(45.f), cosInner(30.f), exponent(1.f) {}
+	Light() : position(0.f, 20.f, 0.f), color(1.f, 1.f, 1.f), power(1.f), kC(1.f), kL(0.1f), kQ(0.001f), type(LIGHT_POINT), spotDirection(1.f), cosCutoff(45.f), cosInner(30.f) {}
 };
 
 #endif

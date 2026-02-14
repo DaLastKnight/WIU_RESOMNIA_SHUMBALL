@@ -2,6 +2,8 @@
 *
  MouseController
  Referenced: CMouseController by Toh Da Jun (Mar 2020)
+ 1st edit:
+ 2nd edit: JH, 13 feb 2026
  */
 #ifndef MOUSE_H
 #define MOUSE_H
@@ -48,7 +50,11 @@ public:
 
 	// Get or Set status of keeping the mouse centered
 	inline bool GetKeepMouseCentered() const { return bKeepMouseCentered; };
-	inline void SetKeepMouseCentered(bool _value){ bKeepMouseCentered = _value; };
+	inline void SetKeepMouseCentered(bool _value) { bKeepMouseCentered = _value; };
+
+	// set mouse enabled
+	inline bool GetMouseEnabled() const { return bMouseEnabled; };
+	inline void setMouseEnabled(bool _value) { bMouseEnabled = _value; };
 
 protected:
 	// Constructor
@@ -58,14 +64,16 @@ protected:
 
 	static MouseController* m_instance;
 
-	double	curr_posX, curr_posY, 
-			prev_posX, prev_posY, 
-			delta_posX, delta_posY;
+	double	curr_posX, curr_posY,
+		prev_posX, prev_posY,
+		delta_posX, delta_posY;
 	unsigned char currBtnStatus, prevBtnStatus;
 	double WheelOffset_X, WheelOffset_Y;
 
 	// Boolean flag to indicate if the mouse will be kept centered
 	bool bKeepMouseCentered;
+	// Boolean flag to indicate if the mouse is enabled
+	bool bMouseEnabled;
 	// Boolean flag to indicate that this class instance is waiting for its first update
 	bool bFirstUpdate;
 };

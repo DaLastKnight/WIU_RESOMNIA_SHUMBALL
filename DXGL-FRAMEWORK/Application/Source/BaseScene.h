@@ -19,40 +19,8 @@ public:
 		GEO_AXES,
 		GEO_SPHERE,
 		GEO_CUBE,
-		GEO_LEFT,
-		GEO_RIGHT,
-		GEO_TOP,
-		GEO_BOTTOM,
-		GEO_FRONT,
-		GEO_BACK,
 		GEO_PLANE,
 		GEO_TEXT,
-
-		GEO_STONEWALL,
-		GEO_TREE,
-		GEO_TABLE,
-		GEO_LANTERN_UNLIT,
-		GEO_LANTERN_LIT,
-		GEO_DOOR,
-		
-		GEO_SKELETON,
-		GEO_MONK,
-		GEO_FLASHLIGHT,
-		GEO_BOOK,
-		GEO_CRATE,
-		GEO_CHEST,
-
-		GEO_2D_INTERACT,
-		GEO_2D_CHAT,
-		GEO_2D_MAP,
-		GEO_2D_PAGE,
-		GEO_2D_GOOD,
-		GEO_2D_BAD,
-		GEO_2D_KEYLOCK,
-		GEO_2D_RIGHTARROW,
-		GEO_2D_UPARROW,
-		GEO_2D_DOWNARROW,
-		GEO_2D_MOON,
 		
 		NUM_GEOMETRY,
 	};
@@ -118,6 +86,10 @@ private:
 	// Matrix Stack & projection members
 	MatrixStack modelStack, viewStack, projectionStack;
 	int projType = 1; // fix to 0 for orthographic, 1 for projection
+
+	static constexpr int NUM_LIGHTS = 1;
+	Light light[NUM_LIGHTS];
+	bool enableLight;
 
 	FPCamera camera;
 
