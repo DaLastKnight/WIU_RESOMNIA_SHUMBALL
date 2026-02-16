@@ -1,9 +1,13 @@
 #include "FPCamera.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
+#include "Utils.h"
 
 //Include GLFW
 #include <GLFW/glfw3.h>
+
+#include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
 using glm::vec3;
 
@@ -171,11 +175,10 @@ void FPCamera::Update(double dt) {
 		phi = -89;
 
 	// Calculate smoothed stats
-	smoothPhi += (phi - smoothPhi) / rotSmoothing * dt * 100;
-	smoothTheta += (theta - smoothTheta) / rotSmoothing * dt * 100;
-	smoothPsi += (psi - smoothPsi) / moveSmoothing * dt * 100;
-	vec3 posDiff = basePosition - smoothPosition;
-	smoothPosition += (posDiff / moveSmoothing) * static_cast<float>(dt) * 100.f;
+	Smooth(smoothPhi, phi, rotSmoothing, dt);
+	Smooth(smoothTheta, theta, rotSmoothing, dt);
+	Smooth(smoothPsi, psi, moveSmoothing, dt);
+	Smooth(smoothPosition, basePosition, moveSmoothing, dt);
 
 	// bobbing
 	bobbingElapsed += dt * bobbingSmoothSpeed;
@@ -183,14 +186,14 @@ void FPCamera::Update(double dt) {
 		float targetX = sinf(5 * bobbingElapsed) * bobbingMaxX;
 		float targetY = sinf(10 * bobbingElapsed) * bobbingMaxY;
 		float targetPsi = sinf(5 * bobbingElapsed) * bobbingMaxPsi;
-		bobbingX += (targetX - bobbingX) / moveSmoothing * dt * 100;
-		bobbingY += (targetY - bobbingY) / moveSmoothing * dt * 100;
-		bobbingPsi += (targetPsi - bobbingPsi) / moveSmoothing * dt * 100;
+		Smooth(bobbingX, targetX, moveSmoothing, dt);
+		Smooth(bobbingY, targetY, moveSmoothing, dt);
+		Smooth(bobbingPsi, targetPsi, moveSmoothing, dt);
 	}
 	else {
-		bobbingX += (-bobbingX) / moveSmoothing * dt * 100;
-		bobbingY += (-bobbingY) / moveSmoothing * dt * 100;
-		bobbingPsi += (-bobbingPsi) / moveSmoothing * dt * 100;
+		Smooth(bobbingX, 0.f, moveSmoothing, dt);
+		Smooth(bobbingY, 0.f, moveSmoothing, dt);
+		Smooth(bobbingPsi, 0.f, moveSmoothing, dt);
 	}
 
 	Refresh();

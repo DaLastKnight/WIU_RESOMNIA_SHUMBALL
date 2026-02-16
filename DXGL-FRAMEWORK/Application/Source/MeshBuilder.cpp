@@ -980,3 +980,132 @@ Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, un
 	mesh->indexSize = index_buffer_data.size();
 	return mesh;
 }
+
+Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName) {
+	Vertex v; // Vertex definition
+	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
+	std::vector<GLuint> index_buffer_data; // Element Buffer Objects
+	v.color = glm::vec3(1, 1, 1);
+	float size = 1000;
+	float width = size, height = size, length = size;
+
+	unsigned reserveCount = 0;
+	reserveCount = 4 * 6;
+	vertex_buffer_data.reserve(reserveCount);
+
+	// bottom
+	v.normal = glm::vec3(0, 1, 0);
+	v.texCoord = glm::vec2(0.25f, 0.125f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.25f, 0.375f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.375f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.125f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	// front
+	v.normal = glm::vec3(0, 0, -1);
+	v.texCoord = glm::vec2(0.25f, 0.375f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.25f, 0.625f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.625f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.375f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	// left
+	v.normal = glm::vec3(-1, 0, 0);
+	v.texCoord = glm::vec2(0, 0.375f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0, 0.625f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.25f, 0.625f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.25f, 0.375f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	// back
+	v.normal = glm::vec3(0, 0, 1);
+	v.texCoord = glm::vec2(0.75f, 0.375f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.75f, 0.625f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(1, 0.625f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(1, 0.375f);
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	// right
+	v.normal = glm::vec3(1, 0, 0);
+	v.texCoord = glm::vec2(0.5f, 0.375f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.625f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.75f, 0.625f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.75f, 0.375f);
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	// top
+	v.normal = glm::vec3(0, -1, 0);
+	v.texCoord = glm::vec2(0.25f, 0.625f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.25f, 0.875f);
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.875f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, -0.5f * length);
+	vertex_buffer_data.push_back(v);
+	v.texCoord = glm::vec2(0.5f, 0.625f);
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, 0.5f * length);
+	vertex_buffer_data.push_back(v);
+
+	reserveCount = 6 * 6;
+	index_buffer_data.reserve(reserveCount);
+
+	for (unsigned i = 0; i < 6; i++) {
+		index_buffer_data.push_back(2 + i * 4);
+		index_buffer_data.push_back(1 + i * 4);
+		index_buffer_data.push_back(0 + i * 4);
+
+		index_buffer_data.push_back(0 + i * 4);
+		index_buffer_data.push_back(3 + i * 4);
+		index_buffer_data.push_back(2 + i * 4);
+	}
+
+	// Create the new mesh
+	Mesh* mesh = new Mesh(meshName);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
+
+	mesh->indexSize = index_buffer_data.size();
+	mesh->mode = Mesh::DRAW_TRIANGLES;
+
+	return mesh;
+}

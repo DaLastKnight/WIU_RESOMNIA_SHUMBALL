@@ -52,7 +52,7 @@ float getSpotlightEffect(Light light, vec3 lightDirection) {
 }
 
 // Constant values
-const int MAX_LIGHTS = 10;
+const int MAX_LIGHTS = 12;
 
 // Values that stay constant for the whole mesh.
 uniform bool lightEnabled;
@@ -63,6 +63,7 @@ uniform bool colorTextureEnabled;
 uniform sampler2D colorTexture;
 uniform bool textEnabled;
 uniform vec3 textColor;
+uniform bool atmosphereEnabled;
 uniform Atmosphere atmosphere;
 uniform vec3 atmosphereTargetPos_cameraspace;
 
@@ -93,7 +94,7 @@ void main() {
 			// Ambient : simulates indirect lighting
 			materialColor * vec4(material.kAmbient, 1);
 
-		float accumulatedLightStrength;
+		float accumulatedLightStrength = 0;
 
 		for (int i = 0; i < numLights; ++i)
 		{
@@ -148,7 +149,7 @@ void main() {
 		}
 
 		// | atmosphere fog
-		if (atmosphere.fogDensity != 0) {
+		if (atmosphere.fogDensity != 0 && atmosphereEnabled) {
 
 			// dist to target
 			float distToTarget = length(vertexPosition_cameraspace - atmosphereTargetPos_cameraspace);

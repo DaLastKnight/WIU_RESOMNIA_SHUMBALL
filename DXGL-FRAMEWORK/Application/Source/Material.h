@@ -25,6 +25,17 @@ struct Material
 		size = rhs.size;
 		return *this;
 	}
+
+	void SetZero() {
+		Set(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0);
+	}
+
+	void Set(glm::vec3 kAmbient, glm::vec3 kDiffuse, glm::vec3 kSpecular, float kShininess) {
+		this->kAmbient = kAmbient;
+		this->kDiffuse = kDiffuse;
+		this->kSpecular = kSpecular;
+		this->kShininess = kShininess;
+	}
 };
 
 #endif

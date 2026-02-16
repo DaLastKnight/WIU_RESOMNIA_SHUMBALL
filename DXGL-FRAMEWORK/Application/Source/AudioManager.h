@@ -1,6 +1,6 @@
 // JH
-// last updated: 13 feb 2026
-#pragma once
+#ifndef AUDIO_MANAGER_H
+#define AUDIO_MANAGER_H
 
 #include <SDL.h>
 #include <SDL_mixer.h>
@@ -65,3 +65,5 @@ private:
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;
 };
+
+#endif
