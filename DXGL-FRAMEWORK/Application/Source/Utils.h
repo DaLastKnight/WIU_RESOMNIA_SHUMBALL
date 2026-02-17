@@ -5,6 +5,11 @@
 #include <glm\glm.hpp>
 #include <string>
 
+
+inline float Vec3LengthSqred(glm::vec3 vec) {
+	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+}
+
 inline float Clamp(float value, float min, float max) {
 	if (value < min)
 		return min;

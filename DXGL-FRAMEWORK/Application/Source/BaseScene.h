@@ -4,6 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <array>
+#include <memory>
+
 #include "Scene.h"
 #include "Mesh.h"
 #include "FPCamera.h"
@@ -11,7 +14,8 @@
 #include "Light.h"
 #include "Atmosphere.h"
 
-#include <array>
+#include "RenderObject.h"
+
 
 class BaseScene : public Scene
 {
@@ -19,12 +23,13 @@ public:
 	enum GEOMETRY_TYPE
 	{
 		GEO_AXES,
-		GEO_SPHERE,
-		GEO_CUBE,
-		GEO_PLANE,
-		GEO_TEXT,
+		GEO_GROUND,
 		GEO_SKYBOX,
-		
+		GEO_LIGHT,
+		GEO_GROUP,
+
+		FONT_CASCADIA_MONO,
+
 		NUM_GEOMETRY,
 	};
 
@@ -92,11 +97,7 @@ public:
 
 protected:
 
-	// Render helper functions
-	void RenderMesh(Mesh* mesh, bool enableLight);
-	void RenderMeshOnScreen(Mesh* mesh, float x, float y, float sizex, float sizey);
-	void RenderText(Mesh* mesh, std::string text, glm::vec3 color);
-	void RenderTextOnScreen(Mesh* mesh, std::string text, glm::vec3 color, float size, float x, float y);
+	float fontSpacing(GEOMETRY_TYPE font);
 
 	// HandleInput functions
 	void HandleKeyPress();
@@ -106,7 +107,7 @@ protected:
 
 	// uniforms for shader
 	static constexpr int MAX_LIGHT = 12;
-	void UpdateLightUniform(const Light& lightObj, LIGHT_UNIFORM_TYPE uniform = U_LIGHT_TOTAL);
+	void UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj, LIGHT_UNIFORM_TYPE uniform = U_LIGHT_TOTAL);
 	bool enabledLight = true;
 
 	void UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform = U_ATMOSPHERE_TOTAL);
@@ -116,11 +117,19 @@ protected:
 	MatrixStack modelStack, viewStack, projectionStack;
 	int projType = 1; // fix to 0 for orthographic, 1 for projection
 
-	std::vector<Light> light;
 	Atmosphere atmosphere;
 
 	FPCamera camera;
 
+	std::shared_ptr<RenderObject> worldRoot;
+	std::shared_ptr<RenderObject> viewRoot;
+	std::shared_ptr<RenderObject> screenRoot;
+
+	glm::mat4 perspective;
+	glm::mat4 ortho;
+
+	void RenderMesh(GEOMETRY_TYPE object, bool enableLight);
+	void renderObject(const std::shared_ptr<RenderObject> obj);
 
 	// debug
 	bool debug = false;

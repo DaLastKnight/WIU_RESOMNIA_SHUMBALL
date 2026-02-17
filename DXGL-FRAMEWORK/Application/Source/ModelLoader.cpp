@@ -1,22 +1,32 @@
 #include <iostream>
 #include <fstream>
-#include <map>
 
-#include "LoadOBJ.h"
+#include "ModelLoader.h"
 
-bool LoadOBJ(
+std::string ModelLoader::directory = "Model/";
+
+void ModelLoader::setDirectory(const std::string& directoryPath) {
+
+	directory = directoryPath;
+
+	if (directory.back() != '/') {
+		directory += "/";
+	}
+}
+
+bool ModelLoader::LoadOBJ(
 	const char* file_path,
 	std::vector<glm::vec3>& out_vertices,
 	std::vector<glm::vec2>& out_uvs,
-	std::vector<glm::vec3>& out_normals,
-	bool flipUVs
+	std::vector<glm::vec3>& out_normals
 )
 {
+	std::string actualFilePath = directory + file_path;
 	//Fill up code from OBJ lecture notes
-	std::ifstream fileStream(file_path, std::ios::binary);
+	std::ifstream fileStream(actualFilePath, std::ios::binary);
 	if (!fileStream.is_open())
 	{
-		std::cout << "Impossible to open " << file_path << ". Are you in the right directory ?\n";
+		std::cout << "Impossible to open " << actualFilePath << ". Are you in the right directory ?\n";
 		return false;
 	}
 	std::vector<unsigned> vertexIndices, uvIndices, normalIndices;
@@ -35,26 +45,25 @@ bool LoadOBJ(
 		else if (strncmp("vt ", buf, 3) == 0) { 
 			// process texcoord
 			glm::vec2 texCoord;
-			sscanf_s((buf + 2), "%f%f", &texCoord.x, &texCoord.y);
-			if (flipUVs) texCoord.y = 1.f - texCoord.y;
+			sscanf_s((buf + 3), "%f%f", &texCoord.x, &texCoord.y);
 			temp_uvs.push_back(texCoord);
 		}
 		else if (strncmp("vn ", buf, 3) == 0) { 
 			// process normal
 			glm::vec3 normal;
-			sscanf_s((buf + 2), "%f%f%f", &normal.x, &normal.y, &normal.z);
+			sscanf_s((buf + 3), "%f%f%f", &normal.x, &normal.y, &normal.z);
 			temp_normals.push_back(normal);
 		}
 		else if (strncmp("f ", buf, 2) == 0) { 
 			// process face
 
-
-			unsigned int vertexIndex[4], uvIndex[4], normalIndex[4];
-			int matches = sscanf_s((buf + 2), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
+			unsigned int vertexIndex[5], uvIndex[5], normalIndex[5];
+			int matches = sscanf_s((buf + 2), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
 				&vertexIndex[0], &uvIndex[0], &normalIndex[0],
 				&vertexIndex[1], &uvIndex[1], &normalIndex[1],
 				&vertexIndex[2], &uvIndex[2], &normalIndex[2],
-				&vertexIndex[3], &uvIndex[3], &normalIndex[3]);
+				&vertexIndex[3], &uvIndex[3], &normalIndex[3],
+				&vertexIndex[4], &uvIndex[4], &normalIndex[4]);
 
 			// Process faces
 			if (matches == 9) //triangle
@@ -91,6 +100,38 @@ bool LoadOBJ(
 				normalIndices.push_back(normalIndex[2]);
 				normalIndices.push_back(normalIndex[3]);
 			}
+			else if (matches == 15) // pantagon
+			{
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[1]);
+				vertexIndices.push_back(vertexIndex[2]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[1]);
+				uvIndices.push_back(uvIndex[2]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[1]);
+				normalIndices.push_back(normalIndex[2]);
+
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[2]);
+				vertexIndices.push_back(vertexIndex[3]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[2]);
+				uvIndices.push_back(uvIndex[3]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[2]);
+				normalIndices.push_back(normalIndex[3]);
+
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[3]);
+				vertexIndices.push_back(vertexIndex[4]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[3]);
+				uvIndices.push_back(uvIndex[4]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[3]);
+				normalIndices.push_back(normalIndex[4]);
+			}
 			else
 			{
 				std::cout << "Error line: " << buf << std::endl;
@@ -120,20 +161,11 @@ bool LoadOBJ(
 		out_normals.push_back(normal);
 	}
 
-
+	std::cout << "loaded obj at " << actualFilePath << "\n";
 	return true;
 }
 
-struct PackedVertex {
-	glm::vec3 position;
-	glm::vec2 uv;
-	glm::vec3 normal;
-	bool operator<(const PackedVertex that) const {
-		return memcmp((void*)this, (void*)&that, sizeof(PackedVertex)) > 0;
-	};
-};
-
-bool getSimilarVertexIndex_fast(
+bool ModelLoader::getSimilarVertexIndex_fast(
 	PackedVertex& packed,
 	std::map<PackedVertex, unsigned short>& VertexToOutIndex,
 	unsigned short& result
@@ -150,7 +182,7 @@ bool getSimilarVertexIndex_fast(
 	}
 }
 
-void IndexVBO(
+void ModelLoader::IndexVBO(
 	std::vector<glm::vec3>& in_vertices,
 	std::vector<glm::vec2>& in_uvs,
 	std::vector<glm::vec3>& in_normals,
@@ -192,12 +224,13 @@ void IndexVBO(
 	}
 }
 
-bool LoadMTL(const char* file_path, std::map<std::string, Material*>& materials_map)
+bool ModelLoader::LoadMTL(const char* file_path, std::map<std::string, Material*>& materials_map)
 {
-	std::ifstream fileStream(file_path, std::ios::binary);
+	std::string actualFilePath = directory + file_path;
+	std::ifstream fileStream(actualFilePath, std::ios::binary);
 	if (!fileStream.is_open())
 	{
-		std::cout << "Impossible to open " << file_path << ". Are you in the right directory ?\n";
+		std::cout << "Impossible to open " << actualFilePath << ". Are you in the right directory ?\n";
 		return false;
 	}
 	Material* mtl = nullptr;
@@ -219,39 +252,41 @@ bool LoadMTL(const char* file_path, std::map<std::string, Material*>& materials_
 		else if (strncmp("Ka ", buf, 3) == 0) { //process Ka
 			if (mtl != nullptr)
 			{
-				sscanf_s((buf + 2), "%f%f%f", &mtl->kAmbient.r, &mtl->kAmbient.g, &mtl->kAmbient.b);
+				sscanf_s((buf + 3), "%f%f%f", &mtl->kAmbient.r, &mtl->kAmbient.g, &mtl->kAmbient.b);
 			}
 		}
 		else if (strncmp("Kd ", buf, 3) == 0) { //process Kd
 			if (mtl != nullptr)
 			{
-				sscanf_s((buf + 2), "%f%f%f", &mtl->kDiffuse.r, &mtl->kDiffuse.g, &mtl->kDiffuse.b);
+				sscanf_s((buf + 3), "%f%f%f", &mtl->kDiffuse.r, &mtl->kDiffuse.g, &mtl->kDiffuse.b);
 			}
 		}
 		else if (strncmp("Ks ", buf, 3) == 0) { //process Ks
 			if (mtl != nullptr)
 			{
-				sscanf_s((buf + 2), "%f%f%f", &mtl->kSpecular.r, &mtl->kSpecular.g, &mtl->kSpecular.b);
+				sscanf_s((buf + 3), "%f%f%f", &mtl->kSpecular.r, &mtl->kSpecular.g, &mtl->kSpecular.b);
 			}
 		}
 		else if (strncmp("Ns ", buf, 3) == 0) { //process Ns
 			if (mtl != nullptr)
 			{
-				sscanf_s((buf + 2), "%f", &mtl->kShininess);
+				sscanf_s((buf + 3), "%f", &mtl->kShininess);
 			}
 		}
 	}
 	fileStream.close(); // close file
 
+	std::cout << "loaded mtl at " << actualFilePath << "\n";
 	return true;
 }
 
-bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::vec3>& out_vertices, std::vector<glm::vec2>& out_uvs, std::vector<glm::vec3>& out_normals, std::vector<Material>& out_materials, bool flipUVs)
+bool ModelLoader::LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::vec3>& out_vertices, std::vector<glm::vec2>& out_uvs, std::vector<glm::vec3>& out_normals, std::vector<Material>& out_materials)
 {
-	std::ifstream fileStream(file_path, std::ios::binary);
+	std::string actualFilePath = directory + file_path;
+	std::ifstream fileStream(actualFilePath, std::ios::binary);
 	if (!fileStream.is_open())
 	{
-		std::cout << "Impossible to open " << file_path << ". Are you in the right directory ?\n";
+		std::cout << "Impossible to open " << actualFilePath << ". Are you in the right directory ?\n";
 		return false;
 	}
 	std::vector<unsigned> vertexIndices, uvIndices, normalIndices;
@@ -273,27 +308,25 @@ bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::ve
 		}
 		else if (strncmp("vt ", buf, 3) == 0) { 
 			// process texcoord
-			glm::vec2 texCoord;
-			sscanf_s((buf + 2), "%f%f", &texCoord.x, &texCoord.y);
-			if (flipUVs) texCoord.y = 1.f - texCoord.y;
+			glm::vec3 texCoord;
+			sscanf_s((buf + 3), "%f%f", &texCoord.x, &texCoord.y);
 			temp_uvs.push_back(texCoord);
 		}
 		else if (strncmp("vn ", buf, 3) == 0) { 
 			// process normal
 			glm::vec3 normal;
-			sscanf_s((buf + 2), "%f%f%f", &normal.x, &normal.y, &normal.z);
+			sscanf_s((buf + 3), "%f%f%f", &normal.x, &normal.y, &normal.z);
 			temp_normals.push_back(normal);
 		}
-		//else if (strncmp("mtllib ", buf, 7) == 0) { //process mtllib
-		//	char mtl_path[256];
-		//	strcpy_s(mtl_path, buf + 7);
-		//	LoadMTL(mtl_path, materials_map);
-		//}
+		else if (strncmp("mtllib ", buf, 7) == 0) { //process mtllib
+			char mtl_path[256];
+			strcpy_s(mtl_path, buf + 7);
+			LoadMTL(mtl_path, materials_map);
+		}
 		else if (strncmp("usemtl ", buf, 7) == 0) { 
 			// process usemtl
 			char mtl_name[256];
 			strcpy_s(mtl_name, buf + 7);
-			mtl_name[strcspn(mtl_name, "\r")] = '\0';
 			if (materials_map.find(mtl_name) != materials_map.end())
 			{
 				Material* mtl = materials_map.find(mtl_name)->second;
@@ -303,21 +336,17 @@ bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::ve
 		}
 		else if (strncmp("f ", buf, 2) == 0) { 
 			// process face
-			// refer to lecture on how to do it
-			unsigned int vertexIndex[4], uvIndex[4], normalIndex[4];
-			int matches = sscanf_s((buf + 2), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
+
+			unsigned int vertexIndex[5], uvIndex[5], normalIndex[5];
+			int matches = sscanf_s((buf + 2), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
 				&vertexIndex[0], &uvIndex[0], &normalIndex[0],
 				&vertexIndex[1], &uvIndex[1], &normalIndex[1],
 				&vertexIndex[2], &uvIndex[2], &normalIndex[2],
-				&vertexIndex[3], &uvIndex[3], &normalIndex[3]);
+				&vertexIndex[3], &uvIndex[3], &normalIndex[3],
+				&vertexIndex[4], &uvIndex[4], &normalIndex[4]);
 
 			if (matches == 9) //triangle (hint: index 0,1,2)
 			{
-				if (out_materials.size() > 0)
-				{
-					out_materials.back().size += 3;
-				}
-
 				vertexIndices.push_back(vertexIndex[0]);
 				vertexIndices.push_back(vertexIndex[1]);
 				vertexIndices.push_back(vertexIndex[2]);
@@ -327,14 +356,14 @@ bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::ve
 				normalIndices.push_back(normalIndex[0]);
 				normalIndices.push_back(normalIndex[1]);
 				normalIndices.push_back(normalIndex[2]);
+
+				if (out_materials.size() > 0)
+				{
+					out_materials.back().size += 3;
+				}
 			}
 			else if (matches == 12) //quad (hint: index 0,1,2 & 0,2,3)
 			{
-				if (out_materials.size() > 0)
-				{
-					out_materials.back().size += 6;
-				}
-
 				vertexIndices.push_back(vertexIndex[0]);
 				vertexIndices.push_back(vertexIndex[1]);
 				vertexIndices.push_back(vertexIndex[2]);
@@ -354,6 +383,48 @@ bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::ve
 				normalIndices.push_back(normalIndex[0]);
 				normalIndices.push_back(normalIndex[2]);
 				normalIndices.push_back(normalIndex[3]);
+
+				if (out_materials.size() > 0)
+				{
+					out_materials.back().size += 6;
+				}
+			}
+			else if (matches == 15) // pantagon
+			{
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[1]);
+				vertexIndices.push_back(vertexIndex[2]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[1]);
+				uvIndices.push_back(uvIndex[2]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[1]);
+				normalIndices.push_back(normalIndex[2]);
+
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[2]);
+				vertexIndices.push_back(vertexIndex[3]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[2]);
+				uvIndices.push_back(uvIndex[3]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[2]);
+				normalIndices.push_back(normalIndex[3]);
+
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[3]);
+				vertexIndices.push_back(vertexIndex[4]);
+				uvIndices.push_back(uvIndex[0]);
+				uvIndices.push_back(uvIndex[3]);
+				uvIndices.push_back(uvIndex[4]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[3]);
+				normalIndices.push_back(normalIndex[4]);
+
+				if (out_materials.size() > 0)
+				{
+					out_materials.back().size += 9;
+				}
 			}
 			else
 			{
@@ -390,5 +461,7 @@ bool LoadOBJMTL(const char* file_path, const char* mtl_path, std::vector<glm::ve
 	}
 	materials_map.clear();
 
+	std::cout << "loaded obj at " << actualFilePath << "\n";
 	return true;
 }
+
