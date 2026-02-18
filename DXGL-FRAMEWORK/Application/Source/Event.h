@@ -11,10 +11,10 @@
 * Event<return_type, parameter_1, parameter_2 ...> demoEvent;
 * 
 * || initiation
-* demoEvent.Subscribe( lambda_with_same_parameters_declared );
+* demoEvent.Subscribe( lambda_or_function_with_same_parameters_declared ); // if you used lambda, the capture clause range is in this scope
 * 
 * || use
-* demoEvent.Invoke(parameter_1, parameter_2 ...); // calls the lambda that you subscribed to with the parameters you pluged in, the capture clause range is in the scope where you subscribed the lambda
+* demoEvent.Invoke(parameter_1, parameter_2 ...); // calls the lambda / function that you subscribed to with the parameters you pluged in
 */
 
 /* how to use | EventPack:
@@ -22,10 +22,10 @@
 * EventPack<key_type, return_type, parameter_1, parameter_2 ...> demoEventPack;
 *
 * || initiation
-* demoEventPack.Subscribe(key_variable, lambda_with_same_parameters_declared );
+* demoEventPack.Subscribe(key_variable, lambda_or_function_with_same_parameters_declared ); // use different key to store different lambda / function
 *
 * || use
-* demoEventPack.Invoke(key_variable, parameter_1, parameter_2 ...); // same as Event but with a key to find the function you subscribed
+* demoEventPack.Invoke(key_variable, parameter_1, parameter_2 ...); // same as Event but with a key to find the lambda / function you subscribed
 */
 
 template<typename Return, typename... Args>

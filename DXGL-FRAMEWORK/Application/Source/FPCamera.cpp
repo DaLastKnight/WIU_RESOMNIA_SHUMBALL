@@ -175,10 +175,10 @@ void FPCamera::Update(double dt) {
 		phi = -89;
 
 	// Calculate smoothed stats
-	Smooth(smoothPhi, phi, rotSmoothing, dt);
-	Smooth(smoothTheta, theta, rotSmoothing, dt);
-	Smooth(smoothPsi, psi, moveSmoothing, dt);
-	Smooth(smoothPosition, basePosition, moveSmoothing, dt);
+	smoothPhi = Smooth(smoothPhi, phi, rotSmoothing, dt);
+	smoothTheta = Smooth(smoothTheta, theta, rotSmoothing, dt);
+	smoothPsi = Smooth(smoothPsi, psi, moveSmoothing, dt);
+	smoothPosition = Smooth(smoothPosition, basePosition, moveSmoothing, dt);
 
 	// bobbing
 	bobbingElapsed += dt * bobbingSmoothSpeed;
@@ -186,14 +186,14 @@ void FPCamera::Update(double dt) {
 		float targetX = sinf(5 * bobbingElapsed) * bobbingMaxX;
 		float targetY = sinf(10 * bobbingElapsed) * bobbingMaxY;
 		float targetPsi = sinf(5 * bobbingElapsed) * bobbingMaxPsi;
-		Smooth(bobbingX, targetX, moveSmoothing, dt);
-		Smooth(bobbingY, targetY, moveSmoothing, dt);
-		Smooth(bobbingPsi, targetPsi, moveSmoothing, dt);
+		bobbingX = Smooth(bobbingX, targetX, moveSmoothing, dt);
+		bobbingY = Smooth(bobbingY, targetY, moveSmoothing, dt);
+		bobbingPsi = Smooth(bobbingPsi, targetPsi, moveSmoothing, dt);
 	}
 	else {
-		Smooth(bobbingX, 0.f, moveSmoothing, dt);
-		Smooth(bobbingY, 0.f, moveSmoothing, dt);
-		Smooth(bobbingPsi, 0.f, moveSmoothing, dt);
+		bobbingX = Smooth(bobbingX, 0.f, moveSmoothing, dt);
+		bobbingY = Smooth(bobbingY, 0.f, moveSmoothing, dt);
+		bobbingPsi = Smooth(bobbingPsi, 0.f, moveSmoothing, dt);
 	}
 
 	Refresh();
@@ -252,10 +252,11 @@ void FPCamera::Refresh()
 	float radPhi = glm::radians(smoothPhi);
 	float radTheta = glm::radians(smoothTheta);
 
-	float x = smoothPosition.x + cosf(radPhi) * cosf(radTheta);
-	float y = smoothPosition.y + sinf(radPhi);
-	float z = smoothPosition.z + cosf(radPhi) * sinf(radTheta);
-	smoothTarget = glm::vec3(x, y, z);
+	smoothTarget = glm::vec3(
+		smoothPosition.x + cosf(radPhi) * cosf(radTheta),
+		smoothPosition.y + sinf(radPhi), 
+		smoothPosition.z + cosf(radPhi) * sinf(radTheta)
+	);
 
 	// find the direction of current view
 	direction = glm::normalize(smoothTarget - smoothPosition);

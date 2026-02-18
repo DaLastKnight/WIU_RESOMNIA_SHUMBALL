@@ -1,6 +1,12 @@
 
 #include "RenderObject.h"
 #include "Application.h"
+#include "Utils.h"
+
+#include <array>
+#include <queue>
+#include <stack>
+#include <iostream>
 
 using App = Application;
 
@@ -16,6 +22,39 @@ std::vector<std::weak_ptr<RenderObject>> RenderObject::screenList;
 std::shared_ptr<RenderObject> RenderObject::newObject;
 
 EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
+
+void RenderObject::SortScreenList() {
+	std::array<std::vector<std::weak_ptr<RenderObject>>, MAX_UI_LAYERS> bucketList;
+	static constexpr int MAX_UI_LAYERS_LESS_ONE = MAX_UI_LAYERS - 1;
+	int prevLayer = MAX_UI_LAYERS_LESS_ONE;
+	bool inOrder = true;
+
+	for (auto it = screenList.rbegin(); it != screenList.rend(); it++) {
+		int thisLayer = it->lock()->UILayer;
+
+		thisLayer = Clamp(thisLayer, 0, MAX_UI_LAYERS_LESS_ONE);
+
+		if (prevLayer < thisLayer) {
+			inOrder = false;
+			break;
+		}
+		prevLayer = thisLayer;
+	}
+	if (inOrder)
+		return;
+
+	for (auto& obj_weak : screenList) {
+		int thisLayer = obj_weak.lock()->UILayer;
+
+		thisLayer = Clamp(thisLayer, 0, MAX_UI_LAYERS_LESS_ONE);
+		bucketList[thisLayer].push_back(obj_weak);
+	}
+
+	screenList.clear();
+	for (unsigned layer = 0; layer < bucketList.size(); layer++)
+		for (auto& obj : bucketList[layer])
+			screenList.push_back(obj);
+}
 
 void RenderObject::UpdateModel() {
 	if (isDirty || trl != prevTrl || rot != prevRot || scl != prevScl) {
@@ -163,13 +202,13 @@ void RenderObject::AddHierarchyToList(RENDER_TYPE type, std::shared_ptr<RenderOb
 
 void RenderObject::TransformModelStack(MatrixStack& modelStack, const std::shared_ptr<RenderObject>& obj) {
 
-	float relativeX = 1, relativeY = 1;
+	float relativeX = 1, relativeY = 1, relativeOffsetX = 0, relativeOffsetY = 0;
 	if (obj->renderType == RenderObject::SCREEN && obj->relativeTrl) {
-		relativeX = App::SCREEN_WIDTH / 3;
-		relativeY = App::SCREEN_HEIGHT / 3;
+		relativeOffsetX = relativeX = App::SCREEN_WIDTH / 2;
+		relativeOffsetY = relativeY = App::SCREEN_HEIGHT / 2;
 	}
 
-	modelStack.Translate(obj->trl.x * relativeX, obj->trl.y * relativeY, obj->trl.z);
+	modelStack.Translate(obj->trl.x * relativeX + relativeOffsetX, obj->trl.y * relativeY + relativeOffsetY, obj->trl.z);
 	modelStack.Rotate(obj->rot.x, 1, 0, 0);
 	modelStack.Rotate(obj->rot.y, 0, 1, 0);
 	modelStack.Rotate(obj->rot.z, 0, 0, 1);

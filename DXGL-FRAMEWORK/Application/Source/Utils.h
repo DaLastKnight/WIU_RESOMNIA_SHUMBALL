@@ -46,8 +46,8 @@ inline std::string VecToString(glm::vec4 vec) {
 // Smoothing >= 1, 1 means no smoothing, largers the smoothing, the longer current takes to reach target
 // type must support / and * with float, and + and - with its own type
 template<typename T>
-inline void Smooth(T& currentValue, const T& targetValue, float Smoothing, float deltaTime) {
-	currentValue = currentValue + (targetValue - currentValue) / Smoothing * deltaTime * 100.f;
+inline T Smooth(const T& currentValue, const T& targetValue, float Smoothing, float deltaTime) {
+	return currentValue + (targetValue - currentValue) / Smoothing * deltaTime * 100.f;
 }
 
 #endif

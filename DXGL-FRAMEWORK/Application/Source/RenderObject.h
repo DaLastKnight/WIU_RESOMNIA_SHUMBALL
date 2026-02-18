@@ -4,9 +4,6 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <queue>
-#include <stack>
-#include <iostream>
 
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
@@ -14,7 +11,6 @@
 
 #include "MatrixStack.h"
 #include "Material.h"
-#include "Utils.h"
 #include "Event.h"
 #include "Light.h"
 
@@ -42,7 +38,7 @@ public:
 	glm::vec3 prevRot = rot;
 	glm::vec3 prevScl = scl;
 
-	unsigned UILayer = 0;
+	int UILayer = 0; // ranges from 0 to MAX_UI_LAYERS, anything else will be clamped in the calculation
 
 	int geometryType;
 	Material material;
@@ -77,6 +73,8 @@ public:
 	// Subscribe() to a lambda and itll be Invoke() when creating a object with the same key
 	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDefaultStat;
 
+	static void SortScreenList();
+
 	void UpdateModel();
 
 	void Destroy();
@@ -98,6 +96,8 @@ public:
 
 protected:
 
+	static constexpr unsigned MAX_UI_LAYERS = 100;
+
 	bool isDirty = true;
 
 	glm::mat4 GetModel();
@@ -112,6 +112,8 @@ protected:
 	void AddHierarchyToList(RENDER_TYPE type, std::shared_ptr<RenderObject> obj);
 
 	void TransformModelStack(MatrixStack& modelStack, const std::shared_ptr<RenderObject>& obj);
+
+	
 };
 
 
@@ -134,7 +136,7 @@ protected:
 struct LightObject : public RenderObject {
 	Light lightProperties;
 	unsigned lightIndex;
-	glm::vec3 initialDire; // for spot light, used to calculate the actual direction using the model of the light
+	glm::vec3 initialDire = glm::vec3(0, -1, 0); // for spot light, used to calculate the actual direction using the model of the light
 
 	static int maxLight;
 	static std::vector<std::weak_ptr<LightObject>> lightList;
@@ -155,17 +157,17 @@ protected:
 class TextObject : public RenderObject {
 public:
 
-	std::string id;
 	std::string text;
 	glm::vec3 color;
 	bool centerText = false;
 
-	static std::shared_ptr<TextObject> Create(std::string id, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0);
+	static std::shared_ptr<TextObject> Create(std::string name, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0);
 
 	~TextObject() = default;
-	TextObject(std::string id, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0)
-		: id(id), text(text), color(color), centerText(centerText), RenderObject(font, UILayer) {
+	TextObject(std::string name, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0)
+		: text(text), color(color), centerText(centerText), RenderObject(font, UILayer) {
 		hasTransparency = true;
+		this->name = name;
 	}
 
 protected:

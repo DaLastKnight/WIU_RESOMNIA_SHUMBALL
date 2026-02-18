@@ -25,6 +25,7 @@
 #include "Utils.h"
 
 using App = Application;
+using RObj = RenderObject;
 
 using glm::vec3;
 using glm::mat4;
@@ -138,56 +139,71 @@ void BaseScene::Init()
 		meshList[GEO_SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
 		meshList[GEO_LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GEO_GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
-		
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, fontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+
+		// 
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 	}
 
 	// init roots
 	{
-		worldRoot = std::make_shared<RenderObject>();
-		worldRoot->renderType = RenderObject::WORLD;
+		worldRoot = std::make_shared<RObj>();
+		worldRoot->renderType = RObj::WORLD;
 		worldRoot->geometryType = GEO_GROUP;
+		worldRoot->UpdateModel();
 
-		viewRoot = std::make_shared<RenderObject>();
-		viewRoot->renderType = RenderObject::VIEW;
+		viewRoot = std::make_shared<RObj>();
+		viewRoot->renderType = RObj::VIEW;
 		viewRoot->geometryType = GEO_GROUP;
+		viewRoot->UpdateModel();
 
-		screenRoot = std::make_shared<RenderObject>();
-		screenRoot->renderType = RenderObject::SCREEN;
+		screenRoot = std::make_shared<RObj>();
+		screenRoot->renderType = RObj::SCREEN;
 		screenRoot->geometryType = GEO_GROUP;
+		screenRoot->UpdateModel();
 
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
 
-		RenderObject::worldList.reserve(50);
-		RenderObject::viewList.reserve(10);
-		RenderObject::screenList.reserve(10);
+		RObj::worldList.reserve(50);
+		RObj::viewList.reserve(10);
+		RObj::screenList.reserve(10);
 	}
 
 	// init default stats
 	{
-		RenderObject::setDefaultStat.Subscribe(GEO_AXES, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(GEO_AXES, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NO_LIGHT);
 			});
-		RenderObject::setDefaultStat.Subscribe(GEO_GROUND, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(GEO_GROUND, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
 			});
-		RenderObject::setDefaultStat.Subscribe(GEO_SKYBOX, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(GEO_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
 			});
-		RenderObject::setDefaultStat.Subscribe(GEO_LIGHT, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(GEO_LIGHT, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NEON);
 			obj->offsetScl = vec3(0.05f);
 			});
-		RenderObject::setDefaultStat.Subscribe(GEO_GROUP, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(GEO_GROUP, [](const std::shared_ptr<RObj>& obj) {
 			});
 
-		RenderObject::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RenderObject>& obj) {
+		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
+			});
+		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
 			});
 	}
 
+	auto& newObj = RObj::newObject;
 	// world space init
 	{
 		worldRoot->NewChild(MeshObject::Create(GEO_AXES));
@@ -201,10 +217,9 @@ void BaseScene::Init()
 			std::shared_ptr<LightObject> newLightObj;
 
 			worldRoot->NewChild(LightObject::Create(GEO_LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(RenderObject::newObject);
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
 			{
 				newLightObj->trl = vec3(0, 20, 0);
-				newLightObj->material.Set(Material::NEON);
 				newLightObj->name = "demo light";
 				auto& lightProperties = newLightObj->lightProperties;
 				lightProperties.type = Light::LIGHT_POINT;
@@ -214,10 +229,26 @@ void BaseScene::Init()
 				lightProperties.kC = 1;
 				lightProperties.kL = 0.001f;
 				lightProperties.kQ = 0.001f;
-				// spot light variables
-				lightProperties.cosCutoff = 45.f;
-				lightProperties.cosInner = 30.f;
-				lightProperties.spotDirection = vec3(0.f, 1.f, 0.f);
+				UpdateLightUniform(newLightObj);
+			}
+
+			worldRoot->NewChild(LightObject::Create(GEO_LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				newLightObj->trl = vec3(20, 5, 0);
+				newLightObj->name = "demo light";
+				newLightObj->initialDire = vec3(1, -1, 1); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
+				auto& lightProperties = newLightObj->lightProperties;
+				lightProperties.type = Light::LIGHT_SPOT;
+				lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
+				lightProperties.power = 1;
+				// 0 - 1 percentage of actual values applies
+				lightProperties.kC = 1;
+				lightProperties.kL = 0.005f;
+				lightProperties.kQ = 0.01f;
+				// spot light variables (yes, these are the only 2 you need to change manually)
+				lightProperties.cosCutoff = 31.f;
+				lightProperties.cosInner = 29.f;
 				UpdateLightUniform(newLightObj);
 			}
 		}
@@ -230,27 +261,50 @@ void BaseScene::Init()
 
 	// screen space init
 	{
+		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
+		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
+		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
+		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
+		newObj->trl = vec3(-0.85f, -0.85f, 0);
+		newObj->scl = vec3(80, 80, 1);
 
+		// debug text
+		for (int i = 0; i < 10; i++) {
+			screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), FONT_CASCADIA_MONO, false, 99));
+			newObj->relativeTrl = true;
+			newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+			newObj->scl = vec3(30, 30, 1);
+			debugTextList.push_back(newObj);
+		}
 	}
 
-	RenderObject::newObject.reset();
+	RObj::newObject.reset();
 }
 
 void BaseScene::Update(double dt) {
+
+	// refreshes and clears per frame
+	camera.VariableRefresh();
+	clearDebugText();
+
 	if (dt > 0.1f) {
 		dt = 0.1f;
 	}
 
 	auto& lightList = LightObject::lightList;
-	auto& worldList = RenderObject::worldList;
-	auto& viewList = RenderObject::viewList;
-	auto& screenList = RenderObject::screenList;
+	auto& worldList = RObj::worldList;
+	auto& viewList = RObj::viewList;
+	auto& screenList = RObj::screenList;
 
-	camera.VariableRefresh();
 	HandleKeyPress();
 	camera.Update(dt);
 
-
+	if (debug) {
+		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition));
+		AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
+		AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
+		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
+	}
 
 	// world render objects
 	for (unsigned i = 0; i < worldList.size(); ) {
@@ -276,8 +330,11 @@ void BaseScene::Update(double dt) {
 			break;
 		}
 
-		obj->UpdateModel();
+		if (debug) {
 
+		}
+
+		obj->UpdateModel();
 		i++;
 	}
 
@@ -306,7 +363,7 @@ void BaseScene::Update(double dt) {
 
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 
-			if (textObj->id == "fps") {
+			if (textObj->name == "fps") {
 				static float timer = 0;
 				static int frameCount = 0;
 				const float fpsUpdateTime = 0.5f;
@@ -317,10 +374,6 @@ void BaseScene::Update(double dt) {
 					timer = 0;
 					frameCount = 0;
 				}
-			}
-
-			if (textObj->id.find("debug_") != std::string::npos) {
-				textObj->text = "";
 			}
 
 			if (debug) {
@@ -348,12 +401,12 @@ void BaseScene::Update(double dt) {
 
 		obj->UpdateModel();
 
-		if (obj->renderType == RenderObject::VIEW || obj->renderType == RenderObject::WORLD) {
+		if (obj->renderType == RObj::VIEW || obj->renderType == RObj::WORLD) {
 
 			
 			mat4 lightModel = obj->model;
 
-			if (obj->renderType == RenderObject::VIEW) {
+			if (obj->renderType == RObj::VIEW) {
 				mat4 inversedView = glm::inverse(viewStack.Top());
 				lightModel = inversedView * lightModel; // original light model is in camera space
 			}
@@ -409,7 +462,7 @@ void BaseScene::Render()
 			lightProperties.position = lightPos_local;
 
 			glm::vec3 spotDire_local = lightProperties.spotDirection;
-			lightProperties.spotDirection = viewStack.Top() * glm::vec4(lightProperties.spotDirection, 0);// spotDirection_cameraspace
+			lightProperties.spotDirection = -viewStack.Top() * glm::vec4(lightProperties.spotDirection, 0);// spotDirection_cameraspace
 			UpdateLightUniform(lightObj, U_LIGHT_SPOTDIRECTION);
 			lightProperties.spotDirection = spotDire_local;
 		}
@@ -435,17 +488,16 @@ void BaseScene::Render()
 	
 	// render scene
 	struct ListInfo {
-		std::shared_ptr<RenderObject> obj;
+		std::shared_ptr<RObj> obj;
 		mat4 model;
 		float depth;
-		ListInfo(std::shared_ptr<RenderObject> obj, mat4 model, float depth)
+		ListInfo(std::shared_ptr<RObj> obj, mat4 model, float depth)
 			: obj(obj), model(model), depth(depth) {}
 	};
-
 	std::vector<ListInfo> transparencyList;
 	transparencyList.reserve(40);
 
-	auto insert2TransparencyList = [&](const std::shared_ptr<RenderObject>& obj, const mat4& model, float depth) {
+	auto insert2TransparencyList = [&](const std::shared_ptr<RObj>& obj, const mat4& model, float depth) {
 
 		unsigned insertPosition = 0;
 
@@ -458,7 +510,6 @@ void BaseScene::Render()
 
 		transparencyList.emplace(transparencyList.begin() + insertPosition, obj, model, depth);
 		};
-
 	auto renderTransparencyList = [&]() {
 		for (auto& info : transparencyList) {
 			modelStack.PushMatrix();
@@ -468,13 +519,13 @@ void BaseScene::Render()
 		}
 		};
 
-	auto renderObjectList = [&](const std::vector<std::weak_ptr<RenderObject>>& list) {
+	auto renderObjectList = [&](const std::vector<std::weak_ptr<RObj>>& list, bool ignoreTransparency = false) {
 		for (auto& obj_wptr : list) {
 			auto obj = obj_wptr.lock();
 			modelStack.PushMatrix();
 			modelStack.LoadMatrix(obj->model);
 
-			if (obj->hasTransparency) {
+			if (obj->hasTransparency && !ignoreTransparency) {
 				vec3 obj_worldPos = vec3(modelStack.Top()[3]);
 				vec3 obj2CameraPos = camera.GetFinalPosition() - obj_worldPos;
 				float depthSqr = obj2CameraPos.x * obj2CameraPos.x + obj2CameraPos.y * obj2CameraPos.y + obj2CameraPos.z * obj2CameraPos.z;
@@ -487,7 +538,8 @@ void BaseScene::Render()
 		}
 		};
 
-	renderObjectList(RenderObject::worldList);
+
+	renderObjectList(RObj::worldList);
 
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
@@ -500,8 +552,7 @@ void BaseScene::Render()
 	viewStack.PushMatrix();
 	viewStack.LoadIdentity();
 
-
-	renderObjectList(RenderObject::viewList);
+	renderObjectList(RObj::viewList);
 
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
@@ -516,13 +567,10 @@ void BaseScene::Render()
 	projectionStack.PushMatrix();
 	projectionStack.LoadMatrix(ortho);
 
-
-	renderObjectList(RenderObject::screenList);
-
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
-	renderTransparencyList();
-	transparencyList.clear();
+	RObj::SortScreenList();
+	renderObjectList(RObj::screenList, true);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 
@@ -626,7 +674,6 @@ void BaseScene::UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj,
 	case U_LIGHT_COSCUTOFF: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSCUTOFF], cosf(glm::radians<float>(lightProperties.cosCutoff))); break;
 	case U_LIGHT_COSINNER: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSINNER], cosf(glm::radians<float>(lightProperties.cosInner))); break;
 	default:
-		glUniform1i(m_parameters[U_LIGHT_ENABLED], enabledLight);
 		glUniform1i(m_parameters[U_LIGHT_NUMLIGHTS], LightObject::lightList.size());
 		glUniform1i(lightUniformLocations[lightIndex][U_LIGHT_TYPE], lightProperties.type);
 		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_POSITION], 1, glm::value_ptr(lightProperties.position));
@@ -707,13 +754,13 @@ void BaseScene::RenderMesh(GEOMETRY_TYPE object, bool enableLight) {
 	}
 }
 
-void BaseScene::renderObject(const std::shared_ptr<RenderObject> obj) {
+void BaseScene::renderObject(const std::shared_ptr<RObj> obj) {
 
 	if (!obj->allowRender)
 		return;
 
 	bool enableLight = true;
-	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RenderObject::SCREEN)
+	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RObj::SCREEN)
 		enableLight = false;
 
 	Material meshMaterial = meshList[obj->geometryType]->material;
@@ -766,7 +813,27 @@ void BaseScene::renderObject(const std::shared_ptr<RenderObject> obj) {
 
 }
 
-void BaseScene::RenderDebugText() {
+bool BaseScene::AddDebugText(const std::string& text, int index) {
+
+	if (index < 0) {
+		for (auto& obj_weak : debugTextList) {
+			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
+
+			if (textObj->text == "") {
+				textObj->text = text;
+				return true;
+			}
+		}
+		return false;
+	}
 	
+	index = Clamp(index, 0, 9);
+	std::dynamic_pointer_cast<TextObject>(debugTextList[index].lock())->text = text;
 	
+	return true;
+}
+
+void BaseScene::clearDebugText() {
+	for (auto& obj_weak : debugTextList)
+		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }

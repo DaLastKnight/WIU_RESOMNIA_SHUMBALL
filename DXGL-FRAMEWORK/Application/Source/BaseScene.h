@@ -30,6 +30,10 @@ public:
 
 		FONT_CASCADIA_MONO,
 
+		// add more variables here
+		UI_TEST,
+		UI_TEST_2,
+
 		NUM_GEOMETRY,
 	};
 
@@ -108,7 +112,6 @@ protected:
 	// uniforms for shader
 	static constexpr int MAX_LIGHT = 12;
 	void UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj, LIGHT_UNIFORM_TYPE uniform = U_LIGHT_TOTAL);
-	bool enabledLight = true;
 
 	void UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform = U_ATMOSPHERE_TOTAL);
 	bool enabledAtmosphere = true;
@@ -133,13 +136,14 @@ protected:
 
 	// debug
 	bool debug = false;
-	void AddDebugText(const std::string& text) {
-		debugTextList.emplace_back(text);
-	}
-
-	void RenderDebugText();
+	// if passed in index, overwrite data in that specific debug text
+	// returns success
+	// does not work in Init()
+	bool AddDebugText(const std::string& text, int index = -1); 
 
 private:
+
+	void clearDebugText();
 
 	// Geometry/Shader members
 	unsigned m_vertexArrayID;
@@ -151,7 +155,7 @@ private:
 	std::array<std::array<unsigned, U_LIGHT_TOTAL>, MAX_LIGHT> lightUniformLocations;
 	std::array<unsigned, U_ATMOSPHERE_TOTAL> atmosphereUniformLocations;
 
-	std::vector<std::string> debugTextList;
+	std::vector<std::weak_ptr<RenderObject>> debugTextList;
 };
 
 #endif
