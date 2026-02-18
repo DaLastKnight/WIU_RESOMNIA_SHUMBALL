@@ -15,28 +15,16 @@
 #include "Atmosphere.h"
 
 #include "RenderObject.h"
+#include "EnumArray.h"
+#include "Player.h"
 
+
+enum class GEOMETRY_TYPE : int;
 
 class BaseScene : public Scene
 {
 public:
-	enum GEOMETRY_TYPE
-	{
-		GEO_AXES,
-		GEO_GROUND,
-		GEO_SKYBOX,
-		GEO_LIGHT,
-		GEO_GROUP,
-
-		FONT_CASCADIA_MONO,
-
-		// add more variables here
-		UI_TEST,
-		UI_TEST_2,
-
-		NUM_GEOMETRY,
-	};
-
+	
 	enum UNIFORM_TYPE
 	{
 		U_MVP = 0,
@@ -92,7 +80,7 @@ public:
 	};
 
 	BaseScene();
-	virtual~BaseScene(); // = 0;
+	virtual~BaseScene() = 0;
 
 	virtual void Init();
 	virtual void Update(double dt);
@@ -101,13 +89,16 @@ public:
 
 protected:
 
-	float fontSpacing(GEOMETRY_TYPE font);
+	virtual float FontSpacing(GEOMETRY_TYPE font) {
+		return 1.f;
+	}
 
 	// HandleInput functions
-	void HandleKeyPress();
+	virtual void HandleKeyPress();
 	
 	// Geometry/Shader members
-	Mesh* meshList[NUM_GEOMETRY];
+	static constexpr int MAX_GEOMETRY = 100;
+	EnumArray<Mesh*, GEOMETRY_TYPE, MAX_GEOMETRY> meshList;
 
 	// uniforms for shader
 	static constexpr int MAX_LIGHT = 12;
@@ -123,6 +114,7 @@ protected:
 	Atmosphere atmosphere;
 
 	FPCamera camera;
+	Player player;
 
 	std::shared_ptr<RenderObject> worldRoot;
 	std::shared_ptr<RenderObject> viewRoot;
@@ -131,11 +123,12 @@ protected:
 	glm::mat4 perspective;
 	glm::mat4 ortho;
 
-	void RenderMesh(GEOMETRY_TYPE object, bool enableLight);
-	void renderObject(const std::shared_ptr<RenderObject> obj);
+	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
+	void RenderObj(const std::shared_ptr<RenderObject> obj);
 
 	// debug
 	bool debug = false;
+	void InitDebugText(GEOMETRY_TYPE font);
 	// if passed in index, overwrite data in that specific debug text
 	// returns success
 	// does not work in Init()
@@ -143,7 +136,7 @@ protected:
 
 private:
 
-	void clearDebugText();
+	void ClearDebugText();
 
 	// Geometry/Shader members
 	unsigned m_vertexArrayID;
@@ -156,6 +149,9 @@ private:
 	std::array<unsigned, U_ATMOSPHERE_TOTAL> atmosphereUniformLocations;
 
 	std::vector<std::weak_ptr<RenderObject>> debugTextList;
+
+	bool cullFaceActive = true;
+	bool wireFrameActive = false;
 };
 
 #endif

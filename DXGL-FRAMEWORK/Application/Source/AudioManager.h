@@ -6,17 +6,27 @@
 #include <SDL_mixer.h>
 
 #include <map>
+#include <string>
+
+
+enum class SFX_TYPE : int;
 
 class AudioManager {
 public:
 
-    static AudioManager& GetInstance();
+    static AudioManager& GetInstance() {
+        static AudioManager audioManager;
+        return audioManager;
+    }
+
+    void SetDirectoryMUS(const std::string& directoryPath);
+    void SetDirectorySFX(const std::string& directoryPath);
 
     void InitSystem();
     void OpenMixer();
 
     void LoadSFX(unsigned key, const char* filename);
-    void LoadMUS(const char* filename);
+    void LoadMUS(const char* filename, double totalMusicDuration);
 
     void UnloadSFX(unsigned key);
     void UnloadSFXAll();
@@ -41,6 +51,7 @@ public:
     // return playback position in seconds
     double GetMUSPosition();
     void SetMUSPosition(double postionInSeconds);
+    double GetMUSDUration();
 
     int PlayingMUS();
     // | channel : -1 = return number of channels currently playing
@@ -56,9 +67,14 @@ public:
 
 private:
 
-    std::map<unsigned, Mix_Chunk*> sfxList;
+    static constexpr unsigned TOTAL_SFX_CHANNEL = 32;
+    std::map<int, Mix_Chunk*> sfxList;
     Mix_Music* music = nullptr;
-    const unsigned sfxChannelCount = 32;
+    double musicDuration;
+    bool musicPlaying = false;
+
+    std::string directoryMusic;
+    std::string directorySFX;
 
     AudioManager() = default;
     ~AudioManager();

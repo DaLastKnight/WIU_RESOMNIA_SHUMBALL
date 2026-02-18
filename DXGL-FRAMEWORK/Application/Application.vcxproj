@@ -156,25 +156,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\AudioManager.cpp" />
+    <ClCompile Include="Source\BaseScene.cpp" />
     <ClCompile Include="Source\DataManager.cpp" />
     <ClCompile Include="Source\FPCamera.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\MatrixStack.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\MeshBuilder.cpp" />
-    <ClCompile Include="Source\BaseScene.cpp" />
+    <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\Application.h" />
     <ClInclude Include="Source\Atmosphere.h" />
     <ClInclude Include="Source\AudioManager.h" />
+    <ClInclude Include="Source\BaseScene.h" />
+    <ClInclude Include="Source\Console.h" />
     <ClInclude Include="Source\DataManager.h" />
+    <ClInclude Include="Source\EnumArray.h" />
     <ClInclude Include="Source\Event.h" />
     <ClInclude Include="Source\FPCamera.h" />
     <ClInclude Include="Source\Light.h" />
@@ -185,7 +191,8 @@
     <ClInclude Include="Source\ModelLoader.h" />
     <ClInclude Include="Source\RenderObject.h" />
     <ClInclude Include="Source\Scene.h" />
-    <ClInclude Include="Source\BaseScene.h" />
+    <ClInclude Include="Source\SceneDemo.h" />
+    <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\TextureLoader.h" />
     <ClInclude Include="Source\Utils.h" />
     <ClInclude Include="Source\Vertex.h" />

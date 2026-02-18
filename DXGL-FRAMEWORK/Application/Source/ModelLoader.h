@@ -35,7 +35,7 @@ class ModelLoader {
 
 public:
 
-	static void setDirectory(const std::string& directoryPath);
+	static void SetDirectory(const std::string& directoryPath);
 
 	static bool LoadOBJ(
 		const char* file_path,

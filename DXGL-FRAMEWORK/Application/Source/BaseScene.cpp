@@ -20,6 +20,7 @@
 #include "TextureLoader.h"
 #include "MouseController.h"
 #include "KeyboardController.h"
+#include "AudioManager.h"
 #include "DataManager.h"
 
 #include "Utils.h"
@@ -118,308 +119,15 @@ void BaseScene::Init()
 		atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE] = glGetUniformLocation(m_programID, "atmosphere.densestRange");
 	}
 
-	// atmosphere init
-	{
-		atmosphere.Set(vec3(0.05f, 0.07f, 0.1f), 0.05f, 0.000001f, 2, 20);
-		UpdateAtmosphereUniform();
-	}
-
-	// Initialise camera properties
-	camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-	camera.Set(FPCamera::MODE::FREE);
-
-	// Init VBO here
-	{
-		for (int i = 0; i < NUM_GEOMETRY; ++i)
-		{
-			meshList[i] = nullptr;
-		}
-		meshList[GEO_AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GEO_GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[GEO_SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
-		meshList[GEO_LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GEO_GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
-
-		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, fontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
-
-		// 
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-	}
-
-	// init roots
-	{
-		worldRoot = std::make_shared<RObj>();
-		worldRoot->renderType = RObj::WORLD;
-		worldRoot->geometryType = GEO_GROUP;
-		worldRoot->UpdateModel();
-
-		viewRoot = std::make_shared<RObj>();
-		viewRoot->renderType = RObj::VIEW;
-		viewRoot->geometryType = GEO_GROUP;
-		viewRoot->UpdateModel();
-
-		screenRoot = std::make_shared<RObj>();
-		screenRoot->renderType = RObj::SCREEN;
-		screenRoot->geometryType = GEO_GROUP;
-		screenRoot->UpdateModel();
-
-		LightObject::maxLight = MAX_LIGHT;
-		LightObject::lightList.reserve(MAX_LIGHT);
-
-		RObj::worldList.reserve(50);
-		RObj::viewList.reserve(10);
-		RObj::screenList.reserve(10);
-	}
-
-	// init default stats
-	{
-		RObj::setDefaultStat.Subscribe(GEO_AXES, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NO_LIGHT);
-			});
-		RObj::setDefaultStat.Subscribe(GEO_GROUND, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
-			obj->offsetRot = vec3(-90, 0, 0);
-			});
-		RObj::setDefaultStat.Subscribe(GEO_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::BRIGHT);
-			});
-		RObj::setDefaultStat.Subscribe(GEO_LIGHT, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
-			obj->offsetScl = vec3(0.05f);
-			});
-		RObj::setDefaultStat.Subscribe(GEO_GROUP, [](const std::shared_ptr<RObj>& obj) {
-			});
-
-		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
-			});
-		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
-		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
-	}
-
-	auto& newObj = RObj::newObject;
-	// world space init
-	{
-		worldRoot->NewChild(MeshObject::Create(GEO_AXES));
-
-		worldRoot->NewChild(MeshObject::Create(GEO_GROUND));
-
-		worldRoot->NewChild(MeshObject::Create(GEO_SKYBOX));
-
-		// light init
-		{
-			std::shared_ptr<LightObject> newLightObj;
-
-			worldRoot->NewChild(LightObject::Create(GEO_LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(0, 20, 0);
-				newLightObj->name = "demo light";
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_POINT;
-				lightProperties.color = vec3(1, 1, 1);
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.001f;
-				lightProperties.kQ = 0.001f;
-				UpdateLightUniform(newLightObj);
-			}
-
-			worldRoot->NewChild(LightObject::Create(GEO_LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(20, 5, 0);
-				newLightObj->name = "demo light";
-				newLightObj->initialDire = vec3(1, -1, 1); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_SPOT;
-				lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.005f;
-				lightProperties.kQ = 0.01f;
-				// spot light variables (yes, these are the only 2 you need to change manually)
-				lightProperties.cosCutoff = 31.f;
-				lightProperties.cosInner = 29.f;
-				UpdateLightUniform(newLightObj);
-			}
-		}
-	}
-
-	// view space init
-	{
-		
-	}
-
-	// screen space init
-	{
-		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
-
-		// debug text
-		for (int i = 0; i < 10; i++) {
-			screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), FONT_CASCADIA_MONO, false, 99));
-			newObj->relativeTrl = true;
-			newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
-			newObj->scl = vec3(30, 30, 1);
-			debugTextList.push_back(newObj);
-		}
-	}
-
-	RObj::newObject.reset();
 }
 
 void BaseScene::Update(double dt) {
 
 	// refreshes and clears per frame
+	RObj::newObject.reset();
 	camera.VariableRefresh();
-	clearDebugText();
-
-	if (dt > 0.1f) {
-		dt = 0.1f;
-	}
-
-	auto& lightList = LightObject::lightList;
-	auto& worldList = RObj::worldList;
-	auto& viewList = RObj::viewList;
-	auto& screenList = RObj::screenList;
-
-	HandleKeyPress();
-	camera.Update(dt);
-
-	if (debug) {
-		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition));
-		AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
-		AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
-		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
-	}
-
-	// world render objects
-	for (unsigned i = 0; i < worldList.size(); ) {
-		if (worldList[i].expired()) {
-			worldList.erase(worldList.begin() + i);
-			continue;
-		}
-
-		auto obj = worldList[i].lock();
-
-		switch (obj->geometryType) {
-		case GEO_AXES:
-		case GEO_LIGHT:
-		case GEO_GROUP:
-			obj->allowRender = debug;
-			break;
-
-		case GEO_SKYBOX:
-			obj->trl = camera.GetFinalPosition();
-			break;
-
-		default:
-			break;
-		}
-
-		if (debug) {
-
-		}
-
-		obj->UpdateModel();
-		i++;
-	}
-
-	// view render objects
-	for (unsigned i = 0; i < viewList.size(); ) {
-		if (viewList[i].expired()) {
-			viewList.erase(viewList.begin() + i);
-			continue;
-		}
-
-		auto obj = viewList[i].lock();
-
-
-		obj->UpdateModel();
-		i++;
-	}
-
-	// screen render objects
-	for (unsigned i = 0; i < screenList.size(); ) {
-		if (screenList[i].expired()) {
-			screenList.erase(screenList.begin() + i);
-			continue;
-		}
-
-		auto obj = screenList[i].lock();
-
-		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
-
-			if (textObj->name == "fps") {
-				static float timer = 0;
-				static int frameCount = 0;
-				const float fpsUpdateTime = 0.5f;
-				timer += dt;
-				frameCount++;
-				if (timer >= fpsUpdateTime) {
-					textObj->text = "fps: " + std::to_string(frameCount / timer);
-					timer = 0;
-					frameCount = 0;
-				}
-			}
-
-			if (debug) {
-
-			}
-		}
-
-		obj->UpdateModel();
-		obj->trl.z = 0;
-		obj->scl.z = 1;
-		i++;
-	}
-
-	// light update
-	for (unsigned i = 0; i < lightList.size(); ) {
-		if (lightList[i].expired()) {
-			lightList.erase(lightList.begin() + i);
-			continue;
-		}
-
-		auto obj = lightList[i].lock();
-		obj->allowRender = debug;
-		Light& lp = obj->lightProperties;
-
-
-		obj->UpdateModel();
-
-		if (obj->renderType == RObj::VIEW || obj->renderType == RObj::WORLD) {
-
-			
-			mat4 lightModel = obj->model;
-
-			if (obj->renderType == RObj::VIEW) {
-				mat4 inversedView = glm::inverse(viewStack.Top());
-				lightModel = inversedView * lightModel; // original light model is in camera space
-			}
-			lp.position = getPosFromModel(lightModel);
-			lp.spotDirection = rotateScaleWithModel(lightModel, obj->initialDire);
-		}
-		else {
-			lp.power = 0;
-		}
-
-		UpdateLightUniform(obj);
-		i++;
-	}
+	player.VariableRefresh();
+	ClearDebugText();
 
 }
 
@@ -485,115 +193,19 @@ void BaseScene::Render()
 	glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
 	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
 
-	
-	// render scene
-	struct ListInfo {
-		std::shared_ptr<RObj> obj;
-		mat4 model;
-		float depth;
-		ListInfo(std::shared_ptr<RObj> obj, mat4 model, float depth)
-			: obj(obj), model(model), depth(depth) {}
-	};
-	std::vector<ListInfo> transparencyList;
-	transparencyList.reserve(40);
-
-	auto insert2TransparencyList = [&](const std::shared_ptr<RObj>& obj, const mat4& model, float depth) {
-
-		unsigned insertPosition = 0;
-
-		for (auto& info : transparencyList) {
-			if (info.depth > depth)
-				insertPosition++;
-			else
-				break;
-		}
-
-		transparencyList.emplace(transparencyList.begin() + insertPosition, obj, model, depth);
-		};
-	auto renderTransparencyList = [&]() {
-		for (auto& info : transparencyList) {
-			modelStack.PushMatrix();
-			modelStack.LoadMatrix(info.model);
-			renderObject(info.obj);
-			modelStack.PopMatrix();
-		}
-		};
-
-	auto renderObjectList = [&](const std::vector<std::weak_ptr<RObj>>& list, bool ignoreTransparency = false) {
-		for (auto& obj_wptr : list) {
-			auto obj = obj_wptr.lock();
-			modelStack.PushMatrix();
-			modelStack.LoadMatrix(obj->model);
-
-			if (obj->hasTransparency && !ignoreTransparency) {
-				vec3 obj_worldPos = vec3(modelStack.Top()[3]);
-				vec3 obj2CameraPos = camera.GetFinalPosition() - obj_worldPos;
-				float depthSqr = obj2CameraPos.x * obj2CameraPos.x + obj2CameraPos.y * obj2CameraPos.y + obj2CameraPos.z * obj2CameraPos.z;
-				insert2TransparencyList(obj, modelStack.Top(), depthSqr);
-			}
-			else
-				renderObject(obj);
-
-			modelStack.PopMatrix();
-		}
-		};
-
-
-	renderObjectList(RObj::worldList);
-
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
-	renderTransparencyList();
-	transparencyList.clear();
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-
-
-	viewStack.PushMatrix();
-	viewStack.LoadIdentity();
-
-	renderObjectList(RObj::viewList);
-
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
-	renderTransparencyList();
-	transparencyList.clear();
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-
-
-	glDisable(GL_DEPTH_TEST);
-
-	projectionStack.PushMatrix();
-	projectionStack.LoadMatrix(ortho);
-
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
-	RObj::SortScreenList();
-	renderObjectList(RObj::screenList, true);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-
-	projectionStack.PopMatrix();
-	viewStack.PopMatrix();
-	modelStack.Clear();
-
-	glEnable(GL_DEPTH_TEST);
-
 }
 
 void BaseScene::Exit()
 {
 	// Cleanup VBO here
-	for (int i = 0; i < NUM_GEOMETRY; ++i)
-	{
-		if (meshList[i])
-		{
-			delete meshList[i];
-		}
-	}
+	for (auto& mesh : meshList)
+		if (mesh)
+			delete mesh;
 
 	DataManager::GetInstance().SaveData();
+
+	AudioManager::GetInstance().PauseMUS();
+	AudioManager::GetInstance().UnloadAll();
 
 	worldRoot.reset();
 	viewRoot.reset();
@@ -603,60 +215,30 @@ void BaseScene::Exit()
 	glDeleteProgram(m_programID);
 }
 
+void BaseScene::HandleKeyPress()
+{
+	if (debug) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
+			cullFaceActive = !cullFaceActive;
+			if (cullFaceActive)
+				glEnable(GL_CULL_FACE);
+			else 
+				glDisable(GL_CULL_FACE);
+		}
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_9)) {
+			wireFrameActive = !wireFrameActive;
+			if (wireFrameActive)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			else
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
+}
+
 
 /*********************************************************************************************************************************************************************************/
 /************************************************************************************ helpers ************************************************************************************/
 /*********************************************************************************************************************************************************************************/
-
-float BaseScene::fontSpacing(GEOMETRY_TYPE font) {
-	switch (font) {
-	case FONT_CASCADIA_MONO: return 0.375f;
-	default: return 1;
-	}
-}
-
-void BaseScene::HandleKeyPress()
-{
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_LEFT_ALT)) {
-		static auto prevMode = FPCamera::MODE::FREE;
-		auto& cameraMode = camera.GetCurrentMode();
-
-		if (cameraMode != FPCamera::MODE::PAUSE) {
-			prevMode = cameraMode;
-			camera.Set(FPCamera::MODE::PAUSE);
-		}
-		else {
-			camera.Set(prevMode);
-		}
-	}
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x31))
-	{
-		// Key press to enable culling
-		glEnable(GL_CULL_FACE);
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x32))
-	{
-		// Key press to disable culling
-		glDisable(GL_CULL_FACE);
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x33))
-	{
-		// Key press to enable fill mode for the polygon
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //default fill mode
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x34))
-	{
-		// Key press to enable wireframe mode for the polygon
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //wireframe mode
-	}
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
-		debug = !debug;
-	}
-
-}
 
 void BaseScene::UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj, LIGHT_UNIFORM_TYPE uniform) {
 	const auto& lightProperties = lightObj->lightProperties;
@@ -708,9 +290,9 @@ void BaseScene::UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform) {
 
 
 
-void BaseScene::RenderMesh(GEOMETRY_TYPE object, bool enableLight) {
+void BaseScene::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 
-	Mesh* mesh = meshList[object];
+	Mesh* mesh = meshList[static_cast<int>(type)];
 	glm::mat4 MVP, modelView, modelView_inverse_transpose;
 	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
 	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
@@ -754,7 +336,7 @@ void BaseScene::RenderMesh(GEOMETRY_TYPE object, bool enableLight) {
 	}
 }
 
-void BaseScene::renderObject(const std::shared_ptr<RObj> obj) {
+void BaseScene::RenderObj(const std::shared_ptr<RObj> obj) {
 
 	if (!obj->allowRender)
 		return;
@@ -785,7 +367,7 @@ void BaseScene::renderObject(const std::shared_ptr<RObj> obj) {
 		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
 
 		// offset
-		float spacing = fontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
+		float spacing = FontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
 		if (textObj->centerText)
 			modelStack.Translate(text.size() * spacing / -2.f + spacing / 2, 0, 0);
 
@@ -798,7 +380,8 @@ void BaseScene::renderObject(const std::shared_ptr<RObj> obj) {
 			mesh->Render((unsigned)text[i] * 6, 6);
 		}
 
-		glEnable(GL_CULL_FACE);
+		if (cullFaceActive)
+			glEnable(GL_CULL_FACE);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
@@ -811,6 +394,17 @@ void BaseScene::renderObject(const std::shared_ptr<RObj> obj) {
 
 	meshList[obj->geometryType]->material = meshMaterial;
 
+}
+
+void BaseScene::InitDebugText(GEOMETRY_TYPE font) {
+	auto& newObj = RObj::newObject;
+	for (int i = 0; i < 10; i++) {
+		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		debugTextList.push_back(newObj);
+	}
 }
 
 bool BaseScene::AddDebugText(const std::string& text, int index) {
@@ -833,7 +427,7 @@ bool BaseScene::AddDebugText(const std::string& text, int index) {
 	return true;
 }
 
-void BaseScene::clearDebugText() {
+void BaseScene::ClearDebugText() {
 	for (auto& obj_weak : debugTextList)
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }

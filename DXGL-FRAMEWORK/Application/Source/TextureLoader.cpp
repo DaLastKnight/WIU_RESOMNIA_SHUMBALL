@@ -7,7 +7,7 @@
 
 std::string TextureLoader::directory = "Image/";
 
-void TextureLoader::setDirectory(const std::string& directoryPath) {
+void TextureLoader::SetDirectory(const std::string& directoryPath) {
 
 	directory = directoryPath;
 

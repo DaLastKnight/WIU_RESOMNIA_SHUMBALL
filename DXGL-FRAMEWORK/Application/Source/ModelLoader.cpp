@@ -5,7 +5,7 @@
 
 std::string ModelLoader::directory = "Model/";
 
-void ModelLoader::setDirectory(const std::string& directoryPath) {
+void ModelLoader::SetDirectory(const std::string& directoryPath) {
 
 	directory = directoryPath;
 

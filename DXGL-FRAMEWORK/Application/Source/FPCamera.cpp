@@ -185,7 +185,7 @@ void FPCamera::Update(double dt) {
 	if (bobbingActive) {
 		float targetX = sinf(5 * bobbingElapsed) * bobbingMaxX;
 		float targetY = sinf(10 * bobbingElapsed) * bobbingMaxY;
-		float targetPsi = sinf(5 * bobbingElapsed) * bobbingMaxPsi;
+		float targetPsi = -sinf(5 * bobbingElapsed) * bobbingMaxPsi;
 		bobbingX = Smooth(bobbingX, targetX, moveSmoothing, dt);
 		bobbingY = Smooth(bobbingY, targetY, moveSmoothing, dt);
 		bobbingPsi = Smooth(bobbingPsi, targetPsi, moveSmoothing, dt);

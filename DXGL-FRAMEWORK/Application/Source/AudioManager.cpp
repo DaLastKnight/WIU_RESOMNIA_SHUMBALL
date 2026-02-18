@@ -1,8 +1,24 @@
-#include "AudioManager.h"
 
-AudioManager& AudioManager::GetInstance() {
-    static AudioManager audioManager;
-    return audioManager;
+#include "AudioManager.h"
+#include "Utils.h"
+
+
+
+
+void AudioManager::SetDirectoryMUS(const std::string& directoryPath) {
+    directoryMusic = directoryPath;
+
+    if (directoryMusic.back() != '/') {
+        directoryMusic += "/";
+    }
+}
+
+void AudioManager::SetDirectorySFX(const std::string& directoryPath) {
+    directorySFX = directoryPath;
+
+    if (directorySFX.back() != '/') {
+        directorySFX += "/";
+    }
 }
 
 void AudioManager::InitSystem() {
@@ -19,21 +35,23 @@ void AudioManager::OpenMixer() {
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
         SDL_Log("openMixer: Mix_OpenAudio Error: %s", Mix_GetError());
 
-    Mix_AllocateChannels(sfxChannelCount);
+    Mix_AllocateChannels(TOTAL_SFX_CHANNEL);
 }
 
 void AudioManager::LoadSFX(unsigned key, const char* filename) {
-    sfxList[key] = Mix_LoadWAV(filename);
+    sfxList[key] = Mix_LoadWAV((directorySFX + filename).c_str());
     if (!sfxList[key])
         SDL_Log("loadSFX: Mix_LoadWAV Error: %s", Mix_GetError());
 }
 
-void AudioManager::LoadMUS(const char* filename) {
-    music = Mix_LoadMUS(filename);
+void AudioManager::LoadMUS(const char* filename, double durationInSeconds) {
+    music = Mix_LoadMUS((directoryMusic + filename).c_str());
     if (music == NULL)
         music = nullptr;
     if (!music)
         SDL_Log("loadMUS: Mix_LoadMUS Error: %s", Mix_GetError());
+    else
+        musicDuration = durationInSeconds;
 }
 
 void AudioManager::UnloadSFX(unsigned key) {
@@ -79,6 +97,7 @@ void AudioManager::PlayMUS(int loops, unsigned type, int duration_ms) {
             Mix_FadeInMusic(music, loops, duration_ms);
         else
             Mix_PlayMusic(music, loops);
+        musicPlaying = true;
     }
 }
 
@@ -125,11 +144,16 @@ double AudioManager::GetMUSPosition() {
 }
 
 void AudioManager::SetMUSPosition(double postionInSeconds) {
+    postionInSeconds = Clamp(postionInSeconds, 0, musicDuration);
     Mix_SetMusicPosition(postionInSeconds);
 }
 
+double AudioManager::GetMUSDUration() {
+    return musicDuration;
+}
+
 int AudioManager::PlayingMUS() {
-    return Mix_PlayingMusic();
+    return musicPlaying;
 }
 
 int AudioManager::PlayingSFX(int channel) {
@@ -138,14 +162,17 @@ int AudioManager::PlayingSFX(int channel) {
 
 void AudioManager::PauseMUS() {
     Mix_PauseMusic();
+    musicPlaying = false;
 }
 
 void AudioManager::ResumeMUS() {
     Mix_ResumeMusic();
+    musicPlaying = true;
 }
 
 void AudioManager::RewindMUS() {
     Mix_RewindMusic();
+    musicPlaying = true;
 }
 
 void AudioManager::FadeOutMUS(int duration_ms) {

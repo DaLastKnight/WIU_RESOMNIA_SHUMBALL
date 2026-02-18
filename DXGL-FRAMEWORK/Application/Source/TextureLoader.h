@@ -9,7 +9,7 @@ class TextureLoader {
 
 public:
 
-	static void setDirectory(const std::string& directoryPath);
+	static void SetDirectory(const std::string& directoryPath);
 
 	static GLuint LoadTGA(const char* file_path);
 	

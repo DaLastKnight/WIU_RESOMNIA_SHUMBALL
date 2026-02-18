@@ -15,6 +15,8 @@
 #include "Light.h"
 
 
+enum class GEOMETRY_TYPE : int;
+
 inline glm::vec3 getPosFromModel(const glm::mat4& model) {
 	return glm::vec3(model[3]);
 }
@@ -40,7 +42,7 @@ public:
 
 	int UILayer = 0; // ranges from 0 to MAX_UI_LAYERS, anything else will be clamped in the calculation
 
-	int geometryType;
+	GEOMETRY_TYPE geometryType;
 	Material material;
 
 	bool hasTransparency = false;
@@ -71,7 +73,9 @@ public:
 	static std::shared_ptr<RenderObject> newObject;
 
 	// Subscribe() to a lambda and itll be Invoke() when creating a object with the same key
-	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDefaultStat;
+	static EventPack<GEOMETRY_TYPE, void, const std::shared_ptr<RenderObject>&> setDefaultStat;
+
+	bool isDirty = true;
 
 	static void SortScreenList();
 
@@ -84,21 +88,19 @@ public:
 	std::shared_ptr<RenderObject> CloneAsChildOf(const std::shared_ptr<RenderObject>& parent) const;
 
 	virtual ~RenderObject() = default;
-	RenderObject(int geometryType, RENDER_TYPE renderType, unsigned UILayer = 0)
+	RenderObject(GEOMETRY_TYPE geometryType, RENDER_TYPE renderType, unsigned UILayer = 0)
 		: geometryType(geometryType), renderType(renderType), UILayer(UILayer) {
 	}
-	RenderObject(int geometryType, unsigned UILayer = 0)
+	RenderObject(GEOMETRY_TYPE geometryType, unsigned UILayer = 0)
 		: geometryType(geometryType), renderType(WORLD), UILayer(UILayer) {
 	}
 	RenderObject()
-		: geometryType(0), renderType(WORLD) {
+		: geometryType(static_cast<GEOMETRY_TYPE>(0)), renderType(WORLD) {
 	};
 
 protected:
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
-
-	bool isDirty = true;
 
 	glm::mat4 GetModel();
 	void UpdateModelWithParent(glm::mat4 parentModel);
@@ -107,7 +109,7 @@ protected:
 	virtual std::shared_ptr<RenderObject> CloneSelf() const {
 		return nullptr;
 	}
-	void CloneChildrenFrom(const RenderObject& objData);
+	void CloneChildrenFrom(const RenderObject& parentOfClonedChidren);
 
 	void AddHierarchyToList(RENDER_TYPE type, std::shared_ptr<RenderObject> obj);
 
@@ -120,10 +122,10 @@ protected:
 class MeshObject : public RenderObject {
 public:
 
-	static std::shared_ptr<MeshObject> Create(int geometryType, unsigned UILayer = 0);
+	static std::shared_ptr<MeshObject> Create(GEOMETRY_TYPE geometryType, unsigned UILayer = 0);
 
 	~MeshObject() = default;
-	MeshObject(int geometryType, unsigned UILayer = 0)
+	MeshObject(GEOMETRY_TYPE geometryType, unsigned UILayer = 0)
 		: RenderObject(geometryType, UILayer) {
 	}
 
@@ -141,10 +143,10 @@ struct LightObject : public RenderObject {
 	static int maxLight;
 	static std::vector<std::weak_ptr<LightObject>> lightList;
 
-	static std::shared_ptr<LightObject> Create(int geometryType, unsigned UILayer = 0);
+	static std::shared_ptr<LightObject> Create(GEOMETRY_TYPE geometryType, unsigned UILayer = 0);
 
 	~LightObject();
-	LightObject(int geometryType, unsigned UILayer = 0)
+	LightObject(GEOMETRY_TYPE geometryType, unsigned UILayer = 0)
 		: RenderObject(geometryType, UILayer) {
 	}
 
@@ -161,10 +163,10 @@ public:
 	glm::vec3 color;
 	bool centerText = false;
 
-	static std::shared_ptr<TextObject> Create(std::string name, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0);
+	static std::shared_ptr<TextObject> Create(std::string name, std::string text, glm::vec3 color, GEOMETRY_TYPE font, bool centerText = false, unsigned UILayer = 0);
 
 	~TextObject() = default;
-	TextObject(std::string name, std::string text, glm::vec3 color, int font, bool centerText = false, unsigned UILayer = 0)
+	TextObject(std::string name, std::string text, glm::vec3 color, GEOMETRY_TYPE font, bool centerText = false, unsigned UILayer = 0)
 		: text(text), color(color), centerText(centerText), RenderObject(font, UILayer) {
 		hasTransparency = true;
 		this->name = name;

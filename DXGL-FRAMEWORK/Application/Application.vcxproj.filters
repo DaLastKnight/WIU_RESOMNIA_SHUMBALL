@@ -19,40 +19,16 @@
     <Filter Include="Main Application">
       <UniqueIdentifier>{eb33967f-29b8-4e89-a2d9-2e4dac51581f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{1a266388-cc41-4994-a729-7d618f60c62b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene Resource">
+      <UniqueIdentifier>{c5607348-b136-46fa-9c9c-1b5684aa2f60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\MeshBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\MatrixStack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\FPCamera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\AudioManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\BaseScene.cpp">
+    <ClCompile Include="Source\SceneDemo.cpp">
       <Filter>Scenes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\DataManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ModelLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\TextureLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\RenderObject.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\main.cpp">
       <Filter>Main Application</Filter>
@@ -60,61 +36,112 @@
     <ClCompile Include="Source\Application.cpp">
       <Filter>Main Application</Filter>
     </ClCompile>
+    <ClCompile Include="Source\BaseScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\AudioManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\FPCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MatrixStack.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MeshBuilder.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ModelLoader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderObject.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TextureLoader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Player.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\MeshBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Vertex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\MatrixStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\FPCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\AudioManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\BaseScene.h">
+    <ClInclude Include="Source\SceneDemo.h">
       <Filter>Scenes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Atmosphere.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\DataManager.h">
       <Filter>Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ModelLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\TextureLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\RenderObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Scene.h">
       <Filter>Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Application.h">
       <Filter>Main Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BaseScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Console.h">
+      <Filter>Main Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Atmosphere.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AudioManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EnumArray.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Event.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FPCamera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Light.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Material.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MatrixStack.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MeshBuilder.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ModelLoader.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RenderObject.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TextureLoader.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Vertex.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shader.hpp">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Player.h">
+      <Filter>Scene Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
