@@ -75,38 +75,38 @@ void SceneRhythm::Init() {
 
 	// Init VBO here
 	{
-		for (int i = 0; i < static_cast<int>(GEO::TOTAL); ++i)
+		for (int i = 0; i < static_cast<int>(TOTAL); ++i)
 		{
 			meshList[i] = nullptr;
 		}
-		meshList[GEO::AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GEO::GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[GEO::SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
-		meshList[GEO::LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GEO::GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
+		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
+		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
-		meshList[GEO::FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(GEO::FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
 
 
-		meshList[GEO::UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[GEO::UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 	}
 
 	// init roots
 	{
 		worldRoot = std::make_shared<RObj>();
 		worldRoot->renderType = RObj::WORLD;
-		worldRoot->geometryType = GEO::GROUP;
+		worldRoot->geometryType = GROUP;
 		worldRoot->UpdateModel();
 
 		viewRoot = std::make_shared<RObj>();
 		viewRoot->renderType = RObj::VIEW;
-		viewRoot->geometryType = GEO::GROUP;
+		viewRoot->geometryType = GROUP;
 		viewRoot->UpdateModel();
 
 		screenRoot = std::make_shared<RObj>();
 		screenRoot->renderType = RObj::SCREEN;
-		screenRoot->geometryType = GEO::GROUP;
+		screenRoot->geometryType = GROUP;
 		screenRoot->UpdateModel();
 
 		LightObject::maxLight = MAX_LIGHT;
@@ -119,31 +119,31 @@ void SceneRhythm::Init() {
 
 	// init default stats
 	{
-		RObj::setDefaultStat.Subscribe(GEO::AXES, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(AXES, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NO_LIGHT); 
 			});
-		RObj::setDefaultStat.Subscribe(GEO::GROUND, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GROUND, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::SKYBOX, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); 
 			});
-		RObj::setDefaultStat.Subscribe(GEO::LIGHT, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(LIGHT, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NEON); 
 			obj->offsetScl = vec3(0.05f);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::GROUP, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
 			obj->offsetScl = vec3(0.15f);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
-		RObj::setDefaultStat.Subscribe(GEO::UI_TEST, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		RObj::setDefaultStat.Subscribe(GEO::UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
@@ -152,17 +152,17 @@ void SceneRhythm::Init() {
 	auto& newObj = RObj::newObject;
 	// world space init
 	{
-		worldRoot->NewChild(MeshObject::Create(GEO::AXES));
+		worldRoot->NewChild(MeshObject::Create(AXES));
 
-		worldRoot->NewChild(MeshObject::Create(GEO::GROUND));
+		worldRoot->NewChild(MeshObject::Create(GROUND));
 
-		worldRoot->NewChild(MeshObject::Create(GEO::SKYBOX));
+		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
 		// light init
 		{
 			std::shared_ptr<LightObject> newLightObj;
 
-			worldRoot->NewChild(LightObject::Create(GEO::LIGHT));
+			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
 			{
 				newLightObj->trl = vec3(0, 20, 0);
@@ -178,7 +178,7 @@ void SceneRhythm::Init() {
 				UpdateLightUniform(newLightObj);
 			}
 
-			worldRoot->NewChild(LightObject::Create(GEO::LIGHT));
+			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
 			{
 				newLightObj->trl = vec3(20, 5, 0);
@@ -208,16 +208,16 @@ void SceneRhythm::Init() {
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(GEO::UI_TEST, 1));  
+		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  
 		newObj->trl = vec3(-0.8f, -0.8f, 0); 
 		newObj->scl = vec3(80, 80, 1);
-		screenRoot->NewChild(MeshObject::Create(GEO::UI_TEST_2));
+		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
 
 		// debug text
-		InitDebugText(GEO::FONT_CASCADIA_MONO); 
+		InitDebugText(FONT_CASCADIA_MONO); 
 	}
 
 	/************************ bellow for external class inits ************************/
@@ -227,7 +227,7 @@ void SceneRhythm::Init() {
 		camera.Set(FPCamera::MODE::FREE);
 
 		// player init
-		player.Init(worldRoot, GEO::GROUP, vec3(0, 2, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
 	}
 
 	RObj::newObject.reset();
@@ -235,6 +235,7 @@ void SceneRhythm::Init() {
 
 void SceneRhythm::Update(double dt) {
 	BaseScene::Update(dt);
+	ClearDebugText();
 
 	// fps calculation
 	{
@@ -296,12 +297,12 @@ void SceneRhythm::Update(double dt) {
 		auto obj = worldList[i].lock();
 
 		switch (obj->geometryType) {
-		case GEO::AXES:
-		case GEO::GROUP:
+		case AXES:
+		case GROUP:
 			obj->allowRender = debug;
 			break;
 
-		case GEO::SKYBOX:
+		case SKYBOX:
 			obj->trl = camera.GetFinalPosition();
 			break;
 
@@ -600,3 +601,147 @@ void SceneRhythm::HandleKeyPress() {
 /************************************************************************************ helpers ************************************************************************************/
 /*********************************************************************************************************************************************************************************/
 
+
+void SceneRhythm::RenderObj(const std::shared_ptr<RObj> obj) {
+
+	if (!obj->allowRender)
+		return;
+
+	bool enableLight = true;
+	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RObj::SCREEN)
+		enableLight = false;
+
+	Material meshMaterial = meshList[obj->geometryType]->material;
+	if (obj->material.type != Material::MESH_MATERIAL) {
+		meshList[obj->geometryType]->material = obj->material;
+	}
+
+	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+		modelStack.PushMatrix();
+
+		const auto& text = textObj->text;
+		const auto& mesh = meshList[obj->geometryType];
+
+		glDisable(GL_CULL_FACE);
+
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
+		glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &textObj->color.r);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+
+		// offset
+		float spacing = FontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
+		if (textObj->centerText)
+			modelStack.Translate(text.size() * spacing / -2.f + spacing / 2, 0, 0);
+
+		for (unsigned i = 0; i < text.length(); ++i)
+		{
+			glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(i * spacing, 0, 0));
+			glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
+			glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+			mesh->Render((unsigned)text[i] * 6, 6);
+		}
+
+		if (cullFaceActive)
+			glEnable(GL_CULL_FACE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
+
+		modelStack.PopMatrix();
+	}
+	else {
+		RenderMesh(static_cast<GEOMETRY_TYPE>(obj->geometryType), enableLight);
+	}
+
+	meshList[obj->geometryType]->material = meshMaterial;
+
+}
+
+
+
+void SceneRhythm::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
+
+	Mesh* mesh = meshList[static_cast<int>(type)];
+	glm::mat4 MVP, modelView, modelView_inverse_transpose;
+	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+	modelView = viewStack.Top() * modelStack.Top();
+	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, glm::value_ptr(modelView));
+
+	if (enableLight)
+	{
+		glUniform1i(m_parameters[U_LIGHT_ENABLED], 1);
+		modelView_inverse_transpose = glm::inverseTranspose(modelView);
+		glUniformMatrix4fv(m_parameters[U_MODELVIEW_INVERSE_TRANSPOSE], 1, GL_FALSE, glm::value_ptr(modelView_inverse_transpose));
+
+		//load material
+		glUniform3fv(m_parameters[U_MATERIAL_AMBIENT], 1, &mesh->material.kAmbient.r);
+		glUniform3fv(m_parameters[U_MATERIAL_DIFFUSE], 1, &mesh->material.kDiffuse.r);
+		glUniform3fv(m_parameters[U_MATERIAL_SPECULAR], 1, &mesh->material.kSpecular.r);
+		glUniform1f(m_parameters[U_MATERIAL_SHININESS], mesh->material.kShininess);
+	}
+	else
+	{
+		glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
+	}
+
+	if (mesh->textureID > 0)
+	{
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+	}
+	else
+	{
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 0);
+	}
+
+	mesh->Render();
+
+	if (mesh->textureID > 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+}
+
+void SceneRhythm::InitDebugText(GEOMETRY_TYPE font) {
+	auto& newObj = RObj::newObject;
+	for (int i = 0; i < 10; i++) {
+		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		debugTextList.push_back(newObj);
+	}
+}
+
+bool SceneRhythm::AddDebugText(const std::string& text, int index) {
+
+	if (index < 0) {
+		for (auto& obj_weak : debugTextList) {
+			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
+
+			if (textObj->text == "") {
+				textObj->text = text;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	index = Clamp(index, 0, 9);
+	std::dynamic_pointer_cast<TextObject>(debugTextList[index].lock())->text = text;
+
+	return true;
+}
+
+void SceneRhythm::ClearDebugText() {
+	for (auto& obj_weak : debugTextList)
+		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
+}
