@@ -69,44 +69,63 @@ Then generate the VBO/IBO and store them in Mesh object
 \return Pointer to mesh storing VBO/IBO of quad
 */
 /******************************************************************************/
-Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, float radius, int numSlice, int numStack)
-{
-	Vertex v;
-	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects (VBOs)
-	std::vector<GLuint> index_buffer_data; // Element Buffer Objects (EBOs)
 
+Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, float radius, unsigned int slices, unsigned int stacks, unsigned int mode)
+{
+	Vertex v; // Vertex definition
+	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
+	std::vector<GLuint> index_buffer_data; // Element Buffer Objects
 	v.color = color;
 
-	float degreePerStack = glm::pi<float>() / numStack;
-	float degreePerSlice = glm::two_pi<float>() / numSlice;
+	float degreePerStack = glm::pi<float>() / stacks;
+	float degreePerSlice = glm::two_pi<float>() / slices;
 
-	for (unsigned stack = 0; stack < numStack + 1; ++stack)
+	unsigned reserveCount = 0;
+	reserveCount = (stacks + 1) * (slices + 1);
+	vertex_buffer_data.reserve(reserveCount);
+
+	for (unsigned stack = 0; stack < stacks + 1; ++stack) //stack
 	{
 		float phi = -glm::half_pi<float>() + stack * degreePerStack;
-		for (unsigned slice = 0; slice < numSlice + 1; ++slice)
+		for (unsigned slice = 0; slice < slices + 1; ++slice) //slice
 		{
 			float theta = slice * degreePerSlice;
-			v.pos = glm::vec3(radius * glm::cos(phi) * glm::cos(theta), radius * glm::sin(phi), radius * glm::cos(phi) * glm::sin(theta));
-			v.normal = glm::vec3(glm::cos(phi) * glm::cos(theta), glm::sin(phi), glm::cos(phi) * glm::sin(theta));
+
+			v.pos = glm::vec3(radius * glm::cos(phi) * glm::cos(theta),
+				radius * glm::sin(phi),
+				radius * glm::cos(phi) * glm::sin(theta));
+			v.normal = glm::vec3(glm::cos(phi) * glm::cos(theta),
+				glm::sin(phi),
+				glm::cos(phi) * glm::sin(theta));
+			float uCoord = static_cast<float>(slice) / slices;
+			float vCoord = static_cast<float>(stack) / stacks;
+			v.texCoord = glm::vec2(uCoord, vCoord);
+
 			vertex_buffer_data.push_back(v);
 		}
 	}
 
-	for (unsigned stack = 0; stack < numStack; ++stack)
-	{
-		for (unsigned slice = 0; slice < numSlice + 1; ++slice)
-		{
-			index_buffer_data.push_back(stack * (numSlice + 1) + slice);
-			index_buffer_data.push_back((stack + 1) * (numSlice + 1) + slice);
+	reserveCount = (stacks) * (slices + 1);
+	index_buffer_data.reserve(reserveCount * 2);
+
+	for (unsigned stack = 0; stack < stacks; ++stack) {
+		for (unsigned slice = 0; slice < slices + 1; ++slice) {
+			if (mode == 1) {
+				index_buffer_data.push_back(slice + stack * (slices + 1) + slices);
+				index_buffer_data.push_back(slice + stack * (slices + 1));
+			}
+			else {
+				index_buffer_data.push_back(slice + stack * (slices + 1));
+				index_buffer_data.push_back(slice + (stack + 1) * (slices + 1));
+			}
 		}
 	}
 
-	// Creates the new mesh
+	// Create the new mesh
 	Mesh* mesh = new Mesh(meshName);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
 
@@ -114,7 +133,6 @@ Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, 
 	mesh->mode = Mesh::DRAW_TRIANGLE_STRIP;
 
 	return mesh;
-		
 }
 
 Mesh* MeshBuilder::GenerateCone(const std::string& meshName, glm::vec3 color, int numSlice, float radius, float height, float bottomOffset)
@@ -229,46 +247,64 @@ Mesh* MeshBuilder::GenerateCone(const std::string& meshName, glm::vec3 color, in
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateTorus(const std::string& meshName, glm::vec3 color, float innerR, float outerR, float numSlice, float numStack)
-{
-	Vertex v;
-	std::vector<Vertex> vertex_buffer_data;
-	std::vector<GLuint> index_buffer_data;
+Mesh* MeshBuilder::GenerateTorus(const std::string& meshName, glm::vec3 color, float width, float radius, unsigned int slices, unsigned int stacks, unsigned int mode) {
 
+	Vertex v; // Vertex definition
+	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
+	std::vector<GLuint> index_buffer_data; // Element Buffer Objects
 	v.color = color;
 
-	float degreePerStack = glm::two_pi<float>() / numStack;
-	float degreePerSlice = glm::two_pi<float>() / numSlice;
+	width /= 2;
 
-	for (unsigned stack = 0; stack < numStack + 1; ++stack)
+	float degreePerStack = glm::two_pi<float>() / stacks;
+	float degreePerSlice = glm::two_pi<float>() / slices;
+
+	unsigned reserveCount = 0;
+	reserveCount = (stacks + 1) * (slices + 1);
+	vertex_buffer_data.reserve(reserveCount);
+
+	for (unsigned stack = 0; stack < stacks + 1; ++stack) //stack
 	{
 		float phi = stack * degreePerStack;
-		for (unsigned slice = 0; slice < numSlice + 1; ++slice)
+		for (unsigned slice = 0; slice < slices + 1; ++slice) //slice
 		{
 			float theta = slice * degreePerSlice;
-			v.pos = glm::vec3((outerR + innerR * glm::cos(theta)) * glm::sin(phi), innerR * glm::sin(theta), (outerR + innerR * glm::cos(theta)) * glm::cos(phi));
-			v.normal = glm::vec3((glm::cos(theta)) * glm::sin(phi), glm::sin(theta), glm::cos(theta) * glm::cos(phi));
+
+			v.pos = glm::vec3((radius + width * glm::cos(theta)) * glm::sin(phi),
+				width * glm::sin(theta),
+				(radius + width * glm::cos(theta)) * glm::cos(phi));
+			v.normal = glm::vec3(glm::sin(phi) * glm::cos(theta),
+				glm::sin(phi),
+				glm::cos(phi) * glm::sin(theta));
+			float uCoord = static_cast<float>(slice) / slices;
+			float vCoord = static_cast<float>(stack) / stacks;
+			v.texCoord = glm::vec2(uCoord, vCoord);
+
 			vertex_buffer_data.push_back(v);
 		}
 	}
 
-	for (unsigned stack = 0; stack < numStack; ++stack)
-	{
-		for (unsigned slice = 0; slice < numSlice + 1; ++slice)
-		{
-			index_buffer_data.push_back(stack * (numSlice + 1) + slice);
-			index_buffer_data.push_back((stack + 1) * (numSlice + 1) + slice);
+	reserveCount = (stacks) * (slices + 1);
+	index_buffer_data.reserve(reserveCount * 2);
 
-			//index_buffer_data.push_back((stack) * (numSlice + 1) + slice + numSlice);
-			//index_buffer_data.push_back(stack * (numSlice + 1) + slice);
+	for (unsigned stack = 0; stack < stacks; ++stack) {
+		for (unsigned slice = 0; slice < slices + 1; ++slice) {
+			if (mode) {
+				index_buffer_data.push_back(slice + (stack) * (slices + 1) + slices);
+				index_buffer_data.push_back(slice + stack * (slices + 1));
+			}
+			else {
+				index_buffer_data.push_back(slice + stack * (slices + 1));
+				index_buffer_data.push_back(slice + (stack + 1) * (slices + 1));
+			}
 		}
 	}
 
+	// Create the new mesh
 	Mesh* mesh = new Mesh(meshName);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
 
@@ -276,6 +312,7 @@ Mesh* MeshBuilder::GenerateTorus(const std::string& meshName, glm::vec3 color, f
 	mesh->mode = Mesh::DRAW_TRIANGLE_STRIP;
 
 	return mesh;
+
 }
 
 Mesh* MeshBuilder::GenerateFrustum(const std::string& meshName, glm::vec3 color, float baseRadius, float topRadius, float height, float numSlice)
@@ -363,7 +400,7 @@ Mesh* MeshBuilder::GenerateFrustum(const std::string& meshName, glm::vec3 color,
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height)
+Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height, int textureID)
 {
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;
@@ -410,6 +447,8 @@ Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, fl
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	if (textureID != -1)
+		mesh->textureID = textureID;
 
 	return mesh;
 }
@@ -865,20 +904,20 @@ Mesh* MeshBuilder::GenerateCylinder(const std::string& meshName, glm::vec3 color
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateOBJ(const std::string& meshName, const std::string& file_path, bool flipUVs)
+Mesh* MeshBuilder::GenerateOBJ(const std::string& meshName, const std::string& file_path, int textureID)
 {
 	// Read vertices, texcoords & normals from OBJ
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
-	bool success = LoadOBJ(file_path.c_str(), vertices, uvs, normals, flipUVs);
+	bool success = ModelLoader::LoadOBJ(file_path.c_str(), vertices, uvs, normals);
 
 	if (!success) { return NULL; }
 
 	// Index the vertices, texcoords & normals properly
 	std::vector<Vertex> vertex_buffer_data;
 	std::vector<GLuint> index_buffer_data;
-	IndexVBO(vertices, uvs, normals, index_buffer_data, vertex_buffer_data);
+	ModelLoader::IndexVBO(vertices, uvs, normals, index_buffer_data, vertex_buffer_data);
 
 	Mesh* mesh = new Mesh(meshName);
 
@@ -890,11 +929,13 @@ Mesh* MeshBuilder::GenerateOBJ(const std::string& meshName, const std::string& f
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	if (textureID != -1)
+		mesh->textureID = textureID;
 
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateOBJMTL(const std::string& meshName, const std::string& file_path, const std::string& mtl_path, bool flipUVs)
+Mesh* MeshBuilder::GenerateOBJMTL(const std::string& meshName, const std::string& file_path, const std::string& mtl_path, int textureID)
 {
 	//Read vertices, texcoords & normals from OBJ
 	std::vector<glm::vec3> vertices;
@@ -902,13 +943,13 @@ Mesh* MeshBuilder::GenerateOBJMTL(const std::string& meshName, const std::string
 	std::vector<glm::vec3> normals;
 	std::vector<Material> materials;
 
-	bool success = LoadOBJMTL(file_path.c_str(), mtl_path.c_str(), vertices, uvs, normals, materials, flipUVs);
+	bool success = ModelLoader::LoadOBJMTL(file_path.c_str(), mtl_path.c_str(), vertices, uvs, normals, materials);
 	if (!success) return NULL;
 
 	//Index the vertices, texcoords & normals properly
 	std::vector<Vertex> vertex_buffer_data;
 	std::vector<GLuint> index_buffer_data;
-	IndexVBO(vertices, uvs, normals, index_buffer_data, vertex_buffer_data);
+	ModelLoader::IndexVBO(vertices, uvs, normals, index_buffer_data, vertex_buffer_data);
 
 	Mesh* mesh = new Mesh(meshName);
 	for (Material& material : materials)
@@ -924,11 +965,14 @@ Mesh* MeshBuilder::GenerateOBJMTL(const std::string& meshName, const std::string
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	if (textureID != -1)
+		mesh->textureID = textureID;
+
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, unsigned numCol, float charSpacing = 1.f)
-{
+Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, unsigned numCol, float advanceWidth, unsigned textureID) {
+
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;
 	std::vector<unsigned> index_buffer_data;
@@ -936,30 +980,29 @@ Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, un
 	float width = 1.f / numCol;
 	float height = 1.f / numRow;
 	unsigned offset = 0;
+	v.normal = glm::vec3(0, 0, 1);
+
 	for (unsigned row = 0; row < numRow; ++row)
 	{
 		for (unsigned col = 0; col < numCol; ++col)
 		{
-			v.pos = glm::vec3(0.5f * charSpacing, 0.5f, 0.f);
-			v.normal = glm::vec3(0, 0, 1);
-			v.texCoord = glm::vec2(width * (col + charSpacing), height * (numRow - row));
+
+			v.pos = glm::vec3(0.5f * advanceWidth, 0.5f, 0.f);
+			v.texCoord = glm::vec2(width * (col + advanceWidth), height * (numRow - row));
 			vertex_buffer_data.push_back(v);
 
-			v.pos = glm::vec3(-0.5f * charSpacing, 0.5f, 0.f);
-			v.normal = glm::vec3(0, 0, 1);
+			v.pos = glm::vec3(-0.5f * advanceWidth, 0.5f, 0.f);
 			v.texCoord = glm::vec2(width * (col + 0), height * (numRow - row));
 			vertex_buffer_data.push_back(v);
 
-			v.pos = glm::vec3(-0.5f * charSpacing, -0.5f, 0.f);
-			v.normal = glm::vec3(0, 0, 1);
+			v.pos = glm::vec3(-0.5f * advanceWidth, -0.5f, 0.f);
 			v.texCoord = glm::vec2(width * (col + 0), height * (numRow - 1 - row));
 			vertex_buffer_data.push_back(v);
-			
-			v.pos = glm::vec3(0.5f * charSpacing, -0.5f, 0.f);
-			v.normal = glm::vec3(0, 0, 1);
-			v.texCoord = glm::vec2(width * (col + charSpacing), height * (numRow - 1 - row));
+
+			v.pos = glm::vec3(0.5f * advanceWidth, -0.5f, 0.f);
+			v.texCoord = glm::vec2(width * (col + advanceWidth), height * (numRow - 1 - row));
 			vertex_buffer_data.push_back(v);
-			
+
 			index_buffer_data.push_back(0 + offset);
 			index_buffer_data.push_back(1 + offset);
 			index_buffer_data.push_back(2 + offset);
@@ -968,20 +1011,25 @@ Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, un
 			index_buffer_data.push_back(3 + offset);
 
 			offset += 4;
+
 		}
 	}
 
 	Mesh* mesh = new Mesh(meshName);
+
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
+
 	mesh->mode = Mesh::DRAW_TRIANGLES;
 	mesh->indexSize = index_buffer_data.size();
+	mesh->textureID = textureID;
+
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName) {
+Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName, unsigned textureID) {
 	Vertex v; // Vertex definition
 	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
 	std::vector<GLuint> index_buffer_data; // Element Buffer Objects
@@ -1106,6 +1154,58 @@ Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName) {
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	mesh->textureID = textureID;
+
+	return mesh;
+}
+
+Mesh* MeshBuilder::GenerateGround(const std::string& meshName, float size, float texSize, unsigned textureID)
+{
+	Vertex v;
+	std::vector<Vertex> vertex_buffer_data;
+	std::vector<GLuint> index_buffer_data;
+	v.color = glm::vec3(1);
+	v.normal = glm::vec3(0, 0, 1);
+	float height = size, width = size;
+	texSize = size / texSize;
+
+	vertex_buffer_data.reserve(4);
+
+	// Add the vertices here
+	v.pos = glm::vec3(0.5f * width, -0.5f * height, 0.f);
+	v.texCoord = glm::vec2(texSize, 0);
+	vertex_buffer_data.push_back(v); //v0
+	v.pos = glm::vec3(0.5f * width, 0.5f * height, 0.f);
+	v.texCoord = glm::vec2(texSize, texSize);
+	vertex_buffer_data.push_back(v); //v1
+	v.pos = glm::vec3(-0.5f * width, 0.5f * height, 0.f);
+	v.texCoord = glm::vec2(0, texSize);
+	vertex_buffer_data.push_back(v); //v2
+	v.pos = glm::vec3(-0.5f * width, -0.5f * height, 0.f);
+	v.texCoord = glm::vec2(0, 0);
+	vertex_buffer_data.push_back(v); //v3
+
+	index_buffer_data.reserve(6);
+
+	index_buffer_data.push_back(0);
+	index_buffer_data.push_back(1);
+	index_buffer_data.push_back(2);
+
+	index_buffer_data.push_back(2);
+	index_buffer_data.push_back(3);
+	index_buffer_data.push_back(0);
+
+	// Create the new mesh
+	Mesh* mesh = new Mesh(meshName);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
+
+	mesh->indexSize = index_buffer_data.size();
+	mesh->mode = Mesh::DRAW_TRIANGLES;
+	mesh->textureID = textureID;
 
 	return mesh;
 }
