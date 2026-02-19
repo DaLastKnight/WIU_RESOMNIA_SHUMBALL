@@ -99,7 +99,7 @@ void SceneMedical::Init() {
 		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadPNG("SceneMedical/Image/NYP.png"));
 
 		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
-		/*meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "virus.obj", "virus.mtl", TextureLoader::LoadTGA("virus_skin.tga"));*/
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "uploads_files_2903560_Spikes+on+ball.obj", "uploads_files_2903560_Spikes+on+ball.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
 	}
 
 	// init roots
@@ -166,16 +166,16 @@ void SceneMedical::Init() {
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
 			});
-		/*RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
-			});*/
+		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			});
+		RObj::setDefaultStat.Subscribe(NANOBOT_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			});
 	}
 
 	auto& newObj = RObj::newObject;
 	// world space init
 	{
 		worldRoot->NewChild(MeshObject::Create(AXES));
-
-		/*worldRoot->NewChild(MeshObject::Create(GROUND));*/
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
@@ -224,7 +224,10 @@ void SceneMedical::Init() {
 			}
 		}
 
-		/*worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		newObj->trl = glm::vec3(20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		/*worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(20, 5, 0);
 		newObj->scl = glm::vec3(20, 20, 20);*/
 	}
