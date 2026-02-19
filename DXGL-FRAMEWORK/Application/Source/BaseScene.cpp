@@ -17,26 +17,30 @@
 #include "shader.hpp"
 #include "Application.h"
 #include "MeshBuilder.h"
-#include "LoadTGA.h"
+#include "TextureLoader.h"
 #include "MouseController.h"
 #include "KeyboardController.h"
+#include "AudioManager.h"
 #include "DataManager.h"
 
 #include "Utils.h"
 
 using App = Application;
+using RObj = RenderObject;
 
 using glm::vec3;
 using glm::mat4;
 using std::string;
 
 
-BaseScene::BaseScene()
-{
+/*****************************************************************************************************************************************************************************************/
+/************************************************************************************ scene functions ************************************************************************************/
+/*****************************************************************************************************************************************************************************************/
+
+BaseScene::BaseScene() {
 }
 
-BaseScene::~BaseScene()
-{
+BaseScene::~BaseScene() {
 }
 
 void BaseScene::Init()
@@ -64,6 +68,10 @@ void BaseScene::Init()
 	// Load the shader programs
 	m_programID = LoadShaders("Shader//Texture.vertexshader", "Shader//Text_Atmospheric.fragmentshader");
 	glUseProgram(m_programID);
+
+	// init prespective
+	perspective = glm::perspective(45.f, App::ASPECT_RATIO, 0.1f, 1000.f);
+	ortho = glm::ortho(0.f, App::SCREEN_WIDTH, 0.f, App::SCREEN_HEIGHT, -1000.f, 1000.f);
 
 	// Init uniforms
 	{
@@ -111,56 +119,16 @@ void BaseScene::Init()
 		atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE] = glGetUniformLocation(m_programID, "atmosphere.densestRange");
 	}
 
-	// Initialise camera properties
-	camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-	camera.Set(FPCamera::MODE::FREE);
-
-	// Init VBO here
-	{
-		for (int i = 0; i < NUM_GEOMETRY; ++i)
-		{
-			meshList[i] = nullptr;
-		}
-		meshList[GEO_AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GEO_PLANE] = MeshBuilder::GenerateQuad("ground", vec3(1, 1, 1), 1000, 1000);
-		meshList[GEO_PLANE]->textureID = LoadTGA("Image/color.tga");
-		meshList[GEO_SKYBOX] = MeshBuilder::GenerateSkybox("skybox");
-		meshList[GEO_SKYBOX]->textureID = LoadTGA("Image/skybox.tga");
-		meshList[GEO_SKYBOX]->material.Set(vec3(1), vec3(0), vec3(0), 1);
-	}
-
-	// light init
-	{
-		light.reserve(12);
-		unsigned lightIndex;
-
-		light.emplace_back();
-		lightIndex = 0;
-		light[lightIndex].position = glm::vec3(0.f, 5.f, 0.f);
-		light[lightIndex].color = glm::vec3(1, 1, 1);
-		light[lightIndex].type = Light::LIGHT_POINT;
-		light[lightIndex].power = 1;
-		light[lightIndex].kC = 1.f;
-		light[lightIndex].kL = 0.01f;
-		light[lightIndex].kQ = 0.001f;
-
-		UpdateLightUniform(light[lightIndex]);
-	}
-
-	// atmosphere init
-	{
-		atmosphere.Set(vec3(0.05f, 0.07f, 0.1f), 0.05f, 0.000001f, 2, 20);
-		UpdateAtmosphereUniform();
-	}
-
-
 }
 
-void BaseScene::Update(double dt)
-{
+void BaseScene::Update(double dt) {
+
+	// refreshes and clears per frame
+	RObj::newObject.reset();
 	camera.VariableRefresh();
-	HandleKeyPress();
-	camera.Update(dt);
+	player.VariableRefresh();
+	ClearDebugText();
+
 }
 
 
@@ -182,69 +150,155 @@ void BaseScene::Render()
 	viewStack.LoadMatrix(view);
 
 	// Calculate the light position in camera space
-	for (unsigned i = 0; i < light.size(); i++) {
-		auto& lightData = light[i];
-		if (lightData.type == Light::LIGHT_DIRECTIONAL) {
+	auto& light = LightObject::lightList;
+	for (unsigned i = 0; i < LightObject::lightList.size(); i++) {
+		auto lightObj = light[i].lock();
+		auto& lightProperties = lightObj->lightProperties;
+
+		if (lightProperties.type == Light::LIGHT_DIRECTIONAL) {
 			// use light pos as the dire of light
-			glm::vec3 lightPos_local = lightData.position;
-			lightData.position = viewStack.Top() * glm::vec4(lightData.position, 0); // lightDirection_cameraspace
-			UpdateLightUniform(lightData, U_LIGHT_POSITION);
-			lightData.position = lightPos_local;
+			glm::vec3 lightPos_local = lightProperties.position;
+			lightProperties.position = viewStack.Top() * glm::vec4(lightProperties.position, 0); // lightDirection_cameraspace
+			UpdateLightUniform(lightObj, U_LIGHT_POSITION);
+			lightProperties.position = lightPos_local;
 		}
-		else if (lightData.type == Light::LIGHT_SPOT) {
-			glm::vec3 lightPos_local = lightData.position;
-			lightData.position = viewStack.Top() * glm::vec4(lightData.position, 1); // lightPosition_cameraspace
-			UpdateLightUniform(lightData, U_LIGHT_POSITION);
-			lightData.position = lightPos_local;
-			glm::vec3 spotDire_local = lightData.spotDirection;
-			lightData.spotDirection = viewStack.Top() * glm::vec4(lightData.spotDirection, 0);// spotDirection_cameraspace
-			UpdateLightUniform(lightData, U_LIGHT_SPOTDIRECTION);
-			lightData.spotDirection = spotDire_local;
+		else if (lightProperties.type == Light::LIGHT_SPOT) {
+
+			glm::vec3 lightPos_local = lightProperties.position;
+			lightProperties.position = viewStack.Top() * glm::vec4(lightProperties.position, 1); // lightPosition_cameraspace
+			UpdateLightUniform(lightObj, U_LIGHT_POSITION);
+			lightProperties.position = lightPos_local;
+
+			glm::vec3 spotDire_local = lightProperties.spotDirection;
+			lightProperties.spotDirection = -viewStack.Top() * glm::vec4(lightProperties.spotDirection, 0);// spotDirection_cameraspace
+			UpdateLightUniform(lightObj, U_LIGHT_SPOTDIRECTION);
+			lightProperties.spotDirection = spotDire_local;
 		}
 		else {
 			// Calculate the light position in camera space
-			glm::vec3 lightPos_local = lightData.position;
-			lightData.position = viewStack.Top() * glm::vec4(lightData.position, 1); // lightPosition_cameraspace
-			UpdateLightUniform(lightData, U_LIGHT_POSITION);
-			lightData.position = lightPos_local;
+			glm::vec3 lightPos_local = lightProperties.position;
+			lightProperties.position = viewStack.Top() * glm::vec4(lightProperties.position, 1); // lightPosition_cameraspace
+			UpdateLightUniform(lightObj, U_LIGHT_POSITION);
+			lightProperties.position = lightPos_local;
 		}
 	}
 
 	// Define the projection matrix
 	if (projType) // PERSPECTIVE
-		projectionStack.LoadMatrix(glm::perspective(45.f, App::ASPECT_RATIO, 0.1f, 1000.f));
+		projectionStack.LoadMatrix(perspective);
 	else // ORTHOGRAPHICS
-		projectionStack.LoadMatrix(glm::ortho(0.f, App::SCREEN_WIDTH, 0.f, App::SCREEN_HEIGHT, -1000.f, 1000.f));
+		projectionStack.LoadMatrix(ortho);
 
 	// Calculate the Model-View-Project matrix
 	glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
 	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
 
-	modelStack.PushMatrix();
-	RenderMesh(meshList[GEO_AXES], false);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Rotate(-90, 1, 0, 0);
-	RenderMesh(meshList[GEO_PLANE], true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	RenderMesh(meshList[GEO_SKYBOX], true);
-	modelStack.PopMatrix();
-
 }
 
-void BaseScene::RenderMesh(Mesh* mesh, bool enableLight)
+void BaseScene::Exit()
 {
-	//glDisable(GL_CULL_FACE);
-	
-	glm::mat4 MVP, modelView, modelView_inverse_transpose;
+	// Cleanup VBO here
+	for (auto& mesh : meshList)
+		if (mesh)
+			delete mesh;
 
+	DataManager::GetInstance().SaveData();
+
+	AudioManager::GetInstance().PauseMUS();
+	AudioManager::GetInstance().UnloadAll();
+
+	worldRoot.reset();
+	viewRoot.reset();
+	screenRoot.reset();
+
+	glDeleteVertexArrays(1, &m_vertexArrayID);
+	glDeleteProgram(m_programID);
+}
+
+void BaseScene::HandleKeyPress()
+{
+	if (debug) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
+			cullFaceActive = !cullFaceActive;
+			if (cullFaceActive)
+				glEnable(GL_CULL_FACE);
+			else 
+				glDisable(GL_CULL_FACE);
+		}
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_9)) {
+			wireFrameActive = !wireFrameActive;
+			if (wireFrameActive)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			else
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
+}
+
+
+/*********************************************************************************************************************************************************************************/
+/************************************************************************************ helpers ************************************************************************************/
+/*********************************************************************************************************************************************************************************/
+
+void BaseScene::UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj, LIGHT_UNIFORM_TYPE uniform) {
+	const auto& lightProperties = lightObj->lightProperties;
+	const auto& lightIndex = lightObj->lightIndex;
+
+	switch (uniform) {
+	case U_LIGHT_TYPE: glUniform1i(lightUniformLocations[lightIndex][U_LIGHT_TYPE], lightProperties.type); break;
+	case U_LIGHT_POSITION: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_POSITION], 1, glm::value_ptr(lightProperties.position)); break;
+	case U_LIGHT_COLOR: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_COLOR], 1, glm::value_ptr(lightProperties.color)); break;
+	case U_LIGHT_POWER: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_POWER], lightProperties.power); break;
+	case U_LIGHT_KC: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KC], lightProperties.kC); break;
+	case U_LIGHT_KL:glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KL], lightProperties.kL); break;
+	case U_LIGHT_KQ: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KQ], lightProperties.kQ); break;
+	case U_LIGHT_SPOTDIRECTION: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_SPOTDIRECTION], 1, glm::value_ptr(lightProperties.spotDirection)); break;
+	case U_LIGHT_COSCUTOFF: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSCUTOFF], cosf(glm::radians<float>(lightProperties.cosCutoff))); break;
+	case U_LIGHT_COSINNER: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSINNER], cosf(glm::radians<float>(lightProperties.cosInner))); break;
+	default:
+		glUniform1i(m_parameters[U_LIGHT_NUMLIGHTS], LightObject::lightList.size());
+		glUniform1i(lightUniformLocations[lightIndex][U_LIGHT_TYPE], lightProperties.type);
+		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_POSITION], 1, glm::value_ptr(lightProperties.position));
+		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_COLOR], 1, glm::value_ptr(lightProperties.color));
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_POWER], lightProperties.power);
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KC], lightProperties.kC);
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KL], lightProperties.kL);
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KQ], lightProperties.kQ);
+		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_SPOTDIRECTION], 1, glm::value_ptr(lightProperties.spotDirection));
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSCUTOFF], cosf(glm::radians<float>(lightProperties.cosCutoff)));
+		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSINNER], cosf(glm::radians<float>(lightProperties.cosInner)));
+	}
+}
+
+
+void BaseScene::UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform) {
+	switch (uniform) {
+	case U_ATMOSPHERE_COLOR: glUniform3fv(atmosphereUniformLocations[U_ATMOSPHERE_COLOR], 1, glm::value_ptr(atmosphere.color)); break;
+	case U_ATMOSPHERE_FOG_DENSITY: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_DENSITY], atmosphere.fogDensity); break;
+	case U_ATMOSPHERE_FOG_VISIBILITY: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_VISIBILITY], atmosphere.fogVisibility); break;
+	case U_ATMOSPHERE_LIGHTEST_RANGE: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_LIGHTEST_RANGE], atmosphere.lightestRange); break;
+	case U_ATMOSPHERE_DENSEST_RANGE: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE], atmosphere.densestRange); break;
+	default:
+		glUniform1i(m_parameters[U_ATMOSPHERE_ENABLED], enabledAtmosphere);
+		glUniform3fv(atmosphereUniformLocations[U_ATMOSPHERE_COLOR], 1, glm::value_ptr(atmosphere.color));
+		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_DENSITY], atmosphere.fogDensity);
+		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_VISIBILITY], atmosphere.fogVisibility);
+		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_LIGHTEST_RANGE], atmosphere.lightestRange);
+		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE], atmosphere.densestRange);
+	}
+}
+
+
+
+void BaseScene::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
+
+	Mesh* mesh = meshList[static_cast<int>(type)];
+	glm::mat4 MVP, modelView, modelView_inverse_transpose;
 	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
 	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
 	modelView = viewStack.Top() * modelStack.Top();
 	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, glm::value_ptr(modelView));
+
 	if (enableLight)
 	{
 		glUniform1i(m_parameters[U_LIGHT_ENABLED], 1);
@@ -282,219 +336,98 @@ void BaseScene::RenderMesh(Mesh* mesh, bool enableLight)
 	}
 }
 
-void BaseScene::RenderMeshOnScreen(Mesh* mesh, float x, float y, float sizex, float sizey)
-{
-	glDisable(GL_DEPTH_TEST);
-	glm::mat4 ortho = glm::ortho(0.f, 1600.f, 0.f, 900.f, -1000.f, 1000.f); // dimension of screen UI
-	projectionStack.PushMatrix();
-	projectionStack.LoadMatrix(ortho);
-	
-	viewStack.PushMatrix();
-	viewStack.LoadIdentity(); // No need camera for ortho mode
-	modelStack.PushMatrix();
-	modelStack.LoadIdentity();
+void BaseScene::RenderObj(const std::shared_ptr<RObj> obj) {
 
-	modelStack.Translate(x, y, 0.f);
-	modelStack.Scale(sizex, sizey, 1.f);
-
-	RenderMesh(mesh, false); //UI should not have light
-	projectionStack.PopMatrix();
-	viewStack.PopMatrix();
-	modelStack.PopMatrix();
-	glEnable(GL_DEPTH_TEST);
-}
-
-void BaseScene::RenderText(Mesh* mesh, std::string text, glm::vec3 color)
-{
-	if (!mesh || mesh->textureID <= 0) return;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glDisable(GL_CULL_FACE);
-	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
-	glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &color.r);
-	glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
-	glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mesh->textureID);
-	glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
-
-	for (unsigned i = 0; i < text.length(); ++i)
-	{
-		glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(i * 1.0f, 0, 0));
-		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
-		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
-		mesh->Render((unsigned)text[i] * 6, 6);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-}
-
-void BaseScene::RenderTextOnScreen(Mesh* mesh, std::string text, glm::vec3 color, float size, float x, float y)
-{
-	if (!mesh || mesh->textureID <= 0) return;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glDisable(GL_DEPTH_TEST);
-	glm::mat4 ortho = glm::ortho(0.f, 1600.f, 0.f, 900.f, -1000.f, 1000.f);
-
-	projectionStack.PushMatrix();
-	projectionStack.LoadMatrix(ortho);
-	viewStack.PushMatrix();
-	viewStack.LoadIdentity();
-
-	modelStack.PushMatrix();
-	modelStack.LoadIdentity();
-
-	modelStack.Translate(x, y, 0);
-	modelStack.Scale(size, size, size);
-
-	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
-	glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &color.r);
-	glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
-	glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mesh->textureID);
-	glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
-
-	for (unsigned i = 0; i < text.length(); ++i)
-	{
-		glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(0.5f + i * 1.0f, 0.5f, 0));
-		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
-		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
-		mesh->Render((unsigned)text[i] * 6, 6);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
-	projectionStack.PopMatrix();
-	viewStack.PopMatrix();
-	modelStack.PopMatrix();
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-}
-
-void BaseScene::HandleKeyPress()
-{
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_LEFT_ALT)) {
-		static auto prevMode = FPCamera::MODE::FREE;
-		auto& cameraMode = camera.GetCurrentMode();
-
-		if (cameraMode != FPCamera::MODE::PAUSE) {
-			prevMode = cameraMode;
-			camera.Set(FPCamera::MODE::PAUSE);
-		}
-		else {
-			camera.Set(prevMode);
-		}
-	}
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x31))
-	{
-		// Key press to enable culling
-		glEnable(GL_CULL_FACE);
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x32))
-	{
-		// Key press to disable culling
-		glDisable(GL_CULL_FACE);
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x33))
-	{
-		// Key press to enable fill mode for the polygon
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //default fill mode
-	}
-	if (KeyboardController::GetInstance()->IsKeyPressed(0x34))
-	{
-		// Key press to enable wireframe mode for the polygon
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //wireframe mode
-	}
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(VK_TAB))
-	{
-		// Change to black background
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	}
-}
-
-void BaseScene::Exit()
-{
-	// Cleanup VBO here
-	for (int i = 0; i < NUM_GEOMETRY; ++i)
-	{
-		if (meshList[i])
-		{
-			delete meshList[i];
-		}
-	}
-
-	DataManager::GetInstance().SaveData();
-
-	glDeleteVertexArrays(1, &m_vertexArrayID);
-	glDeleteProgram(m_programID);
-}
-
-void BaseScene::UpdateLightUniform(const Light& lightData, LIGHT_UNIFORM_TYPE uniform) {
-
-	if (light.empty())
+	if (!obj->allowRender)
 		return;
 
-	unsigned lightIndex = &lightData - &light[0];
+	bool enableLight = true;
+	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RObj::SCREEN)
+		enableLight = false;
 
-	switch (uniform) {
-	case U_LIGHT_TYPE: glUniform1i(lightUniformLocations[lightIndex][U_LIGHT_TYPE], lightData.type); break;
-	case U_LIGHT_POSITION: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_POSITION], 1, glm::value_ptr(lightData.position)); break;
-	case U_LIGHT_COLOR: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_COLOR], 1, glm::value_ptr(lightData.color)); break;
-	case U_LIGHT_POWER: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_POWER], lightData.power); break;
-	case U_LIGHT_KC: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KC], lightData.kC); break;
-	case U_LIGHT_KL:glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KL], lightData.kL); break;
-	case U_LIGHT_KQ: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KQ], lightData.kQ); break;
-	case U_LIGHT_SPOTDIRECTION: glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_SPOTDIRECTION], 1, glm::value_ptr(lightData.spotDirection)); break;
-	case U_LIGHT_COSCUTOFF: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSCUTOFF], cosf(glm::radians<float>(lightData.cosCutoff))); break;
-	case U_LIGHT_COSINNER: glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSINNER], cosf(glm::radians<float>(lightData.cosInner))); break;
-	
-	default:
-		glUniform1i(m_parameters[U_LIGHT_ENABLED], enabledLight);
-		glUniform1i(m_parameters[U_LIGHT_NUMLIGHTS], light.size());
-		glUniform1i(lightUniformLocations[lightIndex][U_LIGHT_TYPE], lightData.type);
-		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_POSITION], 1, glm::value_ptr(lightData.position));
-		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_COLOR], 1, glm::value_ptr(lightData.color));
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_POWER], lightData.power);
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KC], lightData.kC);
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KL], lightData.kL);
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_KQ], lightData.kQ);
-		glUniform3fv(lightUniformLocations[lightIndex][U_LIGHT_SPOTDIRECTION], 1, glm::value_ptr(lightData.spotDirection));
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSCUTOFF], cosf(glm::radians<float>(lightData.cosCutoff)));
-		glUniform1f(lightUniformLocations[lightIndex][U_LIGHT_COSINNER], cosf(glm::radians<float>(lightData.cosInner)));
+	Material meshMaterial = meshList[obj->geometryType]->material;
+	if (obj->material.type != Material::MESH_MATERIAL) {
+		meshList[obj->geometryType]->material = obj->material;
+	}
+
+	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+		modelStack.PushMatrix();
+
+		const auto& text = textObj->text;
+		const auto& mesh = meshList[obj->geometryType];
+
+		glDisable(GL_CULL_FACE);
+
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
+		glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &textObj->color.r);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+
+		// offset
+		float spacing = FontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
+		if (textObj->centerText)
+			modelStack.Translate(text.size() * spacing / -2.f + spacing / 2, 0, 0);
+
+		for (unsigned i = 0; i < text.length(); ++i)
+		{
+			glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(i * spacing, 0, 0));
+			glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
+			glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+			mesh->Render((unsigned)text[i] * 6, 6);
+		}
+
+		if (cullFaceActive)
+			glEnable(GL_CULL_FACE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
+
+		modelStack.PopMatrix();
+	}
+	else {
+		RenderMesh(static_cast<GEOMETRY_TYPE>(obj->geometryType), enableLight);
+	}
+
+	meshList[obj->geometryType]->material = meshMaterial;
+
+}
+
+void BaseScene::InitDebugText(GEOMETRY_TYPE font) {
+	auto& newObj = RObj::newObject;
+	for (int i = 0; i < 10; i++) {
+		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		debugTextList.push_back(newObj);
 	}
 }
 
+bool BaseScene::AddDebugText(const std::string& text, int index) {
 
-void BaseScene::UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform) {
-	switch (uniform) {
-	case U_ATMOSPHERE_COLOR: glUniform3fv(atmosphereUniformLocations[U_ATMOSPHERE_COLOR], 1, glm::value_ptr(atmosphere.color)); break;
-	case U_ATMOSPHERE_FOG_DENSITY: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_DENSITY], atmosphere.fogDensity); break;
-	case U_ATMOSPHERE_FOG_VISIBILITY: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_VISIBILITY], atmosphere.fogVisibility); break;
-	case U_ATMOSPHERE_LIGHTEST_RANGE: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_LIGHTEST_RANGE], atmosphere.lightestRange); break;
-	case U_ATMOSPHERE_DENSEST_RANGE: glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE], atmosphere.densestRange); break;
-	default:
-		glUniform1i(m_parameters[U_ATMOSPHERE_ENABLED], enabledAtmosphere);
-		glUniform3fv(atmosphereUniformLocations[U_ATMOSPHERE_COLOR], 1, glm::value_ptr(atmosphere.color));
-		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_DENSITY], atmosphere.fogDensity);
-		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_FOG_VISIBILITY], atmosphere.fogVisibility);
-		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_LIGHTEST_RANGE], atmosphere.lightestRange);
-		glUniform1f(atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE], atmosphere.densestRange);
+	if (index < 0) {
+		for (auto& obj_weak : debugTextList) {
+			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
+
+			if (textObj->text == "") {
+				textObj->text = text;
+				return true;
+			}
+		}
+		return false;
 	}
+	
+	index = Clamp(index, 0, 9);
+	std::dynamic_pointer_cast<TextObject>(debugTextList[index].lock())->text = text;
+	
+	return true;
 }
 
-void BaseScene::RenderDebugText() {
-	
-	
+void BaseScene::ClearDebugText() {
+	for (auto& obj_weak : debugTextList)
+		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }

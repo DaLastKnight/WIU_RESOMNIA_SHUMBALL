@@ -4,6 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <array>
+#include <memory>
+
 #include "Scene.h"
 #include "Mesh.h"
 #include "FPCamera.h"
@@ -11,23 +14,17 @@
 #include "Light.h"
 #include "Atmosphere.h"
 
-#include <array>
+#include "RenderObject.h"
+#include "EnumArray.h"
+#include "Player.h"
+
+
+enum class GEOMETRY_TYPE : int;
 
 class BaseScene : public Scene
 {
 public:
-	enum GEOMETRY_TYPE
-	{
-		GEO_AXES,
-		GEO_SPHERE,
-		GEO_CUBE,
-		GEO_PLANE,
-		GEO_TEXT,
-		GEO_SKYBOX,
-		
-		NUM_GEOMETRY,
-	};
-
+	
 	enum UNIFORM_TYPE
 	{
 		U_MVP = 0,
@@ -83,7 +80,7 @@ public:
 	};
 
 	BaseScene();
-	virtual~BaseScene(); // = 0;
+	virtual~BaseScene() = 0;
 
 	virtual void Init();
 	virtual void Update(double dt);
@@ -92,22 +89,20 @@ public:
 
 protected:
 
-	// Render helper functions
-	void RenderMesh(Mesh* mesh, bool enableLight);
-	void RenderMeshOnScreen(Mesh* mesh, float x, float y, float sizex, float sizey);
-	void RenderText(Mesh* mesh, std::string text, glm::vec3 color);
-	void RenderTextOnScreen(Mesh* mesh, std::string text, glm::vec3 color, float size, float x, float y);
+	virtual float FontSpacing(GEOMETRY_TYPE font) {
+		return 1.f;
+	}
 
 	// HandleInput functions
-	void HandleKeyPress();
+	virtual void HandleKeyPress();
 	
 	// Geometry/Shader members
-	Mesh* meshList[NUM_GEOMETRY];
+	static constexpr int MAX_GEOMETRY = 100;
+	EnumArray<Mesh*, GEOMETRY_TYPE, MAX_GEOMETRY> meshList;
 
 	// uniforms for shader
 	static constexpr int MAX_LIGHT = 12;
-	void UpdateLightUniform(const Light& lightObj, LIGHT_UNIFORM_TYPE uniform = U_LIGHT_TOTAL);
-	bool enabledLight = true;
+	void UpdateLightUniform(const std::shared_ptr<LightObject>& lightObj, LIGHT_UNIFORM_TYPE uniform = U_LIGHT_TOTAL);
 
 	void UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform = U_ATMOSPHERE_TOTAL);
 	bool enabledAtmosphere = true;
@@ -116,21 +111,32 @@ protected:
 	MatrixStack modelStack, viewStack, projectionStack;
 	int projType = 1; // fix to 0 for orthographic, 1 for projection
 
-	std::vector<Light> light;
 	Atmosphere atmosphere;
 
 	FPCamera camera;
+	Player player;
 
+	std::shared_ptr<RenderObject> worldRoot;
+	std::shared_ptr<RenderObject> viewRoot;
+	std::shared_ptr<RenderObject> screenRoot;
+
+	glm::mat4 perspective;
+	glm::mat4 ortho;
+
+	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
+	void RenderObj(const std::shared_ptr<RenderObject> obj);
 
 	// debug
 	bool debug = false;
-	void AddDebugText(const std::string& text) {
-		debugTextList.emplace_back(text);
-	}
-
-	void RenderDebugText();
+	void InitDebugText(GEOMETRY_TYPE font);
+	// if passed in index, overwrite data in that specific debug text
+	// returns success
+	// does not work in Init()
+	bool AddDebugText(const std::string& text, int index = -1); 
 
 private:
+
+	void ClearDebugText();
 
 	// Geometry/Shader members
 	unsigned m_vertexArrayID;
@@ -142,7 +148,10 @@ private:
 	std::array<std::array<unsigned, U_LIGHT_TOTAL>, MAX_LIGHT> lightUniformLocations;
 	std::array<unsigned, U_ATMOSPHERE_TOTAL> atmosphereUniformLocations;
 
-	std::vector<std::string> debugTextList;
+	std::vector<std::weak_ptr<RenderObject>> debugTextList;
+
+	bool cullFaceActive = true;
+	bool wireFrameActive = false;
 };
 
 #endif

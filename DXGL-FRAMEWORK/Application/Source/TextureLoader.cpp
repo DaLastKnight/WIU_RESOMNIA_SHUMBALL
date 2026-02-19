@@ -3,13 +3,25 @@
 #include <fstream>
 #include <GL\glew.h>
 
-#include "LoadTGA.h"
+#include "TextureLoader.h"
 
-GLuint LoadTGA(const char *file_path)				// load TGA file to memory
+std::string TextureLoader::directory = "Image/";
+
+void TextureLoader::SetDirectory(const std::string& directoryPath) {
+
+	directory = directoryPath;
+
+	if (directory.back() != '/') {
+		directory += "/";
+	}
+}
+
+GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memory
 {
-	std::ifstream fileStream(file_path, std::ios::binary);
+	std::string actualFilePath = directory + file_path;
+	std::ifstream fileStream(actualFilePath, std::ios::binary);
 	if(!fileStream.is_open()) {
-		std::cout << "Impossible to open " << file_path << ". Are you in the right directory ?\n";
+		std::cout << "Impossible to open " << actualFilePath << ". Are you in the right directory ?\n";
 		return 0;
 	}
 
@@ -53,12 +65,10 @@ GLuint LoadTGA(const char *file_path)				// load TGA file to memory
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	float maxAnisotropy = 1.f;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
-		&maxAnisotropy);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-		(GLint)maxAnisotropy);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)maxAnisotropy);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	//end of modifiable code
 
 	delete []data;

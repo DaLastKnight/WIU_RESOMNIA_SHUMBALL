@@ -1,12 +1,10 @@
 #include "DataManager.h"
-#include "Application.h"
+#include "Console.h"
 
 #include <iostream>
 #include <fstream>
 
 #include <nlohmann/json.hpp>
-
-using App = Application;
 
 using nlohmann::json;
 using nlohmann::ordered_json;
@@ -33,7 +31,7 @@ void DataManager::SaveData() {
 	outFile << savedData.dump(4); // saves json content into the file with indent of 4 space for each bracket
 	outFile.close();
 
-	App::print("saved map to file at \"" + fullPath + "\"", 2);
+	Print("saved map to file at \"" + fullPath + "\"", 2);
 }
 
 
@@ -53,5 +51,5 @@ void DataManager::LoadData() {
 		highestScores[i] = loadedScores[GameTypeToString(static_cast<GAME_TYPE>(i))];
 	}
 
-	App::print("loaded map from file at \"" + fullPath + "\"", 2);
+	Print("loaded map from file at \"" + fullPath + "\"", 2);
 }
