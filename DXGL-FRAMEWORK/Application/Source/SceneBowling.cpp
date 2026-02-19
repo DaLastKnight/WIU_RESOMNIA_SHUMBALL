@@ -94,7 +94,7 @@ void SceneBowling::Init() {
 		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
 
 		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
-		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("BOWLING_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
+		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
 		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTGA("BOWLING_PIN.tga"));
 
 		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
@@ -218,59 +218,53 @@ void SceneBowling::Init() {
 
 		//bowling pins
 		{
-			if (testing == true)
-			{
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_10";
-				newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_10";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_9";
-				newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_9";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
 
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_8";
-				newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_8";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_7";
-				newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_7";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_6";
-				newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_6";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_5";
-				newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_5";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_4";
-				newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_4";
+			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_4";
-				newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_3";
+			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_3";
-				newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_2";
+			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
 
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_2";
-				newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
-
-				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-				newObj->name = "BOWLING_PIN_1";
-				newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
-			}
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_1";
+			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
+			
 		}
 
 		//bowling ball
 		{
 			worldRoot->NewChild(MeshObject::Create(BOWLING_BALL));
-			newObj->name = "BOWLING_BALL";
+			newObj->name = "WORLD_BALL";
 			newObj->trl = glm::vec3(3.35f, 0.5f, 0.5f);
 			newObj->scl = glm::vec3(.5f, .5f, .5f);
 		}
@@ -279,8 +273,11 @@ void SceneBowling::Init() {
 
 	// view space init
 	{
-			//viewRoot->NewChild(MeshObject::Create(FLASHLIGHT));
-			//newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
+			viewRoot->NewChild(MeshObject::Create(BOWLING_BALL));
+			newObj->name = "VIEW_BALL";
+			newObj->trl = glm::vec3(0.3f, -0.3f, -0.8f);
+			newObj->scl = glm::vec3(0.4f);
+			newObj->allowRender = false;
 	}
 
 	// screen space init
@@ -404,10 +401,24 @@ void SceneBowling::Update(double dt) {
 
 		if (spin == true)
 		{
-			if (obj->name == "BOWLING_BALL") {
+			if (obj->name == "WORLD_BALL") {
+
+				float moveSpeed = 10.0f;
+
+				// Move in forward direction
+				obj->trl += player.direction * moveSpeed * static_cast<float>(dt);
+
+				// Roll visually
 				obj->offsetRot.x += 200 * dt;
-				obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
+
+				obj->isDirty = true;
 			}
+		}
+
+
+		if (obj->name.find("BOWLING_PIN") != std::string::npos)
+		{
+			obj->allowRender = testing;
 		}
 
 		if (debug) {
@@ -417,6 +428,24 @@ void SceneBowling::Update(double dt) {
 		obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
 	}
+
+	for (auto& obj_wptr : RObj::worldList)
+	{
+		auto obj = obj_wptr.lock();
+		if (obj && obj->name == "WORLD_BALL")
+		{
+			obj->allowRender = !holdingBall;
+		}
+	}
+
+
+	for (auto& obj_wptr : RObj::viewList)
+	{
+		auto obj = obj_wptr.lock();
+		if (obj->name == "VIEW_BALL")
+			obj->allowRender = holdingBall;
+	}
+
 
 	// view render objects
 	for (unsigned i = 0; i < viewList.size(); ) {
@@ -660,6 +689,31 @@ void SceneBowling::HandleKeyPress() {
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H)) {
 		objectives = !objectives;
 	}
+
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_T))
+	{
+		holdingBall = !holdingBall;
+
+		for (auto& obj_wptr : RObj::worldList)
+		{
+			auto obj = obj_wptr.lock();
+			if (obj && obj->name == "WORLD_BALL")
+			{
+				obj->allowRender = !holdingBall;
+
+				if (!holdingBall)
+				{
+					obj->trl = camera.GetFinalPosition() +
+						player.direction * 2.0f -
+						glm::vec3(0, 1.3f, 0);
+
+					obj->isDirty = true;
+				}
+			}
+		}
+	}
+
+
 
 	// player controls
 	if (player.allowControl) {

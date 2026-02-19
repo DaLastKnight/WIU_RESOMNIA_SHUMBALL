@@ -70,7 +70,9 @@ private:
 	bool cullFaceActive = true;
 	bool wireFrameActive = false;
 
-	bool holding = false;
+	glm::vec3 savedBallWorldPos;
+
+	bool holdingBall = false;
 	bool spin = false;
 	bool testing = false;
 	bool objectives = false;
