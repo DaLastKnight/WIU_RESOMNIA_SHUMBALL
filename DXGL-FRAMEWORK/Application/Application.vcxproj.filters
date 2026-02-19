@@ -72,6 +72,9 @@
     <ClCompile Include="Source\Player.cpp">
       <Filter>Scene Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PhysicsManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -141,6 +144,9 @@
       <Filter>Scene Resource</Filter>
     </ClInclude>
     <ClInclude Include="Source\DataManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PhysicsManager.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>

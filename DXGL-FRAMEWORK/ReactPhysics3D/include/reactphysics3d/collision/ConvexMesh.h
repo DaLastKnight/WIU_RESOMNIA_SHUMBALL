@@ -32,6 +32,8 @@
 #include <reactphysics3d/collision/shapes/AABB.h>
 #include "HalfEdgeStructure.h"
 
+#include <vector>
+
 namespace reactphysics3d {
 
 // Declarations
