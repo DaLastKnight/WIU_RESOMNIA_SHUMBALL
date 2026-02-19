@@ -154,6 +154,10 @@ void SceneDemo::Init() {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
+		RObj::setDefaultStat.Subscribe(GEO::PNG_TEST, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
 	}
 
 	auto& newObj = RObj::newObject;
@@ -222,7 +226,9 @@ void SceneDemo::Init() {
 		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
-
+		screenRoot->NewChild(MeshObject::Create(GEO::PNG_TEST));
+		newObj->trl = vec3(-0.75f, -0.75f, 0);
+		newObj->scl = vec3(80, 80, 1);
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break

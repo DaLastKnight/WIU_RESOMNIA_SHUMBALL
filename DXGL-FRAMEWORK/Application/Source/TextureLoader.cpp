@@ -3,6 +3,13 @@
 #include <fstream>
 #include <GL\glew.h>
 
+#pragma warning(push)
+#pragma warning(disable : 6262)
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "../../stb/include/stb_image.h"
+#pragma warning(pop)
+
 #include "TextureLoader.h"
 
 std::string TextureLoader::directory = "Image/";
@@ -74,4 +81,47 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	delete []data;
 
 	return texture;						
+}
+
+GLuint TextureLoader::LoadPNG(const char* filename)
+{
+	stbi_set_flip_vertically_on_load(true);
+
+	int width, height, channels;
+	unsigned char* img = stbi_load(filename, &width, &height, &channels, 0);
+
+	if (img == nullptr)
+	{
+		std::cout << "Failed to load PNG: " << filename << "\n";
+		std::cout << "Reason: " << stbi_failure_reason() << "\n";
+		return 0;
+	}
+
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	if (channels == 4)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
+
+	// Generate mipmaps after uploading texture
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	float maxAnisotropy = 1.f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)maxAnisotropy);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(img);
+
+	return texture;
 }
