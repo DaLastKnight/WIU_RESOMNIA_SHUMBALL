@@ -92,7 +92,9 @@ GLuint TextureLoader::LoadPNG(const char* filename)
 
 	if (img == nullptr)
 	{
-		throw "Error in loading the image";
+		std::cout << "Failed to load PNG: " << filename << "\n";
+		std::cout << "Reason: " << stbi_failure_reason() << "\n";
+		return 0;
 	}
 
 	GLuint texture;

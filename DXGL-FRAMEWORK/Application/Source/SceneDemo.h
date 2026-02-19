@@ -20,6 +20,8 @@ enum class GEOMETRY_TYPE : int
 	UI_TEST,
 	UI_TEST_2,
 
+	PNG_TEST,
+
 	TOTAL
 };
 
