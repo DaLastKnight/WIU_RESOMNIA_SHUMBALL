@@ -240,7 +240,7 @@ void SceneBowling::Init() {
 			newObj->name = "BOWLING_PIN_6";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
 
-			//worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
 			newObj->name = "BOWLING_PIN_5";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
 
@@ -365,8 +365,12 @@ void SceneBowling::Update(double dt) {
 		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
 	}
 
-	AddDebugText("Objective testing");
-
+	if (objectives)
+	{
+		AddDebugText("Objective: Score 8 points");
+		AddDebugText("Objective: Score 15 points");
+		AddDebugText("Objective: Score 25 points");
+	}
 
 	// world render objects
 	for (unsigned i = 0; i < worldList.size(); ) {
@@ -649,6 +653,10 @@ void SceneBowling::HandleKeyPress() {
 
 	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_J)) {
 		testing = true;
+	}
+
+	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_H)) {
+		objectives = true;
 	}
 
 	// player controls

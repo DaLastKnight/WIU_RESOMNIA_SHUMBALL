@@ -73,6 +73,7 @@ private:
 	bool holding = false;
 	bool spin = false;
 	bool testing = true;
+	bool objectives = false;
 
 };
 
