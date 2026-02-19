@@ -238,18 +238,6 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
 		newObj->trl = glm::vec3(20, 5, 0);
 		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
 
 		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);

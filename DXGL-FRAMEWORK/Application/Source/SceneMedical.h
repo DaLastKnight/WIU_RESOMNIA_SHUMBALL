@@ -27,7 +27,6 @@ public:
 		PNG_TEST,
 
 		NANOBOT_MODEL,
-		BACTERIA_MODEL,
 		VIRUS_MODEL,
 		ENV_SKYBOX,
 		ENV_SLOPE_MODEL,
@@ -78,6 +77,10 @@ private:
 	bool cullFaceActive = true;
 	bool wireFrameActive = false;
 	
+	// Medical Gun Game Scene Specifics
+	int waveNumber = 1;
+	int maxEntitiesP = 0;
+	int maxEntitiesAI = 0;
 };
 
 #endif
