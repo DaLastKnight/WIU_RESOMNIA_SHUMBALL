@@ -102,8 +102,8 @@ void SceneMedical::Init() {
 		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
 		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("cylinder", vec3(1, 1, 1), 360, 0.5f, 100);
 		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png");
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "uploads_files_2903560_Spikes+on+ball.obj", "uploads_files_2903560_Spikes+on+ball.mtl", TextureLoader::LoadPNG("SceneMedical/Image/bacteria_skin.png"));
-		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl");
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadPNG("SceneMedical/Image/bacteria_skin.png"));
+		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadPNG("SceneMedical/Image/nanobot_skin.png"));
 
 	}
 
@@ -282,9 +282,7 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
 		newObj->trl = glm::vec3(5, 1, 0);
 		newObj->scl = glm::vec3(1, 1, 1);
-		/*worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(20, 20, 20);*/
+		
 		worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(-20, 5, 0);
 		newObj->scl = glm::vec3(1, 1, 1);
@@ -292,8 +290,9 @@ void SceneMedical::Init() {
 
 	// view space init
 	{
-		viewRoot->NewChild(MeshObject::Create(FLASHLIGHT));
-		newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
+		viewRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
+		newObj->trl = glm::vec3(0.35f, -0.2f, -0.5f);
+		newObj->scl = glm::vec3(0.1f, 0.1f, 0.1f);
 	}
 
 	// screen space init
