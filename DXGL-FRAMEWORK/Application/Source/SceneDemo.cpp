@@ -93,6 +93,8 @@ void SceneDemo::Init() {
 		meshList[GEO::FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(GEO::FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
 
 		meshList[GEO::FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
+		meshList[GEO::Bowling_Pin] = MeshBuilder::GenerateOBJMTL("Bowling_Pin", "Bowling_Pin.obj", "Bowling_Pin.mtl", TextureLoader::LoadTGA("Bowling_Pin.tga"));
+		meshList[GEO::Other_Pin] = MeshBuilder::GenerateOBJMTL("Other_Pin", "Other_Pin.obj", "Other_Pin.mtl");
 
 		meshList[GEO::UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 		meshList[GEO::UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
@@ -147,6 +149,13 @@ void SceneDemo::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(GEO::FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
 			});
+
+
+		RObj::setDefaultStat.Subscribe(GEO::Bowling_Pin, [](const std::shared_ptr<RObj>& obj) {
+			});
+		RObj::setDefaultStat.Subscribe(GEO::Other_Pin, [](const std::shared_ptr<RObj>& obj) {
+			});
+
 		RObj::setDefaultStat.Subscribe(GEO::UI_TEST, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
@@ -206,6 +215,17 @@ void SceneDemo::Init() {
 				lightProperties.cosInner = 29.f;
 				UpdateLightUniform(newLightObj);
 			}
+		}
+
+		//bowling pins 
+		{
+		
+			//worldRoot->NewChild(MeshObject::Create(GEO::Bowling_Pin));
+			//newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
+
+			worldRoot->NewChild(MeshObject::Create(GEO::Other_Pin));
+			newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
+		
 		}
 	}
 

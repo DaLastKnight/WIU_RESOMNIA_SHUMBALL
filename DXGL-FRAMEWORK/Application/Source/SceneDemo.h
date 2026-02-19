@@ -16,6 +16,8 @@ enum class GEOMETRY_TYPE : int
 
 	// add more variables here
 	FLASHLIGHT,
+	Bowling_Pin,
+	Other_Pin,
 
 	UI_TEST,
 	UI_TEST_2,
