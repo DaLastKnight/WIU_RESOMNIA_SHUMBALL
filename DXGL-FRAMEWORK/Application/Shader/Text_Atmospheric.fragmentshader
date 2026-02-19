@@ -1,0 +1,180 @@
+#version 330 core
+
+// Interpolated values from the vertex shaders
+in vec3 vertexPosition_cameraspace;
+in vec3 fragmentColor;
+in vec3 vertexNormal_cameraspace;
+in vec2 texCoord;
+
+// Ouput data
+out vec4 color;
+
+struct Light {
+	int type;
+	vec3 position_cameraspace;
+	vec3 color;
+	float power;
+	float kC;
+	float kL;
+	float kQ;
+	vec3 spotDirection;
+	float cosCutoff;
+	float cosInner;
+};
+
+struct Material {
+	vec3 kAmbient;
+	vec3 kDiffuse;
+	vec3 kSpecular;
+	float kShininess;
+};
+
+struct Atmosphere {
+	vec3 color;
+	float fogDensity;
+	float fogVisibility;
+	float lightestRange;
+	float densestRange;
+};
+
+float getAttenuation(Light light, float distance) {
+	if(light.type == 1)
+		return 1;
+	else
+		return 1 / max(1, light.kC + light.kL * distance + light.kQ * distance * distance);
+}
+
+float getSpotlightEffect(Light light, vec3 lightDirection) {
+	vec3 S = normalize(light.spotDirection);
+	vec3 L = normalize(lightDirection);
+	float cosDirection = dot(L, S);
+	return smoothstep(light.cosCutoff, light.cosInner, cosDirection);
+}
+
+// Constant values
+const int MAX_LIGHTS = 12;
+
+// Values that stay constant for the whole mesh.
+uniform bool lightEnabled;
+uniform Light lights[MAX_LIGHTS];
+uniform Material material;
+uniform int numLights;
+uniform bool colorTextureEnabled;
+uniform sampler2D colorTexture;
+uniform bool textEnabled;
+uniform vec3 textColor;
+uniform bool atmosphereEnabled;
+uniform Atmosphere atmosphere;
+uniform vec3 atmosphereTargetPos_cameraspace;
+
+void main() {
+	// Material properties
+	vec4 materialColor;
+	vec4 textureColor;
+
+	if (colorTextureEnabled == true) {
+		if (textEnabled == true) {
+			textureColor = texture2D(colorTexture, texCoord);
+			materialColor = vec4(textColor, 1);
+		}
+		else
+			materialColor = texture2D(colorTexture, texCoord);
+	}
+	else
+		materialColor = vec4(fragmentColor, 1);
+
+	if (lightEnabled == true)
+	{
+		// Vectors
+		vec3 eyeDirection_cameraspace = -vertexPosition_cameraspace;
+		vec3 E = normalize(eyeDirection_cameraspace);
+		vec3 N = normalize(vertexNormal_cameraspace);
+
+		color =
+			// Ambient : simulates indirect lighting
+			materialColor * vec4(material.kAmbient, 1);
+
+		float accumulatedLightStrength = 0;
+
+		for (int i = 0; i < numLights; ++i)
+		{
+			if (lights[i].power < 0.0001f)
+				continue;
+
+			// Light direction
+			float spotlightEffect = 1;
+			vec3 lightDirection_cameraspace;
+			if (lights[i].type == 1) {
+				lightDirection_cameraspace = lights[i].position_cameraspace;
+			}
+			else if (lights[i].type == 2) {
+				lightDirection_cameraspace = lights[i].position_cameraspace - vertexPosition_cameraspace;
+			}
+			else {
+				lightDirection_cameraspace = lights[i].position_cameraspace - vertexPosition_cameraspace;
+			}
+			// Distance to the light
+			float distance = length(lightDirection_cameraspace);
+
+			if (lights[i].type == 2)
+				spotlightEffect = getSpotlightEffect(lights[i], lightDirection_cameraspace);
+
+			// Light attenuation
+			float attenuationFactor = getAttenuation(lights[i], distance);
+
+			vec3 L = normalize(lightDirection_cameraspace);
+			float cosTheta = clamp(dot(N, L), 0, 1);
+
+			vec3 R = reflect(-L, N);
+			float cosAlpha = clamp(dot(E, R), 0, 1);
+
+			color +=
+				// Diffuse : "color" of the object
+				materialColor * vec4(material.kDiffuse, 0) * vec4(lights[i].color, 0) * lights[i].power * cosTheta * attenuationFactor * spotlightEffect +
+
+				// Specular : reflective highlight, like a mirror
+				vec4(material.kSpecular, materialColor.a) * vec4(lights[i].color, 0) * lights[i].power * pow(cosAlpha, material.kShininess) * attenuationFactor * spotlightEffect;
+
+			float distToTarget = length(vertexPosition_cameraspace - atmosphereTargetPos_cameraspace);
+			float densestLimit = atmosphere.densestRange * 1.5f;
+			float lightestLimit = (atmosphere.densestRange + atmosphere.lightestRange) / 2.f;
+			float fogAttenuation = (densestLimit - distToTarget) / (densestLimit - lightestLimit);
+			fogAttenuation = (pow(10, fogAttenuation) - 1) / (11);
+			fogAttenuation = clamp(fogAttenuation, 0.0, 1.0);
+
+			if (i == 0)
+				accumulatedLightStrength = attenuationFactor * spotlightEffect * fogAttenuation * lights[i].power;
+			else
+				accumulatedLightStrength += attenuationFactor * spotlightEffect * fogAttenuation * lights[i].power;
+		}
+
+		// | atmosphere fog
+		if (atmosphere.fogDensity != 0 && atmosphereEnabled) {
+
+			// dist to target
+			float distToTarget = length(vertexPosition_cameraspace - atmosphereTargetPos_cameraspace);
+
+			accumulatedLightStrength = clamp(accumulatedLightStrength, 0.0, 1.0);
+			vec4 fogColor = color * accumulatedLightStrength + vec4(atmosphere.color, color.a) * (1 - accumulatedLightStrength);
+
+			// fog multiplier
+			float fogVisibility = atmosphere.fogVisibility;
+			if (fogVisibility == 1)
+				fogVisibility += 0.0001f;
+			float fogMult = (distToTarget - atmosphere.lightestRange) / (atmosphere.densestRange - atmosphere.lightestRange);
+			fogMult = (pow(fogVisibility, fogMult) - 1) / (fogVisibility - 1);
+			fogMult = clamp(fogMult, 0.0, 1.0);
+			fogMult *= atmosphere.fogDensity;
+
+			color = color * (1 - fogMult) + fogColor * fogMult;
+		}
+
+	}
+	else
+		color = materialColor;
+
+	if (textEnabled == true) {
+		color = materialColor;
+		color.a = textureColor.a;
+	}
+}

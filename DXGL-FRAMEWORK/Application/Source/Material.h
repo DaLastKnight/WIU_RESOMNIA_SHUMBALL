@@ -14,7 +14,7 @@ struct Material
 	float kShininess;
 	unsigned size;
 
-	Material() : kAmbient(0.f, 0.f, 0.f), kDiffuse(0.f, 0.f, 0.f), kSpecular(0.f, 0.f, 0.f), kShininess(1.f), size(0) {}
+	Material() : kAmbient(0.1f), kDiffuse(0.8f), kSpecular(0.5f), kShininess(4.f), size(0) {}
 
 	Material& operator=(const Material& rhs)
 	{
@@ -24,6 +24,17 @@ struct Material
 		kShininess = rhs.kShininess;
 		size = rhs.size;
 		return *this;
+	}
+
+	void SetZero() {
+		Set(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0);
+	}
+
+	void Set(glm::vec3 kAmbient, glm::vec3 kDiffuse, glm::vec3 kSpecular, float kShininess) {
+		this->kAmbient = kAmbient;
+		this->kDiffuse = kDiffuse;
+		this->kSpecular = kSpecular;
+		this->kShininess = kShininess;
 	}
 };
 

@@ -13,7 +13,8 @@ MouseController::MouseController()
 	, delta_posX(0.0), delta_posY(0.0)
 	, currBtnStatus(0), prevBtnStatus(0)
 	, WheelOffset_X(0), WheelOffset_Y(0)
-	, bKeepMouseCentered(true)
+	, bKeepMouseCentered(false)
+	, bMouseEnabled(true)
 	, bFirstUpdate(true)
 {
 }
@@ -147,9 +148,9 @@ bool MouseController::IsButtonUp(const unsigned char _slot)
 */
 bool MouseController::IsButtonPressed(const unsigned char _slot)
 {
-	//cout << IsButtonDown(_slot) << ", " << (prevBtnStatus & (1 << _slot)) << endl;
+	//cout << IsButtonDown(_slot) << ", " << !(prevBtnStatus & (1 << _slot)) << endl;
 	// True if currently button is down, previously is up
-	return IsButtonDown(_slot) && (prevBtnStatus & (1 << _slot));
+	return IsButtonDown(_slot) && !(prevBtnStatus & (1 << _slot));
 }
 
 /**
