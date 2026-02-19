@@ -127,7 +127,6 @@ void BaseScene::Update(double dt) {
 	RObj::newObject.reset();
 	camera.VariableRefresh();
 	player.VariableRefresh();
-	ClearDebugText();
 
 }
 
@@ -217,22 +216,7 @@ void BaseScene::Exit()
 
 void BaseScene::HandleKeyPress()
 {
-	if (debug) {
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
-			cullFaceActive = !cullFaceActive;
-			if (cullFaceActive)
-				glEnable(GL_CULL_FACE);
-			else 
-				glDisable(GL_CULL_FACE);
-		}
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_9)) {
-			wireFrameActive = !wireFrameActive;
-			if (wireFrameActive)
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			else
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-	}
+	
 }
 
 
@@ -288,146 +272,3 @@ void BaseScene::UpdateAtmosphereUniform(ATMOSPHERE_UNIFORM_TYPE uniform) {
 	}
 }
 
-
-
-void BaseScene::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
-
-	Mesh* mesh = meshList[static_cast<int>(type)];
-	glm::mat4 MVP, modelView, modelView_inverse_transpose;
-	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
-	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
-	modelView = viewStack.Top() * modelStack.Top();
-	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, glm::value_ptr(modelView));
-
-	if (enableLight)
-	{
-		glUniform1i(m_parameters[U_LIGHT_ENABLED], 1);
-		modelView_inverse_transpose = glm::inverseTranspose(modelView);
-		glUniformMatrix4fv(m_parameters[U_MODELVIEW_INVERSE_TRANSPOSE], 1, GL_FALSE, glm::value_ptr(modelView_inverse_transpose));
-
-		//load material
-		glUniform3fv(m_parameters[U_MATERIAL_AMBIENT], 1, &mesh->material.kAmbient.r);
-		glUniform3fv(m_parameters[U_MATERIAL_DIFFUSE], 1, &mesh->material.kDiffuse.r);
-		glUniform3fv(m_parameters[U_MATERIAL_SPECULAR], 1, &mesh->material.kSpecular.r);
-		glUniform1f(m_parameters[U_MATERIAL_SHININESS], mesh->material.kShininess);
-	}
-	else
-	{
-		glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
-	}
-
-	if (mesh->textureID > 0)
-	{
-		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
-		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
-	}
-	else
-	{
-		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 0);
-	}
-
-	mesh->Render();
-
-	if (mesh->textureID > 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-}
-
-void BaseScene::RenderObj(const std::shared_ptr<RObj> obj) {
-
-	if (!obj->allowRender)
-		return;
-
-	bool enableLight = true;
-	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RObj::SCREEN)
-		enableLight = false;
-
-	Material meshMaterial = meshList[obj->geometryType]->material;
-	if (obj->material.type != Material::MESH_MATERIAL) {
-		meshList[obj->geometryType]->material = obj->material;
-	}
-
-	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
-		modelStack.PushMatrix();
-
-		const auto& text = textObj->text;
-		const auto& mesh = meshList[obj->geometryType];
-
-		glDisable(GL_CULL_FACE);
-
-		glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
-		glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &textObj->color.r);
-		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
-		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
-
-		// offset
-		float spacing = FontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
-		if (textObj->centerText)
-			modelStack.Translate(text.size() * spacing / -2.f + spacing / 2, 0, 0);
-
-		for (unsigned i = 0; i < text.length(); ++i)
-		{
-			glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(i * spacing, 0, 0));
-			glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
-			glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
-
-			mesh->Render((unsigned)text[i] * 6, 6);
-		}
-
-		if (cullFaceActive)
-			glEnable(GL_CULL_FACE);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
-
-		modelStack.PopMatrix();
-	}
-	else {
-		RenderMesh(static_cast<GEOMETRY_TYPE>(obj->geometryType), enableLight);
-	}
-
-	meshList[obj->geometryType]->material = meshMaterial;
-
-}
-
-void BaseScene::InitDebugText(GEOMETRY_TYPE font) {
-	auto& newObj = RObj::newObject;
-	for (int i = 0; i < 10; i++) {
-		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
-		newObj->relativeTrl = true;
-		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
-		newObj->scl = vec3(30, 30, 1);
-		debugTextList.push_back(newObj);
-	}
-}
-
-bool BaseScene::AddDebugText(const std::string& text, int index) {
-
-	if (index < 0) {
-		for (auto& obj_weak : debugTextList) {
-			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
-
-			if (textObj->text == "") {
-				textObj->text = text;
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	index = Clamp(index, 0, 9);
-	std::dynamic_pointer_cast<TextObject>(debugTextList[index].lock())->text = text;
-	
-	return true;
-}
-
-void BaseScene::ClearDebugText() {
-	for (auto& obj_weak : debugTextList)
-		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
-}

@@ -3,7 +3,6 @@
 
 #include "RenderObject.h"
 
-enum class GEOMETRY_TYPE : int;
 class FPCamera;
 
 class Player {
@@ -25,7 +24,7 @@ public:
 
 	bool allowControl = true;
 
-	void Init(std::shared_ptr<RenderObject> parent, GEOMETRY_TYPE type, glm::vec3 cameraOffset);
+	void Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 cameraOffset);
 
 	void UpdatePositionWithCamera(double dt, FPCamera& camera);
 	void SyncRender();

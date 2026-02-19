@@ -19,7 +19,7 @@
 #include "Player.h"
 
 
-enum class GEOMETRY_TYPE : int;
+enum GEOMETRY_TYPE;
 
 class BaseScene : public Scene
 {
@@ -89,12 +89,10 @@ public:
 
 protected:
 
-	virtual float FontSpacing(GEOMETRY_TYPE font) {
-		return 1.f;
-	}
-
 	// HandleInput functions
 	virtual void HandleKeyPress();
+
+	unsigned m_parameters[U_TOTAL];
 	
 	// Geometry/Shader members
 	static constexpr int MAX_GEOMETRY = 100;
@@ -123,35 +121,17 @@ protected:
 	glm::mat4 perspective;
 	glm::mat4 ortho;
 
-	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
-	void RenderObj(const std::shared_ptr<RenderObject> obj);
-
-	// debug
-	bool debug = false;
-	void InitDebugText(GEOMETRY_TYPE font);
-	// if passed in index, overwrite data in that specific debug text
-	// returns success
-	// does not work in Init()
-	bool AddDebugText(const std::string& text, int index = -1); 
-
 private:
-
-	void ClearDebugText();
 
 	// Geometry/Shader members
 	unsigned m_vertexArrayID;
 
 	// uniforms for shader
 	unsigned m_programID;
-	unsigned m_parameters[U_TOTAL];
 
 	std::array<std::array<unsigned, U_LIGHT_TOTAL>, MAX_LIGHT> lightUniformLocations;
 	std::array<unsigned, U_ATMOSPHERE_TOTAL> atmosphereUniformLocations;
 
-	std::vector<std::weak_ptr<RenderObject>> debugTextList;
-
-	bool cullFaceActive = true;
-	bool wireFrameActive = false;
 };
 
 #endif
