@@ -98,7 +98,7 @@ void SceneMedical::Init() {
 
 		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadPNG("SceneMedical/Image/NYP.png"));
 
-		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
+		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadTGA("internal_body.tga"));
 		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
 		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("cylinder", vec3(1, 1, 1), 360, 0.5f, 100);
 		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png");
