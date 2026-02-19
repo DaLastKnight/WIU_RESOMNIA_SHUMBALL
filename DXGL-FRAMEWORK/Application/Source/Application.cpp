@@ -12,6 +12,7 @@
 
 #include "Scene.h"
 #include "SceneDemo.h"
+#include "SceneRhythm.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"

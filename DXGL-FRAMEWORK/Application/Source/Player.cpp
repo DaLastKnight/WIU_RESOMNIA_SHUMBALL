@@ -10,7 +10,7 @@
 
 using glm::vec3;
 
-void Player::Init(std::shared_ptr<RenderObject> parent, GEOMETRY_TYPE type, glm::vec3 cameraOffset) {
+void Player::Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 cameraOffset) {
 	parent->NewChild(MeshObject::Create(type));
 	renderGroup = RenderObject::newObject;
 

@@ -72,6 +72,9 @@
     <ClCompile Include="Source\Player.cpp">
       <Filter>Scene Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SceneRhythm.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -142,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="Source\Player.h">
       <Filter>Scene Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneRhythm.h">
+      <Filter>Scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
