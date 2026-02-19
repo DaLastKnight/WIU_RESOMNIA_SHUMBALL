@@ -8,6 +8,8 @@
 #include <map>
 #include <string>
 
+#include <glm/glm.hpp>
+
 
 enum class SFX_TYPE : int;
 
@@ -52,6 +54,9 @@ public:
     double GetMUSPosition();
     void SetMUSPosition(double postionInSeconds);
     double GetMUSDUration();
+
+    
+    void SetSFXPosition(int channel, glm::vec3 hearFacingDirection, glm::vec3 hearPosition, glm::vec3 sourcePosition, float maxDistance = 25);
 
     int PlayingMUS();
     // | channel : -1 = return number of channels currently playing

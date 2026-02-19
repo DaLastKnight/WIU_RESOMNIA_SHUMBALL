@@ -152,6 +152,20 @@ double AudioManager::GetMUSDUration() {
     return musicDuration;
 }
 
+void AudioManager::SetSFXPosition(int channel, glm::vec3 hearFacingDirection, glm::vec3 hearPosition, glm::vec3 sourcePosition, float maxDistance) {
+
+    glm::vec3 hearToSource = sourcePosition - hearPosition;
+    float distance = glm::length(hearToSource);
+
+    float dotProduct = glm::dot(hearFacingDirection, hearToSource) / glm::dot(hearToSource, hearToSource);
+    dotProduct = Clamp(dotProduct, 0, 1);
+    float thetaRad = acos(dotProduct);
+
+    float t = Clamp(distance / maxDistance, 0, 1);
+    float volume = 1 - t * t * (3 - 2 * t);
+    Mix_SetPosition(channel, glm::degrees(thetaRad), volume);
+}
+
 int AudioManager::PlayingMUS() {
     return musicPlaying;
 }
