@@ -13,7 +13,7 @@ using glm::vec3;
 void Player::Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 cameraOffset) {
 	parent->NewChild(MeshObject::Create(type));
 	renderGroup = RenderObject::newObject;
-
+	RenderObject::newObject->name = "player";
 	RenderObject::newObject.reset();
 
 	this->cameraOffset = cameraOffset;
@@ -33,7 +33,7 @@ void Player::UpdatePositionWithCamera(double dt, FPCamera& camera) {
 
 		vec3 finalTrlDire = glm::normalize(velocity);
 		// if actually sprinting and moving forward
-		if (sprinting && glm::dot(finalTrlDire, direction) > 0) {
+		if (sprinting = (sprinting && glm::dot(finalTrlDire, direction) > 0)) {
 			targetSprintMultiplier = sprintMultiplier;
 			camera.psi *= 1 + 1 * (smoothSprintMultiplier / sprintMultiplier) * dt * 100;
 			targetBobbingSpeed *= 1 + 1 * (smoothSprintMultiplier / sprintMultiplier) * dt * 100;
@@ -56,6 +56,30 @@ void Player::UpdatePositionWithCamera(double dt, FPCamera& camera) {
 	}
 
 	camera.bobbingSmoothSpeed = Smooth(camera.bobbingSmoothSpeed, targetBobbingSpeed, 20.f, dt);
+}
+
+void Player::UpdatePosition(double dt) {
+	float targetSprintMultiplier = 1;
+	float targetBobbingSpeed = 0;
+
+	if (velocity != vec3(0)) {
+
+		vec3 finalTrlDire = glm::normalize(velocity);
+		// if actually sprinting and moving forward
+		if (sprinting = (sprinting && glm::dot(finalTrlDire, direction) > 0)) {
+			targetSprintMultiplier = sprintMultiplier;
+		}
+
+		smoothSprintMultiplier = Smooth(smoothSprintMultiplier, targetSprintMultiplier, 20.f, dt);
+		velocity = finalTrlDire * speed * smoothSprintMultiplier * static_cast<float>(dt);
+
+		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
+		position += smoothVelocity;
+	}
+	else {
+		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
+		position += smoothVelocity;
+	}
 }
 
 void Player::SyncRender() {

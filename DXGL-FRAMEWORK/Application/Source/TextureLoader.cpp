@@ -3,6 +3,8 @@
 #include <fstream>
 #include <GL\glew.h>
 
+#include "Console.h"
+
 #pragma warning(push)
 #pragma warning(disable : 6262)
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,12 +25,25 @@ void TextureLoader::SetDirectory(const std::string& directoryPath) {
 	}
 }
 
+GLuint TextureLoader::LoadTexture(const char* file_path) {
+	std::string filePath(file_path);
+	if (filePath.find(".tga") != std::string::npos || filePath.find(".TGA") != std::string::npos) {
+		return LoadTGA(file_path);
+	}
+	if (filePath.find(".png") != std::string::npos || filePath.find(".PNG") != std::string::npos) {
+		return LoadTGA(file_path);
+	}
+
+	Error("TextureLoader::LoadTexture(): invalid file extension: " + filePath);
+	return GLuint();
+}
+
 GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memory
 {
 	std::string actualFilePath = directory + file_path;
 	std::ifstream fileStream(actualFilePath, std::ios::binary);
 	if(!fileStream.is_open()) {
-		std::cout << "Impossible to open " << actualFilePath << ". Are you in the right directory ?\n";
+		Error("TextureLoader::LoadTGA(): Impossible to open " + actualFilePath + ". Are you in the right directory?");
 		return 0;
 	}
 
@@ -48,7 +63,7 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 		(header[16] != 24 && header[16] != 32))		// is TGA 24 or 32 Bit
 	{
 		fileStream.close();							// close file on failure
-		std::cout << "File header error.\n";
+		Error("TextureLoader::LoadTGA(): File header error.");
 		return 0;										
 	}
 
@@ -85,15 +100,16 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 
 GLuint TextureLoader::LoadPNG(const char* filename)
 {
+	std::string actualFilePath = directory + filename;
+
 	stbi_set_flip_vertically_on_load(true);
 
 	int width, height, channels;
-	unsigned char* img = stbi_load(filename, &width, &height, &channels, 0);
+	unsigned char* img = stbi_load(actualFilePath.c_str(), &width, &height, &channels, 0);
 
 	if (img == nullptr)
 	{
-		std::cout << "Failed to load PNG: " << filename << "\n";
-		std::cout << "Reason: " << stbi_failure_reason() << "\n";
+		Error("TextureLoader::LoadPNG: Failed to load PNG: " + actualFilePath + "\nReason: " + stbi_failure_reason());
 		return 0;
 	}
 

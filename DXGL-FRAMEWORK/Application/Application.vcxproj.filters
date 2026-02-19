@@ -80,9 +80,6 @@
     <ClInclude Include="Source\SceneDemo.h">
       <Filter>Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="Source\DataManager.h">
-      <Filter>Scenes</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Scene.h">
       <Filter>Scenes</Filter>
     </ClInclude>
@@ -148,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="Source\SceneRhythm.h">
       <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DataManager.h">
+      <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

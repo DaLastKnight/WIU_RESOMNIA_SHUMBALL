@@ -18,6 +18,8 @@ public:
 
 		FONT_CASCADIA_MONO,
 
+		RHYTHM_BASE,
+
 		TOTAL
 	};
 

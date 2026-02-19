@@ -80,12 +80,14 @@ void SceneRhythm::Init() {
 			meshList[i] = nullptr;
 		}
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
-		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
+
+		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base texture", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
 	}
 
 	// init roots
@@ -134,6 +136,15 @@ void SceneRhythm::Init() {
 			obj->offsetScl = vec3(0.15f);
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
+			});
+
+		RObj::setDefaultStat.Subscribe(RHYTHM_BASE, [](const std::shared_ptr<RObj>& obj) {
+			int height = 50;
+			int width = 10;
+			obj->offsetScl = vec3(10, height, 1);
+			obj->offsetTrl = vec3(0, height * 0.5f, 0);
+
+			obj->hasTransparency = true;
 			});
 
 	}
@@ -192,12 +203,17 @@ void SceneRhythm::Init() {
 
 	// view space init
 	{
-		
+		viewRoot->NewChild(MeshObject::Create(GROUP));
+		auto rhythmGameGroup = newObj;
+		newObj->name = "rhythm game";
+		newObj->trl = vec3(0, -1, -2);
+		newObj->rot = vec3(-75, 0, 0);
+		rhythmGameGroup->NewChild(MeshObject::Create(RHYTHM_BASE));
 	}
 
 	// screen space init
 	{
-
+		
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); 
@@ -251,12 +267,10 @@ void SceneRhythm::Update(double dt) {
 	// player
 	{
 		// update position and camera bobbing
-		if (player.allowControl)
+		if (camera.GetCurrentMode() == Cam::MODE::FIRST_PERSON || camera.GetCurrentMode() == Cam::MODE::LOCK_ON)
 			player.UpdatePositionWithCamera(dt, camera);
-		else {
-			Cam tempCamera = camera;
-			player.UpdatePositionWithCamera(dt, tempCamera);
-		}
+		else
+			player.UpdatePosition(dt);
 		
 		player.SyncRender();
 	}
@@ -314,6 +328,10 @@ void SceneRhythm::Update(double dt) {
 			continue;
 		}
 		auto obj = viewList[i].lock();
+
+		if (obj->geometryType == GROUP) {
+			obj->allowRender = debug;
+		}
 
 
 

@@ -27,6 +27,7 @@ public:
 	void Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 cameraOffset);
 
 	void UpdatePositionWithCamera(double dt, FPCamera& camera);
+	void UpdatePosition(double dt);
 	void SyncRender();
 
 	void VariableRefresh();

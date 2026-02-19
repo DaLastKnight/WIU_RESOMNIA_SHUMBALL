@@ -34,10 +34,6 @@ public:
 	glm::vec3 offsetRot = glm::vec3(0, 0, 0);
 	glm::vec3 offsetScl = glm::vec3(1, 1, 1);
 
-	glm::vec3 prevTrl = trl;
-	glm::vec3 prevRot = rot;
-	glm::vec3 prevScl = scl;
-
 	int UILayer = 0; // ranges from 0 to MAX_UI_LAYERS, anything else will be clamped in the calculation
 
 	int geometryType;
@@ -97,6 +93,10 @@ public:
 	};
 
 protected:
+
+	glm::vec3 prevTrl = trl;
+	glm::vec3 prevRot = rot;
+	glm::vec3 prevScl = scl;
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
 

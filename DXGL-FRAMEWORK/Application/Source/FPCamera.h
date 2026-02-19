@@ -79,12 +79,12 @@ public:
         TOTAL_CAMERA_MODE,
     };
 
-    MODE currentMode = MODE::FREE;
-
     inline const MODE& GetCurrentMode() { return currentMode; }
     void Set(MODE mode);
 
 private:
+
+    MODE currentMode = MODE::FREE;
 
     bool allowSelfMovement = true;
     bool allowPositionMovement = false;
