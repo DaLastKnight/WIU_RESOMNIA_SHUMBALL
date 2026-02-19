@@ -26,7 +26,6 @@
 #include "Console.h"
 #include "Utils.h"
 
-using GEO = GEOMETRY_TYPE;
 using App = Application;
 using RObj = RenderObject;
 using Cam = FPCamera;
@@ -76,45 +75,47 @@ void SceneBowling::Init() {
 	{
 		atmosphere.Set(vec3(0.05f, 0.07f, 0.1f), 0.05f, 0.000001f, 2, 20);
 		UpdateAtmosphereUniform();
-	}	
+	}
 
 	// Init VBO here
 	{
-		for (int i = 0; i < static_cast<int>(GEO::TOTAL); ++i)
+		for (int i = 0; i < static_cast<int>(TOTAL); ++i)
 		{
 			meshList[i] = nullptr;
 		}
-		meshList[GEO::AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GEO::GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[GEO::SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
-		meshList[GEO::LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GEO::GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
+		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("Wooden_floor.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
+		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
-		meshList[GEO::FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(GEO::FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
 
-		meshList[GEO::FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
-		meshList[GEO::Bowling_Pin] = MeshBuilder::GenerateOBJMTL("Bowling_Pin", "Bowling_Pin.obj", "Bowling_Pin.mtl", TextureLoader::LoadTGA("Bowling_Pin.tga"));
-		meshList[GEO::Bowling_Ball] = MeshBuilder::GenerateOBJMTL("Bowling_Ball", "Bowling_Ball.obj", "Bowling_Ball.mtl", TextureLoader::LoadTGA("Bowling_Ball.tga"));
+		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
 
-		meshList[GEO::UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[GEO::UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
+		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("BOWLING_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
+		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTGA("BOWLING_PIN.tga"));
+
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 	}
 
 	// init roots
 	{
 		worldRoot = std::make_shared<RObj>();
 		worldRoot->renderType = RObj::WORLD;
-		worldRoot->geometryType = GEO::GROUP;
+		worldRoot->geometryType = GROUP;
 		worldRoot->UpdateModel();
 
 		viewRoot = std::make_shared<RObj>();
 		viewRoot->renderType = RObj::VIEW;
-		viewRoot->geometryType = GEO::GROUP;
+		viewRoot->geometryType = GROUP;
 		viewRoot->UpdateModel();
 
 		screenRoot = std::make_shared<RObj>();
 		screenRoot->renderType = RObj::SCREEN;
-		screenRoot->geometryType = GEO::GROUP;
+		screenRoot->geometryType = GROUP;
 		screenRoot->UpdateModel();
 
 		LightObject::maxLight = MAX_LIGHT;
@@ -127,41 +128,38 @@ void SceneBowling::Init() {
 
 	// init default stats
 	{
-		RObj::setDefaultStat.Subscribe(GEO::AXES, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(AXES, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NO_LIGHT); // does not get affected by light, always bright (fog does not work on objects not affected by light)
 			});
-		RObj::setDefaultStat.Subscribe(GEO::GROUND, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GROUND, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::SKYBOX, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
 			});
-		RObj::setDefaultStat.Subscribe(GEO::LIGHT, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(LIGHT, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NEON); // bright when shinned with light directly and and still be rather bright when not shinned
 			obj->offsetScl = vec3(0.05f);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::GROUP, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
 			obj->offsetScl = vec3(0.15f);
 			});
-		RObj::setDefaultStat.Subscribe(GEO::FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
-		RObj::setDefaultStat.Subscribe(GEO::FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
 			});
-
-
-		RObj::setDefaultStat.Subscribe(GEO::Bowling_Pin, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(BOWLING_BALL, [](const std::shared_ptr<RObj>& obj) {
 			});
-		RObj::setDefaultStat.Subscribe(GEO::Bowling_Ball, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(BOWLING_PIN, [](const std::shared_ptr<RObj>& obj) {
 			});
 
-
-		RObj::setDefaultStat.Subscribe(GEO::UI_TEST, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		RObj::setDefaultStat.Subscribe(GEO::UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
@@ -170,17 +168,17 @@ void SceneBowling::Init() {
 	auto& newObj = RObj::newObject;
 	// world space init
 	{
-		worldRoot->NewChild(MeshObject::Create(GEO::AXES));
+		worldRoot->NewChild(MeshObject::Create(AXES));
 
-		worldRoot->NewChild(MeshObject::Create(GEO::GROUND));
+		worldRoot->NewChild(MeshObject::Create(GROUND));
 
-		worldRoot->NewChild(MeshObject::Create(GEO::SKYBOX));
+		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
 		// light init
 		{
 			std::shared_ptr<LightObject> newLightObj;
 
-			worldRoot->NewChild(LightObject::Create(GEO::LIGHT));
+			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj); // casting the obj to its actual type to acess variables only in its actual type
 			{
 				newLightObj->trl = vec3(0, 20, 0);
@@ -196,7 +194,7 @@ void SceneBowling::Init() {
 				UpdateLightUniform(newLightObj);
 			}
 
-			worldRoot->NewChild(LightObject::Create(GEO::LIGHT));
+			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
 			{
 				newLightObj->trl = vec3(20, 5, 0);
@@ -218,43 +216,83 @@ void SceneBowling::Init() {
 			}
 		}
 
-		//bowling pins 
+		//bowling pins
 		{
-		
-			worldRoot->NewChild(MeshObject::Create(GEO::Bowling_Pin));
-			newObj->trl = glm::vec3(0.35f, 0.0f, 0.5f);
-		
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_10";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_9";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
+
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_8";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_7";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_6";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
+
+			//worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_5";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_4";
+			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_4";
+			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_3";
+			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_2";
+			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
+
+			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+			newObj->name = "BOWLING_PIN_1";
+			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
 		}
 
-		//Bowling ball
+		//bowling ball
 		{
-			worldRoot->NewChild(MeshObject::Create(GEO::Bowling_Ball));
-			newObj->trl = glm::vec3(-0.35f, 0.0f, -0.5f);
-			newObj->scl = glm::vec3(0.35f, 0.35f, 0.35f);
-			//newObj->rot = glm::vec3(-0.35f, 0.0f, -0.5f);
+			worldRoot->NewChild(MeshObject::Create(BOWLING_BALL));
+			newObj->name = "BOWLING_BALL";
+			newObj->trl = glm::vec3(3.35f, 0.5f, 0.5f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
 		}
+
 	}
 
 	// view space init
 	{
-		viewRoot->NewChild(MeshObject::Create(GEO::FLASHLIGHT));
-		newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
+			//viewRoot->NewChild(MeshObject::Create(FLASHLIGHT));
+			//newObj->trl = glm::vec3(-0.35f, -0.2f, -0.5f);
 	}
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(GEO::UI_TEST, 1));  // create with 1 as UILayer, default 0
+		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
 		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
 		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-
-
-		//screenRoot->NewChild(MeshObject::Create(GEO::UI_TEST_2));
-		//newObj->trl = vec3(-0.85f, -0.85f, 0);
-		//newObj->scl = vec3(80, 80, 1);
+		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
+		newObj->trl = vec3(-0.85f, -0.85f, 0);
+		newObj->scl = vec3(80, 80, 1);
 
 
 		// debug text
-		InitDebugText(GEO::FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
+		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}
 
 	/************************ bellow for external class inits ************************/
@@ -264,7 +302,7 @@ void SceneBowling::Init() {
 		camera.Set(FPCamera::MODE::FREE);
 
 		// player init
-		player.Init(worldRoot, GEO::GROUP, vec3(0, 2, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
 	}
 
 	RObj::newObject.reset();
@@ -272,6 +310,7 @@ void SceneBowling::Init() {
 
 void SceneBowling::Update(double dt) {
 	BaseScene::Update(dt);
+	ClearDebugText();
 
 	// fps calculation
 	{
@@ -326,6 +365,9 @@ void SceneBowling::Update(double dt) {
 		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
 	}
 
+	AddDebugText("Objective testing");
+
+
 	// world render objects
 	for (unsigned i = 0; i < worldList.size(); ) {
 		if (worldList[i].expired()) {
@@ -335,12 +377,12 @@ void SceneBowling::Update(double dt) {
 		auto obj = worldList[i].lock();
 
 		switch (obj->geometryType) {
-		case GEO::AXES:
-		case GEO::GROUP:
+		case AXES:
+		case GROUP:
 			obj->allowRender = debug;
 			break;
 
-		case GEO::SKYBOX:
+		case SKYBOX:
 			obj->trl = camera.GetFinalPosition();
 			break;
 
@@ -353,6 +395,14 @@ void SceneBowling::Update(double dt) {
 			obj->offsetRot.y += 45 * dt;
 			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
 		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
+
+		if (spin == true)
+		{
+			if (obj->name == "BOWLING_BALL") {
+				obj->offsetRot.x += 200 * dt;
+				obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
+			}
+		}
 
 		if (debug) {
 
@@ -443,14 +493,15 @@ void SceneBowling::Update(double dt) {
 
 void SceneBowling::Render() {
 	BaseScene::Render();
-	
+
 	// render scene
 	struct ListInfo {
 		std::shared_ptr<RObj> obj;
 		mat4 model;
 		float depth;
 		ListInfo(std::shared_ptr<RObj> obj, mat4 model, float depth)
-			: obj(obj), model(model), depth(depth) {}
+			: obj(obj), model(model), depth(depth) {
+		}
 	};
 	std::vector<ListInfo> transparencyList;
 	transparencyList.reserve(40);
@@ -549,6 +600,23 @@ void SceneBowling::Exit() {
 void SceneBowling::HandleKeyPress() {
 	BaseScene::HandleKeyPress();
 
+	if (debug) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
+			cullFaceActive = !cullFaceActive;
+			if (cullFaceActive)
+				glEnable(GL_CULL_FACE);
+			else
+				glDisable(GL_CULL_FACE);
+		}
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_9)) {
+			wireFrameActive = !wireFrameActive;
+			if (wireFrameActive)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			else
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
+
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
 		debug = !debug;
 
@@ -573,6 +641,14 @@ void SceneBowling::HandleKeyPress() {
 		else {
 			camera.Set(prevMode);
 		}
+	}
+
+	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_F)) {
+		spin = !spin;
+	}
+
+	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_J)) {
+		testing = true;
 	}
 
 	// player controls
@@ -639,3 +715,147 @@ void SceneBowling::HandleKeyPress() {
 /************************************************************************************ helpers ************************************************************************************/
 /*********************************************************************************************************************************************************************************/
 
+
+void SceneBowling::RenderObj(const std::shared_ptr<RObj> obj) {
+
+	if (!obj->allowRender)
+		return;
+
+	bool enableLight = true;
+	if (obj->material.type == Material::NO_LIGHT || obj->renderType == RObj::SCREEN)
+		enableLight = false;
+
+	Material meshMaterial = meshList[obj->geometryType]->material;
+	if (obj->material.type != Material::MESH_MATERIAL) {
+		meshList[obj->geometryType]->material = obj->material;
+	}
+
+	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+		modelStack.PushMatrix();
+
+		const auto& text = textObj->text;
+		const auto& mesh = meshList[obj->geometryType];
+
+		glDisable(GL_CULL_FACE);
+
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
+		glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &textObj->color.r);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+
+		// offset
+		float spacing = FontSpacing(static_cast<GEOMETRY_TYPE>(textObj->geometryType));
+		if (textObj->centerText)
+			modelStack.Translate(text.size() * spacing / -2.f + spacing / 2, 0, 0);
+
+		for (unsigned i = 0; i < text.length(); ++i)
+		{
+			glm::mat4 characterSpacing = glm::translate(glm::mat4(1.f), glm::vec3(i * spacing, 0, 0));
+			glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
+			glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+			mesh->Render((unsigned)text[i] * 6, 6);
+		}
+
+		if (cullFaceActive)
+			glEnable(GL_CULL_FACE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glUniform1i(m_parameters[U_TEXT_ENABLED], 0);
+
+		modelStack.PopMatrix();
+	}
+	else {
+		RenderMesh(static_cast<GEOMETRY_TYPE>(obj->geometryType), enableLight);
+	}
+
+	meshList[obj->geometryType]->material = meshMaterial;
+
+}
+
+
+
+void SceneBowling::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
+
+	Mesh* mesh = meshList[static_cast<int>(type)];
+	glm::mat4 MVP, modelView, modelView_inverse_transpose;
+	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+	modelView = viewStack.Top() * modelStack.Top();
+	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, glm::value_ptr(modelView));
+
+	if (enableLight)
+	{
+		glUniform1i(m_parameters[U_LIGHT_ENABLED], 1);
+		modelView_inverse_transpose = glm::inverseTranspose(modelView);
+		glUniformMatrix4fv(m_parameters[U_MODELVIEW_INVERSE_TRANSPOSE], 1, GL_FALSE, glm::value_ptr(modelView_inverse_transpose));
+
+		//load material
+		glUniform3fv(m_parameters[U_MATERIAL_AMBIENT], 1, &mesh->material.kAmbient.r);
+		glUniform3fv(m_parameters[U_MATERIAL_DIFFUSE], 1, &mesh->material.kDiffuse.r);
+		glUniform3fv(m_parameters[U_MATERIAL_SPECULAR], 1, &mesh->material.kSpecular.r);
+		glUniform1f(m_parameters[U_MATERIAL_SHININESS], mesh->material.kShininess);
+	}
+	else
+	{
+		glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
+	}
+
+	if (mesh->textureID > 0)
+	{
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+	}
+	else
+	{
+		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 0);
+	}
+
+	mesh->Render();
+
+	if (mesh->textureID > 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+}
+
+void SceneBowling::InitDebugText(GEOMETRY_TYPE font) {
+	auto& newObj = RObj::newObject;
+	for (int i = 0; i < 10; i++) {
+		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		debugTextList.push_back(newObj);
+	}
+}
+
+bool SceneBowling::AddDebugText(const std::string& text, int index) {
+
+	if (index < 0) {
+		for (auto& obj_weak : debugTextList) {
+			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
+
+			if (textObj->text == "") {
+				textObj->text = text;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	index = Clamp(index, 0, 9);
+	std::dynamic_pointer_cast<TextObject>(debugTextList[index].lock())->text = text;
+
+	return true;
+}
+
+void SceneBowling::ClearDebugText() {
+	for (auto& obj_weak : debugTextList)
+		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
+}
