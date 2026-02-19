@@ -218,51 +218,53 @@ void SceneBowling::Init() {
 
 		//bowling pins
 		{
+			if (testing == true)
+			{
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_10";
+				newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_10";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_9";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_9";
+				newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
 
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_8";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_8";
+				newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_7";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_7";
+				newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_6";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_6";
+				newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_5";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_5";
+				newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_4";
-			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_4";
+				newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_4";
-			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_4";
+				newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_3";
-			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_3";
+				newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_2";
-			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_2";
+				newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_1";
-			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = "BOWLING_PIN_1";
+				newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
+			}
 		}
 
 		//bowling ball
@@ -647,16 +649,16 @@ void SceneBowling::HandleKeyPress() {
 		}
 	}
 
-	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_F)) {
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_F)) {
 		spin = !spin;
 	}
 
-	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_J)) {
-		testing = true;
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J)) {
+		testing = !testing;
 	}
 
-	if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_H)) {
-		objectives = true;
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H)) {
+		objectives = !objectives;
 	}
 
 	// player controls
