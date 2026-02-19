@@ -154,10 +154,6 @@ void SceneDemo::Init() {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		RObj::setDefaultStat.Subscribe(GEO::PNG_TEST, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
 	}
 
 	auto& newObj = RObj::newObject;
@@ -225,9 +221,6 @@ void SceneDemo::Init() {
 		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
 		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
-		screenRoot->NewChild(MeshObject::Create(GEO::PNG_TEST));
-		newObj->trl = vec3(-0.75f, -0.75f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
 		// debug text

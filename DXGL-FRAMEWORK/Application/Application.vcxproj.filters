@@ -75,6 +75,9 @@
     <ClCompile Include="Source\SceneRhythm.cpp">
       <Filter>Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SceneMedical.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -147,6 +150,9 @@
       <Filter>Scene Resource</Filter>
     </ClInclude>
     <ClInclude Include="Source\SceneRhythm.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneMedical.h">
       <Filter>Scenes</Filter>
     </ClInclude>
   </ItemGroup>

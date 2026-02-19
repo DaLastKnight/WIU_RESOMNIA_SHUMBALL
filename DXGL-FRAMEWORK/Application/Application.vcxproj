@@ -169,6 +169,7 @@
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
+    <ClCompile Include="Source\SceneMedical.cpp" />
     <ClCompile Include="Source\SceneRhythm.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="Source\RenderObject.h" />
     <ClInclude Include="Source\Scene.h" />
     <ClInclude Include="Source\SceneDemo.h" />
+    <ClInclude Include="Source\SceneMedical.h" />
     <ClInclude Include="Source\SceneRhythm.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\TextureLoader.h" />
