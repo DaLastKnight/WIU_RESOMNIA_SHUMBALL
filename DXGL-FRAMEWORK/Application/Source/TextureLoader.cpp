@@ -3,6 +3,13 @@
 #include <fstream>
 #include <GL\glew.h>
 
+#pragma warning(push)
+#pragma warning(disable : 6262)
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "../../stb/include/stb_image.h"
+#pragma warning(pop)
+
 #include "TextureLoader.h"
 
 std::string TextureLoader::directory = "Image/";
@@ -14,6 +21,12 @@ void TextureLoader::SetDirectory(const std::string& directoryPath) {
 	if (directory.back() != '/') {
 		directory += "/";
 	}
+}
+
+TextureLoader& TextureLoader::GetInstance()
+{
+	static TextureLoader instance;
+	return instance;
 }
 
 GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memory
@@ -74,4 +87,42 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	delete []data;
 
 	return texture;						
+}
+
+void TextureLoader::LoadPNG(int key, const char* filename)
+{
+	if (m_textures.find(key) != m_textures.end())
+		return; //texture already loaded
+
+	stbi_set_flip_vertically_on_load(true);
+
+	int width, height, channels;
+	unsigned char* img = stbi_load(filename, &width, &height, &channels, 0);
+	if (img == nullptr)
+	{
+		throw "Error in loading the image";
+	}
+
+	GLuint texture;
+	glGenTextures(1, &texture);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	if (channels == 4)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(img);
+
+	//save texture to map
+	m_textures[key] = texture;
 }
