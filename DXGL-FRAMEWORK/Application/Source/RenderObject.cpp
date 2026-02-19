@@ -21,7 +21,7 @@ std::vector<std::weak_ptr<RenderObject>> RenderObject::viewList;
 std::vector<std::weak_ptr<RenderObject>> RenderObject::screenList;
 std::shared_ptr<RenderObject> RenderObject::newObject;
 
-EventPack<GEOMETRY_TYPE, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
+EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
 
 void RenderObject::SortScreenList() {
 	std::array<std::vector<std::weak_ptr<RenderObject>>, MAX_UI_LAYERS> bucketList;
@@ -228,7 +228,7 @@ void RenderObject::TransformModelStack(MatrixStack& modelStack, const std::share
 
 /********************************* MeshObject *********************************/
 
-std::shared_ptr<MeshObject> MeshObject::Create(GEOMETRY_TYPE geometryType, unsigned UILayer) {
+std::shared_ptr<MeshObject> MeshObject::Create(int geometryType, unsigned UILayer) {
 	auto obj = std::make_shared<MeshObject>(geometryType, UILayer);
 	setDefaultStat.Invoke(geometryType, obj);
 	return obj;
@@ -247,7 +247,7 @@ std::shared_ptr<RenderObject> MeshObject::CloneSelf() const {
 int LightObject::maxLight = 12;
 std::vector<std::weak_ptr<LightObject>> LightObject::lightList;
 
-std::shared_ptr<LightObject> LightObject::Create(GEOMETRY_TYPE geometryType, unsigned UILayer) {
+std::shared_ptr<LightObject> LightObject::Create(int geometryType, unsigned UILayer) {
 	if (lightList.size() > maxLight)
 		return nullptr;
 
@@ -291,7 +291,7 @@ std::shared_ptr<RenderObject> LightObject::CloneSelf() const {
 
 /********************************* TextObject *********************************/
 
-std::shared_ptr<TextObject> TextObject::Create(std::string id, std::string text, glm::vec3 color, GEOMETRY_TYPE font, bool centerText, unsigned UILayer) {
+std::shared_ptr<TextObject> TextObject::Create(std::string id, std::string text, glm::vec3 color, int font, bool centerText, unsigned UILayer) {
 	auto obj = std::make_shared<TextObject>(id, text, color, font, centerText, UILayer);
 	setDefaultStat.Invoke(font, obj);
 	return obj;
