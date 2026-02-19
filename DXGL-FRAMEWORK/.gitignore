@@ -33,3 +33,4 @@ Release/
 
 # Re-include obj files
 !Application/**/Model/*.obj
+!Application/**/*.json
