@@ -23,12 +23,6 @@ void TextureLoader::SetDirectory(const std::string& directoryPath) {
 	}
 }
 
-TextureLoader& TextureLoader::GetInstance()
-{
-	static TextureLoader instance;
-	return instance;
-}
-
 GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memory
 {
 	std::string actualFilePath = directory + file_path;
@@ -89,15 +83,13 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	return texture;						
 }
 
-void TextureLoader::LoadPNG(int key, const char* filename)
+GLuint TextureLoader::LoadPNG(const char* filename)
 {
-	if (m_textures.find(key) != m_textures.end())
-		return; //texture already loaded
-
 	stbi_set_flip_vertically_on_load(true);
 
 	int width, height, channels;
 	unsigned char* img = stbi_load(filename, &width, &height, &channels, 0);
+
 	if (img == nullptr)
 	{
 		throw "Error in loading the image";
@@ -105,24 +97,29 @@ void TextureLoader::LoadPNG(int key, const char* filename)
 
 	GLuint texture;
 	glGenTextures(1, &texture);
-
 	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	if (channels == 4)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
 	else
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 
+	// Generate mipmaps after uploading texture
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	float maxAnisotropy = 1.f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)maxAnisotropy);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(img);
 
-	//save texture to map
-	m_textures[key] = texture;
+	return texture;
 }
