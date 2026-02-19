@@ -17,6 +17,10 @@ public:
 		GROUP,
 
 		FONT_CASCADIA_MONO,
+	// add more variables here
+	FLASHLIGHT,
+	Bowling_Pin,
+	Other_Pin,
 
 		// add more variables here
 		FLASHLIGHT,

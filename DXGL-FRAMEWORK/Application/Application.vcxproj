@@ -166,6 +166,7 @@
     <ClCompile Include="Source\MatrixStack.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\MeshBuilder.cpp" />
+    <ClCompile Include="Source\SceneBowling.cpp" />
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="Source\ModelLoader.h" />
     <ClInclude Include="Source\RenderObject.h" />
     <ClInclude Include="Source\Scene.h" />
+    <ClInclude Include="Source\SceneBowling.h" />
     <ClInclude Include="Source\SceneDemo.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\TextureLoader.h" />
