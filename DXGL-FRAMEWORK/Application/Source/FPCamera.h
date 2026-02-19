@@ -44,7 +44,7 @@ public:
     float movePositionOffset = 0;
 
     float bobbingSpeed = 1;
-    float bobbingSmoothSpeed = bobbingSpeed;
+    float bobbingSmoothSpeed = 0;
     float bobbingMaxX = 0.12f;
     float bobbingMaxY = 0.085f;
     float bobbingMaxPsi = 1.25f;
