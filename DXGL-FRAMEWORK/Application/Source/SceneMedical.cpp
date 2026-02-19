@@ -99,7 +99,12 @@ void SceneMedical::Init() {
 		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadPNG("SceneMedical/Image/NYP.png"));
 
 		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "uploads_files_2903560_Spikes+on+ball.obj", "uploads_files_2903560_Spikes+on+ball.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
+		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
+		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("cylinder", vec3(1, 1, 1), 360, 0.5f, 100);
+		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png");
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "uploads_files_2903560_Spikes+on+ball.obj", "uploads_files_2903560_Spikes+on+ball.mtl", TextureLoader::LoadPNG("SceneMedical/Image/bacteria_skin.png"));
+		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl");
+
 	}
 
 	// init roots
@@ -166,6 +171,12 @@ void SceneMedical::Init() {
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
 			});
+		RObj::setDefaultStat.Subscribe(ENV_SLOPE_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			});
+		RObj::setDefaultStat.Subscribe(ENV_STRING_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			});
 		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(NANOBOT_MODEL, [](const std::shared_ptr<RObj>& obj) {
@@ -227,9 +238,56 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
 		newObj->trl = glm::vec3(20, 5, 0);
 		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		newObj->trl = glm::vec3(20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		newObj->trl = glm::vec3(20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		newObj->trl = glm::vec3(20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+		newObj->trl = glm::vec3(20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+
+		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		newObj->trl = glm::vec3(0, 1, 0);
+		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
+		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		newObj->trl = glm::vec3(0, 1, 0);
+		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
+		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		newObj->trl = glm::vec3(0, 1, 0);
+		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
+		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		newObj->trl = glm::vec3(0, 1, 0);
+		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
+		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		newObj->trl = glm::vec3(0, 1, 0);
+		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
+
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		newObj->trl = glm::vec3(5, 1, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		newObj->trl = glm::vec3(5, 1, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		newObj->trl = glm::vec3(5, 1, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		newObj->trl = glm::vec3(5, 1, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		newObj->trl = glm::vec3(5, 1, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
 		/*worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(20, 5, 0);
 		newObj->scl = glm::vec3(20, 20, 20);*/
+		worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
+		newObj->trl = glm::vec3(-20, 5, 0);
+		newObj->scl = glm::vec3(1, 1, 1);
 	}
 
 	// view space init
