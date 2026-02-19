@@ -223,7 +223,6 @@ void SceneDemo::Init() {
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
-
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}

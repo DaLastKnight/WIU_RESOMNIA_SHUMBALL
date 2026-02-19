@@ -18,12 +18,6 @@ public:
 
 		FONT_CASCADIA_MONO,
 
-		// add more variables here
-		FLASHLIGHT,
-
-		UI_TEST,
-		UI_TEST_2,
-
 		TOTAL
 	};
 

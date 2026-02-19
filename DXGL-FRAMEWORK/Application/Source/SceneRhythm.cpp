@@ -86,10 +86,6 @@ void SceneRhythm::Init() {
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
-
-
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 	}
 
 	// init roots
@@ -139,14 +135,7 @@ void SceneRhythm::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
-		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
-		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
+
 	}
 
 	auto& newObj = RObj::newObject;
@@ -208,12 +197,6 @@ void SceneRhythm::Init() {
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  
-		newObj->trl = vec3(-0.8f, -0.8f, 0); 
-		newObj->scl = vec3(80, 80, 1);
-		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
 
 
 		// debug text
