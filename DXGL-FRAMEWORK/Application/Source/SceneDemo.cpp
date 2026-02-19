@@ -231,7 +231,7 @@ void SceneDemo::Init() {
 	{
 		// camera init
 		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-		camera.Set(FPCamera::MODE::FREE);
+		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
