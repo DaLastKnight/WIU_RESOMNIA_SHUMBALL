@@ -30,3 +30,6 @@ Release/
 *.tlog
 *.pdb
 *.idb
+
+# Re-include obj files
+!Application/**/Model/*.obj
