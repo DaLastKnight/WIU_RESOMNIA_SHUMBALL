@@ -31,7 +31,7 @@ GLuint TextureLoader::LoadTexture(const char* file_path) {
 		return LoadTGA(file_path);
 	}
 	if (filePath.find(".png") != std::string::npos || filePath.find(".PNG") != std::string::npos) {
-		return LoadTGA(file_path);
+		return LoadPNG(file_path);
 	}
 
 	Error("TextureLoader::LoadTexture(): invalid file extension: " + filePath);
