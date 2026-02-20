@@ -1,5 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <stdlib.h>
 
 #include "SceneMedical.h"
 
@@ -99,10 +100,11 @@ void SceneMedical::Init() {
 		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
 
 		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadTexture("internal_body.tga"));
-		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadTexture("internal_body.png"));
+		meshList[ENV_CURVE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadTexture("internal_body.png"));
 		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("cylinder", vec3(1, 1, 1), 360, 0.5f, 100);
 		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
+		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
 		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
 
 	}
@@ -127,7 +129,7 @@ void SceneMedical::Init() {
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
 
-		RObj::worldList.reserve(50);
+		RObj::worldList.reserve(200);
 		RObj::viewList.reserve(10);
 		RObj::screenList.reserve(10);
 	}
@@ -171,11 +173,13 @@ void SceneMedical::Init() {
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
 			});
-		RObj::setDefaultStat.Subscribe(ENV_SLOPE_MODEL, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(ENV_CURVE_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
 			});
 		RObj::setDefaultStat.Subscribe(ENV_STRING_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
+			});
+		RObj::setDefaultStat.Subscribe(BACTERIA_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
@@ -235,41 +239,70 @@ void SceneMedical::Init() {
 			}
 		}
 
-		worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-		newObj->trl = glm::vec3(20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
+		float bactRandTrlX[40] = { 0 };
+		float bactRandTrlY[40] = { 0 };
+		float bactRandTrlZ[40] = { 0 };
 
-		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		for (int i = 0; i < 40; i++)
+		{
+			bactRandTrlX[i] = rand() % 101 - 50;
+			bactRandTrlY[i] = rand() % 41 - 20;
+			bactRandTrlZ[i] = rand() % 101 - 50;
+
+			worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
+			newObj->trl = glm::vec3(bactRandTrlX[i], bactRandTrlY[i], bactRandTrlZ[i]);
+			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
+		}
+
+		float virusRandTrlX[20] = { 0 };
+		float virusRandTrlY[20] = { 0 };
+		float virusRandTrlZ[20] = { 0 };
+
+		for (int i = 0; i < 20; i++)
+		{
+			virusRandTrlX[i] = rand() % 101 - 50;
+			virusRandTrlY[i] = rand() % 41 - 20;
+			virusRandTrlZ[i] = rand() % 101 - 50;
+
+			worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+			newObj->trl = glm::vec3(virusRandTrlX[i], virusRandTrlY[i], virusRandTrlZ[i]);
+			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
+		}
+
+		worldRoot->NewChild(MeshObject::Create(ENV_CURVE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);
 		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
-		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_CURVE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);
 		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
-		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_CURVE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);
 		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
-		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_CURVE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);
 		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
-		worldRoot->NewChild(MeshObject::Create(ENV_SLOPE_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_CURVE_MODEL));
 		newObj->trl = glm::vec3(0, 1, 0);
 		newObj->scl = glm::vec3(0.2f, 0.2f, 0.2f);
 
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
-		newObj->trl = glm::vec3(5, 1, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
-		newObj->trl = glm::vec3(5, 1, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
-		newObj->trl = glm::vec3(5, 1, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
-		newObj->trl = glm::vec3(5, 1, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
-		newObj->trl = glm::vec3(5, 1, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
+		float envStringRandTrlX[40] = { 0 };
+		float envStringRandTrlZ[40] = { 0 };
+		float envStringRandRotX[40] = { 0 };
+		float envStringRandRotZ[40] = { 0 };
+
+		for (int i = 0; i < 40; i++)
+		{
+			envStringRandTrlX[i] = rand() % 101 - 50;
+			envStringRandTrlZ[i] = rand() % 101 - 50;
+			
+			envStringRandRotX[i] = rand() % 11 - 5;
+			envStringRandRotZ[i] = rand() % 11 - 5;
+
+			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+			newObj->trl = glm::vec3(envStringRandTrlX[i], 0, envStringRandTrlZ[i]);
+			newObj->rot = glm::vec3(envStringRandRotX[i], 0, envStringRandRotZ[i]);
+			newObj->scl = glm::vec3(1, 1, 1);
+		}
 		
 		worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(-20, 5, 0);
