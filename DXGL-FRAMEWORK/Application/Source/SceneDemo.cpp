@@ -22,6 +22,7 @@
 #include "KeyboardController.h"
 #include "AudioManager.h"
 #include "DataManager.h"
+#include "DialogueManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -59,6 +60,7 @@ void SceneDemo::Init() {
 		AudioManager::GetInstance().SetDirectorySFX("SceneDemo/SFX");
 		TextureLoader::SetDirectory("SceneDemo/Image");
 		ModelLoader::SetDirectory("SceneDemo/Model");
+		DialogueManager::GetInstance().SetDirectory("SceneDemo/Dialogue");
 	}
 
 	// audio init
@@ -69,6 +71,11 @@ void SceneDemo::Init() {
 		// sfx init
 		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
 
+	}
+
+	// dialogue init
+	{
+		DialogueManager::GetInstance().LoadDialoguePack("ExampleDialogue.json");
 	}
 
 	// atmosphere init
@@ -258,6 +265,16 @@ void SceneDemo::Update(double dt) {
 			frameCount = 0;
 		}
 		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
+	}
+
+	// Temporary for now
+	// When the Game State handler, the code snippet below will be stored properly
+	DialogueManager::GetInstance().UpdateDialogue(dt);
+
+	if (DialogueManager::GetInstance().CheckActivePack())
+	{
+		AddDebugText(DialogueManager::GetInstance().GetCurrentSpeaker());
+		AddDebugText(DialogueManager::GetInstance().GetVisibleLine());
 	}
 
 	if (dt > 0.1f) {
@@ -563,6 +580,36 @@ void SceneDemo::HandleKeyPress() {
 		}
 		else {
 			camera.Set(prevMode);
+		}
+	}
+
+	// dialogue controls
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE))
+	{
+		// In an actual usecase, only the ControlCurrentDialogue() should exist in here
+		// but for the sake of the demo, I coded out how to start dialogue from a key input
+		
+		// Only the code below should exist here
+		/*if (DialogueManager::GetInstance().CheckActivePack())
+		{
+			DialogueManager::GetInstance().ControlCurrentDialogue();
+		}*/
+		
+		static bool startedDialogue = false;
+
+		if (!DialogueManager::GetInstance().CheckActivePack())
+		{
+			startedDialogue = false;
+		}
+		else
+		{
+			DialogueManager::GetInstance().ControlCurrentDialogue();
+		}
+
+		if (!startedDialogue)
+		{
+			DialogueManager::GetInstance().StartDialogue("ExampleDialogue");
+			startedDialogue = true;
 		}
 	}
 
