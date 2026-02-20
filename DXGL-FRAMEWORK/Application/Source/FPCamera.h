@@ -41,8 +41,9 @@ public:
 
     glm::vec3 ViewIntersectXZPlane;
 
-    float movePositionOffset = 0;
-
+    float movePositionOffset = 1.1f;
+    float sprintPsiMultiplier = 0.75f;
+    
     float bobbingSpeed = 1;
     float bobbingSmoothSpeed = 0;
     float bobbingMaxX = 0.12f;
@@ -55,7 +56,7 @@ public:
     FPCamera();
     ~FPCamera();
 
-    void Init(glm::vec3 position, glm::vec3 direction);
+    void Init(glm::vec3 position, glm::vec3 direction = glm:: vec3(0, 0, 1));
     void Reset();
     void Update(double dt);
 

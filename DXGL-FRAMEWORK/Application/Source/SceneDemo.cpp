@@ -53,6 +53,15 @@ SceneDemo::~SceneDemo() {
 void SceneDemo::Init() {
 	BaseScene::Init();
 
+	// physics debug init
+	{
+		if (ALLOW_PHYSICS_DEBUG) {
+			PhysicsManager::GetInstance().SetUpLogger("SceneDemo");
+			PhysicsManager::GetInstance().SeteDebugRendering(true);
+			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
+		}
+	}
+
 	// directory init
 	{
 		AudioManager::GetInstance().SetDirectoryMUS("SceneDemo/Music");
@@ -87,7 +96,8 @@ void SceneDemo::Init() {
 		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
 		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
+		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1), 0.15f);
+		meshList[DEBUG_LINE] = MeshBuilder::GenerateLine("debug line", 1);
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
@@ -95,24 +105,20 @@ void SceneDemo::Init() {
 
 		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
 		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
+
+		meshList[PHYSICS_BALL] = MeshBuilder::GenerateSphere("physics ball", vec3(1.f), 0.5f, 16, 8, TextureLoader::LoadTexture("color.tga"));
 	}
 
 	// init roots
 	{
 		worldRoot = std::make_shared<RObj>();
-		worldRoot->renderType = RObj::WORLD;
-		worldRoot->geometryType = GROUP;
-		worldRoot->UpdateModel();
+		worldRoot->RootInit(RObj::WORLD, GROUP);
 
 		viewRoot = std::make_shared<RObj>();
-		viewRoot->renderType = RObj::VIEW;
-		viewRoot->geometryType = GROUP;
-		viewRoot->UpdateModel();
+		viewRoot->RootInit(RObj::VIEW, GROUP);
 
 		screenRoot = std::make_shared<RObj>();
-		screenRoot->renderType = RObj::SCREEN;
-		screenRoot->geometryType = GROUP;
-		screenRoot->UpdateModel();
+		screenRoot->RootInit(RObj::SCREEN, GROUP);
 
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
@@ -130,6 +136,12 @@ void SceneDemo::Init() {
 		RObj::setDefaultStat.Subscribe(GROUND, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
+
+			obj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(500, 0.5f, 500), vec3(0, -0.5f, 0));
+			physics->SetFrictionCoefficient(0.5f);
+
 			});
 		RObj::setDefaultStat.Subscribe(SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
@@ -140,7 +152,9 @@ void SceneDemo::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
-			obj->offsetScl = vec3(0.15f);
+			});
+		RObj::setDefaultStat.Subscribe(DEBUG_LINE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NO_LIGHT);
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
@@ -153,6 +167,17 @@ void SceneDemo::Init() {
 		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(PHYSICS_BALL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+
+			obj->AddPhysics(PhysicsObject::DYNAMIC); // takes in PhysicsObject::BODY_TYPE
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f, 0, 0));
+			physics->SetBounciness(0.1f);
+			physics->SetFrictionCoefficient(0.2f);
+			physics->UpdateMassProperties();
+			physics->SetPosition(vec3(0, 5, 0));
 			});
 	}
 
@@ -230,11 +255,11 @@ void SceneDemo::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
+		camera.Init(glm::vec3(1, 1.5f, -1));
 		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
-		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
 	}
 
 	RObj::newObject.reset();
@@ -245,11 +270,11 @@ void SceneDemo::Update(double dt) {
 	ClearDebugText();
 
 	// fps calculation
+	const float fpsUpdateTime = 0.5f;
+	static float avgFps = 0;
 	{
 		static float timer = 0;
 		static int frameCount = 0;
-		static float avgFps = 0;
-		const float fpsUpdateTime = 0.5f;
 		timer += dt;
 		frameCount++;
 		if (timer >= fpsUpdateTime) {
@@ -257,43 +282,45 @@ void SceneDemo::Update(double dt) {
 			timer = 0;
 			frameCount = 0;
 		}
-		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
 	}
 
+	// fps limitation + timer advancement
 	if (dt > 0.1f) {
 		dt = 0.1f;
 	}
+	debugPhysicsTimer += dt;
+
+	// simulation fps calculation
+	static float simAvgFps = 0;
+	{
+		static float timer = 0;
+		static int frameCount = 0;
+		timer += dt;
+		frameCount++;
+		if (timer >= fpsUpdateTime) {
+			simAvgFps = frameCount / timer;
+			timer = 0;
+			frameCount = 0;
+		}
+	}
+	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
 	auto& viewList = RObj::viewList;
 	auto& screenList = RObj::screenList;
+	auto& physicsList = RObj::physicsList;
 
 	// if you ever felt that you need dt inside HandleKeyPress(), that means you are doing smt wro- i mean, you need to use a variable to pass the info and commit changes in Update instead, HandleKeyPress() should not have those kinda logic inside it
 	HandleKeyPress();
 
-	// player
+	// player updates
 	{
 		// update position and camera bobbing
 		if (camera.GetCurrentMode() == Cam::MODE::FIRST_PERSON)
-			player.UpdatePositionWithCamera(dt, camera);
+			player.UpdatePhysicsWithCamera(dt, camera);
 		else
-			player.UpdatePosition(dt);
-
-		// make sure the player's render group is updated to be the same as player's actual position
-		player.SyncRender();
-	}
-
-	// camera
-	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
-
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
-	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
-	if (debug) {
-		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
-		AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
-		AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
-		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
+			player.UpdatePhysics(dt);
 	}
 
 	// world render objects
@@ -328,7 +355,8 @@ void SceneDemo::Update(double dt) {
 
 		}
 
-		obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
+		if (!obj->GetPhysics())
+			obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
 	}
 
@@ -350,7 +378,8 @@ void SceneDemo::Update(double dt) {
 
 		}
 
-		obj->UpdateModel();
+		if (!obj->GetPhysics())
+			obj->UpdateModel();
 		i++;
 	}
 
@@ -362,9 +391,8 @@ void SceneDemo::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
-
-		if (debug) {
-
+		if (obj->name.find("_debugtxt_") != std::string::npos) {
+			obj->allowRender = debug;
 		}
 
 		obj->UpdateModel();
@@ -411,6 +439,48 @@ void SceneDemo::Update(double dt) {
 		UpdateLightUniform(obj);
 		i++;
 	}
+
+	// update physics
+	PhysicsManager::GetInstance().UpdatePhysics(dt);
+
+	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugRenderer && debugPhysicsTimer >= fpsUpdateTime) {
+		debugPhysicsTimer -= fpsUpdateTime;
+		debugPhysicsWorld = MeshBuilder::GenratePhysicsWorld(debugRenderer);
+	}
+	if (debugPhysicsTimer >= 60) {
+		debugPhysicsTimer -= 60 - fpsUpdateTime;
+	}
+
+	// physics objects
+	for (unsigned i = 0; i < physicsList.size(); ) {
+		if (physicsList[i].expired()) {
+			physicsList.erase(physicsList.begin() + i);
+			continue;
+		}
+		auto obj = physicsList[i].lock();
+		auto physics = obj->GetPhysics();
+		physics->InterpolateTransform();
+		obj->UsePhysicsModel();
+		
+
+
+		i++;
+	}
+
+	// player sync
+	{
+		player.SyncPhysics();
+	}
+
+	// camera
+	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
+
+	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
+	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
+	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
+	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
+	AddDebugText("player.renderGroup.trl: " + VecToString(player.renderGroup.lock()->trl));
 
 }
 
@@ -480,6 +550,14 @@ void SceneDemo::Render() {
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 
+	// render debug physics
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugPhysicsWorld) {
+		modelStack.Clear();
+		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+		debugPhysicsWorld->RenderPhysicsWorld();
+	}
 
 	viewStack.PushMatrix();
 	viewStack.LoadIdentity();
@@ -521,7 +599,6 @@ void SceneDemo::Exit() {
 }
 
 void SceneDemo::HandleKeyPress() {
-	BaseScene::HandleKeyPress();
 
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
@@ -540,16 +617,27 @@ void SceneDemo::HandleKeyPress() {
 		}
 	}
 
+	// debug keys
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
 		debug = !debug;
-
-		if (debug) {
-			camera.Set(Cam::MODE::FREE);
-			player.allowControl = false;
+		renderDebugPhysics = false;
+		camera.Set(Cam::MODE::FIRST_PERSON);
+		player.allowControl = true;
+	}
+	if (debug) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_C)) {
+			if (camera.GetCurrentMode() != Cam::MODE::FREE) {
+				camera.Set(Cam::MODE::FREE);
+				player.allowControl = false;
+			}
+			else {
+				camera.Set(Cam::MODE::FIRST_PERSON);
+				player.allowControl = true;
+			}
 		}
-		else {
-			camera.Set(Cam::MODE::FIRST_PERSON);
-			player.allowControl = true;
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P)) {
+			renderDebugPhysics = !renderDebugPhysics;
 		}
 	}
 
@@ -560,9 +648,11 @@ void SceneDemo::HandleKeyPress() {
 		if (cameraMode != Cam::MODE::PAUSE) {
 			prevMode = cameraMode;
 			camera.Set(Cam::MODE::PAUSE);
+			player.allowControl = false;
 		}
 		else {
 			camera.Set(prevMode);
+			player.allowControl = true;
 		}
 	}
 
@@ -621,6 +711,10 @@ void SceneDemo::HandleKeyPress() {
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
+		}
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
 		}
 	}
 }
@@ -690,8 +784,6 @@ void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
 	meshList[obj->geometryType]->material = meshMaterial;
 
 }
-
-
 
 void SceneDemo::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 
