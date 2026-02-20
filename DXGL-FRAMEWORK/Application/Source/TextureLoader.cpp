@@ -83,8 +83,6 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	else //bytesPerPixel == 4
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
 
-	std::cout << "Data pointer: " << static_cast<void*>(data) << std::endl;
-
 	//to do: modify the texture parameters code from here
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

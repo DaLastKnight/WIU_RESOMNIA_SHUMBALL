@@ -87,6 +87,16 @@ private:
 	float waveTimeAccumulator = 0.0f;
 	int maxEntitiesP = 0;
 	int maxEntitiesAI = 0;
+	int remainingEntitiesP = 0;
+	int remainingEntitiesAI = 0;
+	int overloadingState = 0;
+	int maxOverload = 5;
+
+	// Used for later during collision checking between objects
+	/*void HandleCollisions();
+	void Player2EnemyCollisionCheck();
+	void Player2EnvironmentCollisionCheck();
+	void Nanobot2EnemyCollisionCheck();*/
 };
 
 #endif
