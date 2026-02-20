@@ -84,26 +84,26 @@ void SceneMedical::Init() {
 			meshList[i] = nullptr;
 		}
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
-		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
-		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
+		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTexture("flashlight_texture.tga"));
 
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
 
-		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadPNG("SceneMedical/Image/NYP.png"));
+		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
 
-		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadTGA("internal_body.tga"));
-		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png"));
+		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadTexture("internal_body.tga"));
+		meshList[ENV_SLOPE_MODEL] = MeshBuilder::GenerateOBJMTL("map environment", "slope.obj", "slope.mtl", TextureLoader::LoadTexture("internal_body.png"));
 		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("cylinder", vec3(1, 1, 1), 360, 0.5f, 100);
-		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadPNG("SceneMedical/Image/internal_body.png");
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadPNG("SceneMedical/Image/bacteria_skin.png"));
-		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadPNG("SceneMedical/Image/nanobot_skin.png"));
+		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
+		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
 
 	}
 

@@ -72,15 +72,15 @@
     <ClCompile Include="Source\Player.cpp">
       <Filter>Scene Resource</Filter>
     </ClCompile>
-    <ClCompile Include="Source\SceneRhythm.cpp">
-      <Filter>Scenes</Filter>
-    </ClCompile>
     <ClCompile Include="Source\SceneMedical.cpp">
       <Filter>Scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DataManager.h">
       <Filter>Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Source\Scene.h">
@@ -145,9 +145,6 @@
     </ClInclude>
     <ClInclude Include="Source\Player.h">
       <Filter>Scene Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\DataManager.h">
-      <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Source\SceneMedical.h">
       <Filter>Scenes</Filter>
