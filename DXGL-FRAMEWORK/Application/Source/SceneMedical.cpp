@@ -106,6 +106,9 @@ void SceneMedical::Init() {
 		meshList[ENV_BLOCK_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
 		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("Map String Environment", vec3(1), 360, 0.5f, 100);
 		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
+		meshList[ENV_LIQUID_MODEL] = MeshBuilder::GenerateCylinder("Map Liquid Environment", vec3(1), 360, 0.5f, 100);
+		meshList[ENV_LIQUID_MODEL]->textureID = TextureLoader::LoadTexture("red_liquid.png");
+		meshList[ENV_LIQUID_FLAT_MODEL] = MeshBuilder::GenerateQuad("Map Liquid Flat Environment", vec3(1), 1, 1, TextureLoader::LoadTexture("red_liquid.png"));
 		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
 		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
 		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
@@ -185,6 +188,14 @@ void SceneMedical::Init() {
 		RObj::setDefaultStat.Subscribe(ENV_STRING_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
 			});
+		RObj::setDefaultStat.Subscribe(ENV_LIQUID_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			});
+		RObj::setDefaultStat.Subscribe(ENV_LIQUID_FLAT_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
 		RObj::setDefaultStat.Subscribe(BACTERIA_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
@@ -245,30 +256,32 @@ void SceneMedical::Init() {
 			}
 		}
 
+		// Temporary Placeholder for Bacteria Model Spawning
 		float bactRandTrlX[40] = { 0 };
 		float bactRandTrlY[40] = { 0 };
 		float bactRandTrlZ[40] = { 0 };
 
 		for (int i = 0; i < 40; i++)
 		{
-			bactRandTrlX[i] = rand() % 101 - 50;
+			bactRandTrlX[i] = rand() % 81 - 40;
 			bactRandTrlY[i] = rand() % 41 - 20;
-			bactRandTrlZ[i] = rand() % 101 - 50;
+			bactRandTrlZ[i] = rand() % 81 - 40;
 
 			worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
 			newObj->trl = glm::vec3(bactRandTrlX[i], bactRandTrlY[i], bactRandTrlZ[i]);
 			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
 		}
 
+		// Temporary Placeholder for Virus Model Spawning
 		float virusRandTrlX[20] = { 0 };
 		float virusRandTrlY[20] = { 0 };
 		float virusRandTrlZ[20] = { 0 };
 
 		for (int i = 0; i < 20; i++)
 		{
-			virusRandTrlX[i] = rand() % 101 - 50;
+			virusRandTrlX[i] = rand() % 81 - 40;
 			virusRandTrlY[i] = rand() % 41 - 20;
-			virusRandTrlZ[i] = rand() % 101 - 50;
+			virusRandTrlZ[i] = rand() % 81 - 40;
 
 			worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
 			newObj->trl = glm::vec3(virusRandTrlX[i], virusRandTrlY[i], virusRandTrlZ[i]);
@@ -297,24 +310,38 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(40, -45, 30);
 		newObj->scl = glm::vec3(40, 10, 40);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
 		newObj->trl = glm::vec3(45, 0, 45);
 		newObj->scl = glm::vec3(20, 50, 20);
+		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
+		newObj->trl = glm::vec3(45, 35, 0);
+		newObj->scl = glm::vec3(20, 30, 10);
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(0, 45, 25);
 		newObj->scl = glm::vec3(30, 5, 50);
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(-20, -50, 10);
 		newObj->scl = glm::vec3(50, 10, 30);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
 		newObj->trl = glm::vec3(-50, 0, 10);
 		newObj->scl = glm::vec3(20, 50, 20);
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(-50, 40, -40);
 		newObj->scl = glm::vec3(30, 30, 40);
-		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
+		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
 		newObj->trl = glm::vec3(0, 0, -50);
 		newObj->scl = glm::vec3(30, 100, 10);
+
+		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
+		newObj->trl = glm::vec3(10, 0, -5);
+		newObj->scl = glm::vec3(5, 50, 5);
+		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
+		newObj->trl = glm::vec3(-30, 0, -20);
+		newObj->scl = glm::vec3(5, 50, 5);
+		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_FLAT_MODEL));
+		newObj->trl = glm::vec3(0, -49, 0);
+		newObj->rot = glm::vec3(-90, 0, 0);
+		newObj->scl = glm::vec3(100, 100, 1);
 		
 		float envStringRandTrlX[40] = { 0 };
 		float envStringRandTrlZ[40] = { 0 };
@@ -395,6 +422,45 @@ void SceneMedical::Update(double dt) {
 		}
 		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
 	}
+
+	{ // Placeholder for Timer Display
+		waveTimeAccumulator += dt;
+
+		if (waveTimeAccumulator >= 1.0f)
+		{
+			waveTimeAccumulator -= 1.0f;
+			waveTimeLeft--;
+
+			if (waveTimeLeft <= 0.0f)
+			{
+				waveTimeLeft = 180;
+			}
+		}
+		AddDebugText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
+	}
+	AddDebugText("Wave: " + std::to_string(waveNumber) + "/3");
+	if (waveNumber == 1)
+	{
+		maxEntitiesP = 10;
+		maxEntitiesAI = 5;
+	}
+	else if (waveNumber == 2)
+	{
+		maxEntitiesP = 15;
+		maxEntitiesAI = 10;
+	}
+	else if (waveNumber == 3)
+	{
+		maxEntitiesP = 30;
+		maxEntitiesAI = 20;
+	}
+	else
+	{
+		waveNumber = 1; // Set to default if somehow fails
+		std::cout << "Wave may be incorrect" << std::endl;
+	}
+	AddDebugText("Bacteria Left: 10/" + std::to_string(maxEntitiesP));
+	AddDebugText("Viruses Left: 5/" + std::to_string(maxEntitiesAI));
 
 	if (dt > 0.1f) {
 		dt = 0.1f;
@@ -754,6 +820,11 @@ void SceneMedical::HandleKeyPress() {
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
+		}
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Q))
+		{ // Test
+			waveNumber++;
 		}
 	}
 }

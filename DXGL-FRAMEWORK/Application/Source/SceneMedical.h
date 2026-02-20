@@ -33,6 +33,8 @@ public:
 		ENV_SPHERE_MODEL,
 		ENV_BLOCK_MODEL,
 		ENV_STRING_MODEL,
+		ENV_LIQUID_MODEL,
+		ENV_LIQUID_FLAT_MODEL,
 
 		TOTAL
 	};
@@ -81,6 +83,8 @@ private:
 	
 	// Medical Gun Game Scene Specifics
 	int waveNumber = 1;
+	int waveTimeLeft = 180;
+	float waveTimeAccumulator = 0.0f;
 	int maxEntitiesP = 0;
 	int maxEntitiesAI = 0;
 };
