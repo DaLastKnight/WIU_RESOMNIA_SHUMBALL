@@ -832,12 +832,14 @@ Mesh* MeshBuilder::GenerateCylinder(const std::string& meshName, glm::vec3 color
 	// Bottom flat surface
 	v.pos = glm::vec3(0.f, -0.5f * height, 0);
 	v.normal = glm::vec3(0.f, -1.f, 0.f);
+	v.texCoord = glm::vec2(0.5f, 0.5f);
 	vertex_buffer_data.push_back(v);
 	for (unsigned slice = 0; slice < numSlice + 1; ++slice)
 	{
 		float theta = slice * degreePerSlice;
 		v.pos = glm::vec3(radius * cos(theta), -0.5f * height, radius * sin(theta));
 		v.normal = glm::vec3(0.f, -1.f, 0.f);
+		v.texCoord = glm::vec2(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
 		vertex_buffer_data.push_back(v);
 	}
 
@@ -851,11 +853,17 @@ Mesh* MeshBuilder::GenerateCylinder(const std::string& meshName, glm::vec3 color
 	for (int slice = 0; slice < numSlice + 1; ++slice)
 	{
 		float theta = slice * degreePerSlice;
+		float u = (float)slice / numSlice;
+
 		v.pos = glm::vec3(radius * cos(theta), -height * 0.5f, radius * sin(theta));
 		v.normal = glm::vec3(glm::cos(theta), 0.f, glm::sin(theta));
+		v.texCoord = glm::vec2(u, 0.f);
+
 		vertex_buffer_data.push_back(v);
 
 		v.pos = glm::vec3(radius * cos(theta), height * 0.5f, radius * sin(theta));
+		v.normal = glm::vec3(cos(theta), 0.f, sin(theta));
+		v.texCoord = glm::vec2(u, 1.f);
 		vertex_buffer_data.push_back(v);
 	}
 
@@ -869,6 +877,7 @@ Mesh* MeshBuilder::GenerateCylinder(const std::string& meshName, glm::vec3 color
 	unsigned topStartIndex = vertex_buffer_data.size();
 	v.pos = glm::vec3(0, 0.5f * height, 0);
 	v.normal = glm::vec3(0.f, 1.f, 0.f);
+	v.texCoord = glm::vec2(0.5f, 0.5f);
 	vertex_buffer_data.push_back(v);
 
 	for (unsigned slice = 0; slice < numSlice + 1; ++slice)
@@ -876,6 +885,7 @@ Mesh* MeshBuilder::GenerateCylinder(const std::string& meshName, glm::vec3 color
 		float theta = slice * degreePerSlice;
 		v.pos = glm::vec3(radius * cos(theta), 0.5f * height, radius * sin(theta));
 		v.normal = glm::vec3(0.f, 1.f, 0.f);
+		v.texCoord = glm::vec2(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
 		vertex_buffer_data.push_back(v);
 	}
 
