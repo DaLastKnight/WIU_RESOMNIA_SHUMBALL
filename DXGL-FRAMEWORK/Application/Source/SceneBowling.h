@@ -23,6 +23,7 @@ public:
 		BOWLING_PIN,
 
 		HIT_BOX,
+		BALL_HIT_BOX,
 
 		UI_TEST,
 		UI_TEST_2,
@@ -37,6 +38,8 @@ public:
 	void Update(double dt) override;
 	void Render() override;
 	void Exit() override;
+
+	bool CheckCircleAABB(const glm::vec3& circlePos, float radius, const glm::vec3& boxCenter, const glm::vec3& boxHalfSize);
 
 private:
 
@@ -74,10 +77,14 @@ private:
 
 	glm::vec3 savedBallWorldPos;
 
+	//variables for bowling ball
 	bool holdingBall = false;
+	const float Ball_Radius = 0.4f;
 	bool spin = false;
-	bool testing = false;
+
+	bool hit_Box = false;
 	bool objectives = false;
+	bool layOutSwitch = false;
 
 };
 

@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include <iostream>
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -48,6 +50,35 @@ SceneBowling::SceneBowling() {
 }
 
 SceneBowling::~SceneBowling() {
+}
+
+bool SceneBowling::CheckCircleAABB(
+	const glm::vec3& circlePos,
+	float radius,
+	const glm::vec3& boxCenter,
+	const glm::vec3& boxHalfSize)
+{
+	// Ignore Y axis (top-down XZ collision)
+
+	float cx = circlePos.x;
+	float cz = circlePos.z;
+
+	// Compute min/max from center and half-size
+	float minX = boxCenter.x - boxHalfSize.x;
+	float maxX = boxCenter.x + boxHalfSize.x;
+	float minZ = boxCenter.z - boxHalfSize.z;
+	float maxZ = boxCenter.z + boxHalfSize.z;
+
+	// Clamp circle center to box
+	float closestX = glm::clamp(cx, minX, maxX);
+	float closestZ = glm::clamp(cz, minZ, maxZ);
+
+	float dx = cx - closestX;
+	float dz = cz - closestZ;
+
+	float distanceSquared = dx * dx + dz * dz;
+
+	return distanceSquared < (radius * radius);
 }
 
 void SceneBowling::Init() {
@@ -97,7 +128,8 @@ void SceneBowling::Init() {
 		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
 		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTGA("BOWLING_PIN.tga"));
 
-		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(0.0f,0.0f,0.0f), 0.5f);
+		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(1.0f,1.0f,1.0f), 0.5f);
+		meshList[BALL_HIT_BOX] = MeshBuilder::GenerateSphere("Ball_Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 1.0f ,16.0f);
 
 		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
@@ -218,99 +250,99 @@ void SceneBowling::Init() {
 			}
 		}
 
-		//bowling pins
+		//bowling pins (layout 1)
 		{
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_10";
+			newObj->name = "Lay_Out1_BOWLING_PIN_10";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_9";
+			newObj->name = "Lay_Out1_BOWLING_PIN_9";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_8";
+			newObj->name = "Lay_Out1_BOWLING_PIN_8";
 			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_7";
+			newObj->name = "Lay_Out1_BOWLING_PIN_7";
 			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_6";
+			newObj->name = "Lay_Out1_BOWLING_PIN_6";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_5";
+			newObj->name = "Lay_Out1_BOWLING_PIN_5";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_4";
+			newObj->name = "Lay_Out1_BOWLING_PIN_4";
 			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_3";
+			newObj->name = "Lay_Out1_BOWLING_PIN_3";
 			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_2";
+			newObj->name = "Lay_Out1_BOWLING_PIN_2";
 			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
 
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "BOWLING_PIN_1";
+			newObj->name = "Lay_Out1_BOWLING_PIN_1";
 			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
 			
 		}
 
-		//hitbox testing
+		//hitbox testing (layout 1 pins)
 		{
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_10";
+			newObj->name = "Lay_Out1_Hit_box_10";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_9";
+			newObj->name = "Lay_Out1_Hit_box_9";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_8";
+			newObj->name = "Lay_Out1_Hit_box_8";
 			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_7";
+			newObj->name = "Lay_Out1_Hit_box_7";
 			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_6";
+			newObj->name = "Lay_Out1_Hit_box_6";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_5";
+			newObj->name = "Lay_Out1_Hit_box_5";
 			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_4";
+			newObj->name = "Lay_Out1_Hit_box_4";
 			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_3";
+			newObj->name = "Lay_Out1_Hit_box_3";
 			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_2";
+			newObj->name = "Lay_Out1_Hit_box_2";
 			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Hit_box_1";
+			newObj->name = "Lay_Out1_Hit_box_1";
 			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
 		}
@@ -321,6 +353,11 @@ void SceneBowling::Init() {
 			newObj->name = "WORLD_BALL";
 			newObj->trl = glm::vec3(3.35f, 0.5f, 0.5f);
 			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(BALL_HIT_BOX));
+			newObj->name = "Bowling_Ball_Hit_Box";
+			newObj->trl = glm::vec3(1.0f, 1.0f, 1.0f);
+			newObj->scl = glm::vec3(0.4f);
 		}
 
 	}
@@ -413,9 +450,9 @@ void SceneBowling::Update(double dt) {
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	if (debug) {
 		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
-		AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
-		AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
-		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
+		//AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
+		//AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
+		//AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
 	}
 
 	if (objectives)
@@ -453,7 +490,7 @@ void SceneBowling::Update(double dt) {
 			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
 		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
 
-		if (spin == true)
+		//if (spin == true)
 		{
 			if (obj->name == "WORLD_BALL") {
 
@@ -465,15 +502,78 @@ void SceneBowling::Update(double dt) {
 				// Roll visually
 				obj->rot.x += 200 * dt;
 
+				if (obj->trl.x > 10.0f || obj->trl.z > 10.0f || obj->trl.x < -10.0f || obj->trl.z < -10.0f)
+				{
+					obj->trl -= player.direction * moveSpeed * static_cast<float>(dt);
+					//obj->trl = camera.GetFinalPosition() + player.direction * 2.0f - glm::vec3(0, 1.3f, 0);
+					obj->isDirty = true;
+				}
+
 				obj->isDirty = true;
 			}
 		}
 
-
-		if (obj->name.find("Hit_box") != std::string::npos)
+		if (obj->name == "Bowling_Ball_Hit_Box")
 		{
-			obj->allowRender = testing;
+			float moveSpeed = 10.0f;
+
+			// Move forward
+			obj->trl += player.direction * moveSpeed * static_cast<float>(dt);
+
+			// Roll visually
+			obj->rot.x += 200 * dt;
+
+			// ==========================================================
+			// COLLISION CHECK AGAINST ALL PIN HIT BOXES
+			// ==========================================================
+			for (auto& other_wptr : RObj::worldList)
+			{
+				auto other = other_wptr.lock();
+				if (!other) continue;
+
+				// Only check against pin hit boxes
+				if (other->name.find("Lay_Out1_Hit_box") != std::string::npos)
+				{
+					glm::vec3 boxCenter = other->trl;
+
+					// Since you scale them as (0.7, 3.7, 0.7)
+					// Half size is scl / 2
+					glm::vec3 boxHalfSize = other->scl * 0.5f;
+
+					bool collision = CheckCircleAABB(
+						obj->trl,          // ball position
+						Ball_Radius,
+						boxCenter,
+						boxHalfSize
+					);
+
+					if (collision)
+					{
+						// Stop the ball
+						obj->trl -= player.direction * moveSpeed * static_cast<float>(dt);
+
+						// OPTIONAL: knock the pin back
+						other->trl += player.direction * 0.5f;
+						other->rot.z += 45.0f;
+
+						other->isDirty = true;
+
+						break; // stop checking more pins
+					}
+				}
+			}
+
+			obj->isDirty = true;
 		}
+
+
+
+		if (obj->name.find("Lay_Out1") != std::string::npos)
+		{
+			obj->allowRender = hit_Box;
+		}
+
+
 
 		if (debug) {
 
@@ -481,6 +581,15 @@ void SceneBowling::Update(double dt) {
 
 		obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
+	}
+
+	for (auto& obj_wptr : RObj::worldList)
+	{
+		auto obj = obj_wptr.lock();
+		if (obj && obj->name == "Lay_Out1")
+		{
+			obj->allowRender = !layOutSwitch;
+		}
 	}
 
 	for (auto& obj_wptr : RObj::worldList)
@@ -737,15 +846,31 @@ void SceneBowling::HandleKeyPress() {
 	}
 
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J)) {
-		testing = !testing;
+		hit_Box = !hit_Box;
 	}
 
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H)) {
 		objectives = !objectives;
 	}
 
+	//if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Y)) {
+
+	//	layOutSwitch = !layOutSwitch;
+
+	//	for (auto& obj_wptr : RObj::worldList)
+	//	{
+	//		auto obj = obj_wptr.lock();
+	//		if (obj && obj->name == "Lay_Out1")
+	//		{
+	//			obj->allowRender = !LayOutSwitch;
+	//		}
+	//	}
+	//}
+
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_T))
 	{
+		spin = !spin;
+
 		holdingBall = !holdingBall;
 
 		for (auto& obj_wptr : RObj::worldList)
@@ -753,13 +878,12 @@ void SceneBowling::HandleKeyPress() {
 			auto obj = obj_wptr.lock();
 			if (obj && obj->name == "WORLD_BALL")
 			{
+				spin = !spin;
 				obj->allowRender = !holdingBall;
 
 				if (!holdingBall)
 				{
-					obj->trl = camera.GetFinalPosition() +
-						player.direction * 2.0f -
-						glm::vec3(0, 1.3f, 0);
+					obj->trl = camera.GetFinalPosition() + player.direction * 2.0f - glm::vec3(0, 1.3f, 0);
 
 					obj->isDirty = true;
 				}
