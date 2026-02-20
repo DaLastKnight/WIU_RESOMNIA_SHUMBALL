@@ -83,9 +83,6 @@
     <ClInclude Include="Source\SceneDemo.h">
       <Filter>Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="Source\DataManager.h">
-      <Filter>Scenes</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Scene.h">
       <Filter>Scenes</Filter>
     </ClInclude>
@@ -149,8 +146,8 @@
     <ClInclude Include="Source\Player.h">
       <Filter>Scene Resource</Filter>
     </ClInclude>
-    <ClInclude Include="Source\SceneRhythm.h">
-      <Filter>Scenes</Filter>
+    <ClInclude Include="Source\DataManager.h">
+      <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Source\SceneMedical.h">
       <Filter>Scenes</Filter>

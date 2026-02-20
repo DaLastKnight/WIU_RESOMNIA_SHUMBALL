@@ -432,11 +432,6 @@ Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, fl
 	index_buffer_data.push_back(2);
 	index_buffer_data.push_back(3);
 
-	for (unsigned i = 0; i < 36; ++i)
-	{
-		index_buffer_data.push_back(i);
-	}
-
 	Mesh* mesh = new Mesh(meshName);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
