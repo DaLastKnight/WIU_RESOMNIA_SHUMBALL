@@ -97,6 +97,8 @@ void SceneBowling::Init() {
 		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
 		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTGA("BOWLING_PIN.tga"));
 
+		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(0.0f,0.0f,0.0f), 0.5f);
+
 		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
 	}
@@ -226,7 +228,6 @@ void SceneBowling::Init() {
 			newObj->name = "BOWLING_PIN_9";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
 
-
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
 			newObj->name = "BOWLING_PIN_8";
 			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
@@ -261,6 +262,59 @@ void SceneBowling::Init() {
 			
 		}
 
+		//hitbox testing
+		{
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_10";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_9";
+			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_8";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_7";
+			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_6";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_5";
+			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_4";
+			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_3";
+			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_2";
+			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+
+			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
+			newObj->name = "Hit_box_1";
+			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
+			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
+		}
+
 		//bowling ball
 		{
 			worldRoot->NewChild(MeshObject::Create(BOWLING_BALL));
@@ -282,12 +336,12 @@ void SceneBowling::Init() {
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
+		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
+		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
+		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
+		//screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
+		//newObj->trl = vec3(-0.85f, -0.85f, 0);
+		//newObj->scl = vec3(80, 80, 1);
 
 
 		// debug text
@@ -409,14 +463,14 @@ void SceneBowling::Update(double dt) {
 				obj->trl += player.direction * moveSpeed * static_cast<float>(dt);
 
 				// Roll visually
-				obj->offsetRot.x += 200 * dt;
+				obj->rot.x += 200 * dt;
 
 				obj->isDirty = true;
 			}
 		}
 
 
-		if (obj->name.find("BOWLING_PIN") != std::string::npos)
+		if (obj->name.find("Hit_box") != std::string::npos)
 		{
 			obj->allowRender = testing;
 		}

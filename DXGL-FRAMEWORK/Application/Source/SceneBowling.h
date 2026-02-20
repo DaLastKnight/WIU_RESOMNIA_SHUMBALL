@@ -22,6 +22,8 @@ public:
 		BOWLING_BALL,
 		BOWLING_PIN,
 
+		HIT_BOX,
+
 		UI_TEST,
 		UI_TEST_2,
 
