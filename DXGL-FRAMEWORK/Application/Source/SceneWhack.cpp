@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "SceneDemo.h"
+#include "SceneWhack.h"
 
 //Include GLEW
 #include <GL/glew.h>
@@ -45,22 +45,21 @@ using std::string;
 /************************************************************************************ scene functions ************************************************************************************/
 /*****************************************************************************************************************************************************************************************/
 
-SceneDemo::SceneDemo() {
+SceneWhack::SceneWhack() {
 }
 
-SceneDemo::~SceneDemo() {
+SceneWhack::~SceneWhack() {
 }
 
-void SceneDemo::Init() {
+void SceneWhack::Init() {
 	BaseScene::Init();
 
 	// directory init
 	{
-		AudioManager::GetInstance().SetDirectoryMUS("SceneDemo/Music");
-		AudioManager::GetInstance().SetDirectorySFX("SceneDemo/SFX");
-		TextureLoader::SetDirectory("SceneDemo/Image");
-		ModelLoader::SetDirectory("SceneDemo/Model");
-		DialogueManager::GetInstance().SetDirectory("SceneDemo/Dialogue");
+		AudioManager::GetInstance().SetDirectoryMUS("SceneWhack/Music");
+		AudioManager::GetInstance().SetDirectorySFX("SceneWhack/SFX");
+		TextureLoader::SetDirectory("SceneWhack/Image");
+		ModelLoader::SetDirectory("SceneWhack/Model");
 	}
 
 	// audio init
@@ -73,10 +72,7 @@ void SceneDemo::Init() {
 
 	}
 
-	// dialogue init
-	{
-		DialogueManager::GetInstance().LoadDialoguePack("ExampleDialogue.json");
-	}
+	DialogueManager::GetInstance().LoadDialoguePack("ExampleDialogue.json");
 
 	// atmosphere init
 	{
@@ -248,7 +244,7 @@ void SceneDemo::Init() {
 	RObj::newObject.reset();
 }
 
-void SceneDemo::Update(double dt) {
+void SceneWhack::Update(double dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 
@@ -268,8 +264,6 @@ void SceneDemo::Update(double dt) {
 		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
 	}
 
-	// Temporary for now
-	// When the Game State handler, the code snippet below will be stored properly
 	DialogueManager::GetInstance().UpdateDialogue(dt);
 
 	if (DialogueManager::GetInstance().CheckActivePack())
@@ -430,7 +424,7 @@ void SceneDemo::Update(double dt) {
 }
 
 
-void SceneDemo::Render() {
+void SceneWhack::Render() {
 	BaseScene::Render();
 	
 	// render scene
@@ -529,13 +523,13 @@ void SceneDemo::Render() {
 
 }
 
-void SceneDemo::Exit() {
+void SceneWhack::Exit() {
 	BaseScene::Exit();
 
 
 }
 
-void SceneDemo::HandleKeyPress() {
+void SceneWhack::HandleKeyPress() {
 	BaseScene::HandleKeyPress();
 
 	if (debug) {
@@ -581,18 +575,8 @@ void SceneDemo::HandleKeyPress() {
 		}
 	}
 
-	// dialogue controls
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE))
 	{
-		// In an actual usecase, only the ControlCurrentDialogue() should exist in here
-		// but for the sake of the demo, I coded out how to start dialogue from a key input
-		
-		// Only the code below should exist here
-		/*if (DialogueManager::GetInstance().CheckActivePack())
-		{
-			DialogueManager::GetInstance().ControlCurrentDialogue();
-		}*/
-		
 		static bool startedDialogue = false;
 
 		if (!DialogueManager::GetInstance().CheckActivePack())
@@ -676,7 +660,7 @@ void SceneDemo::HandleKeyPress() {
 /*********************************************************************************************************************************************************************************/
 
 
-void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
+void SceneWhack::RenderObj(const std::shared_ptr<RObj> obj) {
 
 	if (!obj->allowRender)
 		return;
@@ -738,7 +722,7 @@ void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
 
 
 
-void SceneDemo::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
+void SceneWhack::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 
 	Mesh* mesh = meshList[static_cast<int>(type)];
 	glm::mat4 MVP, modelView, modelView_inverse_transpose;
@@ -784,7 +768,7 @@ void SceneDemo::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 	}
 }
 
-void SceneDemo::InitDebugText(GEOMETRY_TYPE font) {
+void SceneWhack::InitDebugText(GEOMETRY_TYPE font) {
 	auto& newObj = RObj::newObject;
 	for (int i = 0; i < 10; i++) {
 		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
@@ -795,7 +779,7 @@ void SceneDemo::InitDebugText(GEOMETRY_TYPE font) {
 	}
 }
 
-bool SceneDemo::AddDebugText(const std::string& text, int index) {
+bool SceneWhack::AddDebugText(const std::string& text, int index) {
 
 	if (index < 0) {
 		for (auto& obj_weak : debugTextList) {
@@ -815,7 +799,7 @@ bool SceneDemo::AddDebugText(const std::string& text, int index) {
 	return true;
 }
 
-void SceneDemo::ClearDebugText() {
+void SceneWhack::ClearDebugText() {
 	for (auto& obj_weak : debugTextList)
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }
