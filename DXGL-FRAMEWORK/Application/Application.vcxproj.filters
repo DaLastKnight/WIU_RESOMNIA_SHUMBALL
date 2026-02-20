@@ -72,9 +72,6 @@
     <ClCompile Include="Source\Player.cpp">
       <Filter>Scene Resource</Filter>
     </ClCompile>
-    <ClCompile Include="Source\SceneWhack.cpp">
-      <Filter>Scenes</Filter>
-    </ClCompile>
     <ClCompile Include="Source\DialogueManager.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
@@ -145,9 +142,6 @@
     </ClInclude>
     <ClInclude Include="Source\Player.h">
       <Filter>Scene Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\SceneWhack.h">
-      <Filter>Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Source\DataManager.h">
       <Filter>Framework</Filter>
