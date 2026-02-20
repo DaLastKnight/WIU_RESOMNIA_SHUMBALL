@@ -91,17 +91,17 @@ void SceneDemo::Init() {
 			meshList[i] = nullptr;
 		}
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("color.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
-		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
-		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
+		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTexture("flashlight_texture.tga"));
 
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
 	}
 
 	// init roots
@@ -230,7 +230,6 @@ void SceneDemo::Init() {
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
-
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}
@@ -239,7 +238,7 @@ void SceneDemo::Init() {
 	{
 		// camera init
 		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-		camera.Set(FPCamera::MODE::FREE);
+		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
@@ -293,12 +292,11 @@ void SceneDemo::Update(double dt) {
 	// player
 	{
 		// update position and camera bobbing
-		if (player.allowControl)
+		if (camera.GetCurrentMode() == Cam::MODE::FIRST_PERSON)
 			player.UpdatePositionWithCamera(dt, camera);
-		else {
-			Cam tempCamera = camera;
-			player.UpdatePositionWithCamera(dt, tempCamera);
-		}
+		else
+			player.UpdatePosition(dt);
+
 		// make sure the player's render group is updated to be the same as player's actual position
 		player.SyncRender();
 	}
@@ -358,6 +356,10 @@ void SceneDemo::Update(double dt) {
 			continue;
 		}
 		auto obj = viewList[i].lock();
+
+		if (obj->geometryType == GROUP) {
+			obj->allowRender = debug;
+		}
 
 
 

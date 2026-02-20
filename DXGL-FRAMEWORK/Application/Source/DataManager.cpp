@@ -48,7 +48,7 @@ void DataManager::LoadData() {
 
 	ordered_json loadedScores = loadedData["highestScores"];
 	for (int i = 0; i < TOTAL_GAME_TYPE; i++) {
-		highestScores[i] = loadedScores[GameTypeToString(static_cast<GAME_TYPE>(i))];
+		highestScores[i] = loadedScores[GameTypeToString(static_cast<GAME_TYPE>(i))].get<float>();
 	}
 
 	Print("loaded map from file at \"" + fullPath + "\"", 2);
