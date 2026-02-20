@@ -99,7 +99,7 @@ void SceneMedical::Init() {
 
 		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
 
-		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("map boundary", TextureLoader::LoadTexture("internal_body.tga"));
+		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("Map Boundary", TextureLoader::LoadTexture("internal_body.png"));
 		meshList[ENV_SPHERE_MODEL] = MeshBuilder::GenerateSphere("Map Sphered Environment", vec3(1));
 		meshList[ENV_SPHERE_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
 		meshList[ENV_BLOCK_MODEL] = MeshBuilder::GenerateCube("Map Block Environment", vec3(1), 1);
