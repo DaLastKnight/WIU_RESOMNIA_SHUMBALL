@@ -89,8 +89,7 @@ public:
 
 protected:
 
-	// HandleInput functions
-	virtual void HandleKeyPress();
+	static constexpr bool ALLOW_PHYSICS_DEBUG = true;
 
 	unsigned m_parameters[U_TOTAL];
 	

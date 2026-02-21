@@ -21,6 +21,8 @@ std::vector<std::weak_ptr<RenderObject>> RenderObject::viewList;
 std::vector<std::weak_ptr<RenderObject>> RenderObject::screenList;
 std::shared_ptr<RenderObject> RenderObject::newObject;
 
+std::vector<std::weak_ptr<RenderObject>> RenderObject::physicsList;
+
 EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
 
 void RenderObject::SortScreenList() {
@@ -66,6 +68,27 @@ void RenderObject::UpdateModel() {
 		for (auto child : children) {
 			child->UpdateModelWithParent(model);
 		}
+	}
+}
+
+void RenderObject::UsePhysicsModel() {
+	/*trl = physics->GetPostion();
+	rot = QuatToEuler(physics->GetOrientation());
+	rotQuat = physics->GetOrientation();
+	UpdateModel();*/
+	model = physics->GetModel();
+	if (offsetTrl != vec3(0))
+		model = model * glm::translate(mat4(1), vec3(offsetTrl.x, offsetTrl.y, offsetTrl.z));
+	if (offsetRot.x != 0)
+		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.x), vec3(1, 0, 0));
+	if (offsetRot.y != 0)
+		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.y), vec3(0, 1, 0));
+	if (offsetRot.z != 0)
+		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.z), vec3(0, 0, 1));
+	if (offsetScl != vec3(1))
+		model = model * glm::scale(mat4(1), vec3(offsetScl.x, offsetScl.y, offsetScl.z));
+	for (auto child : children) {
+		child->UpdateModelWithParent(model);
 	}
 }
 
@@ -128,6 +151,13 @@ std::shared_ptr<RenderObject> RenderObject::CloneAsChildOf(const std::shared_ptr
 	copy->CloneChildrenFrom(*this);
 	parent->NewChild(copy);
 	return newObject;
+}
+
+void RenderObject::RootInit(RENDER_TYPE renderType, int geometryType) {
+	std::shared_ptr<RenderObject> this_shared = shared_from_this();
+	this_shared->renderType = renderType;
+	this_shared->geometryType = geometryType;
+	this_shared->UpdateModel();
 }
 
 glm::mat4 RenderObject::GetModel() {
@@ -207,8 +237,16 @@ void RenderObject::TransformModelStack(MatrixStack& modelStack, const std::share
 		relativeOffsetX = relativeX = App::SCREEN_WIDTH / 2;
 		relativeOffsetY = relativeY = App::SCREEN_HEIGHT / 2;
 	}
-
+	
 	modelStack.Translate(obj->trl.x * relativeX + relativeOffsetX, obj->trl.y * relativeY + relativeOffsetY, obj->trl.z);
+	/*if (physics) {
+		modelStack.MultMatrix(glm::mat4(rotQuat));
+	}
+	if (!physics) {
+		modelStack.Rotate(obj->rot.x, 1, 0, 0);
+		modelStack.Rotate(obj->rot.y, 0, 1, 0);
+		modelStack.Rotate(obj->rot.z, 0, 0, 1);
+	}*/
 	modelStack.Rotate(obj->rot.x, 1, 0, 0);
 	modelStack.Rotate(obj->rot.y, 0, 1, 0);
 	modelStack.Rotate(obj->rot.z, 0, 0, 1);

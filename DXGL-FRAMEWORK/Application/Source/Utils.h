@@ -2,7 +2,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <reactphysics3d/reactphysics3d.h>
 #include <glm\glm.hpp>
+#include <glm\gtc\quaternion.hpp>
 #include <string>
 
 
@@ -48,6 +50,44 @@ inline std::string VecToString(glm::vec4 vec) {
 template<typename T>
 inline T Smooth(const T& currentValue, const T& targetValue, float Smoothing, float deltaTime) {
 	return currentValue + (targetValue - currentValue) / Smoothing * deltaTime * 100.f;
+}
+
+inline rp3d::Vector3 Vec3Convert(glm::vec3 vec3) {
+	return rp3d::Vector3(vec3.x, vec3.y, vec3.z);
+}
+inline glm::vec3 Vec3Convert(rp3d::Vector3 vector3) {
+	return glm::vec3(vector3.x, vector3.y, vector3.z);
+}
+
+inline rp3d::Quaternion EulerToQuaternion(glm::vec3 eulerVec3) {
+	rp3d::Quaternion qx(rp3d::Vector3(1, 0, 0), glm::radians(eulerVec3.x));
+	rp3d::Quaternion qy(rp3d::Vector3(0, 1, 0), glm::radians(eulerVec3.y));
+	rp3d::Quaternion qz(rp3d::Vector3(0, 0, 1), glm::radians(eulerVec3.z));
+	return qz * qy * qx;
+}
+
+inline rp3d::Transform Vec3ToRp3dTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {
+	rp3d::Vector3 position = Vec3Convert(position_vec3);
+	rp3d::Quaternion orientation = EulerToQuaternion(eulerRotation);
+	return rp3d::Transform(position, orientation);
+}
+
+inline glm::vec3 HexToVec3(uint32_t color) {
+	float r = ((color >> 24) & 0xFF) / 255.0f;
+	float g = ((color >> 16) & 0xFF) / 255.0f;
+	float b = ((color >> 8) & 0xFF) / 255.0f;
+	return { r, g, b };
+}
+
+inline glm::vec3 QuaternionToEuler(rp3d::Quaternion orientation) {
+	return glm::degrees(glm::eulerAngles(glm::quat(orientation.w, orientation.x, orientation.y, orientation.z)));
+}
+inline glm::vec3 QuatToEuler(glm::quat orientation) {
+	return glm::degrees(glm::eulerAngles(orientation));
+}
+
+inline glm::quat QuaternionToQuat(rp3d::Quaternion orientation) {
+	return glm::quat(orientation.w, orientation.x, orientation.y, orientation.z);
 }
 
 #endif
