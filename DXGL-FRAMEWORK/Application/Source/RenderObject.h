@@ -13,7 +13,7 @@
 #include "Material.h"
 #include "Event.h"
 #include "Light.h"
-
+#include "PhysicsManager.h"
 
 inline glm::vec3 getPosFromModel(const glm::mat4& model) {
 	return glm::vec3(model[3]);
@@ -29,6 +29,7 @@ public:
 
 	glm::vec3 trl = glm::vec3(0, 0, 0);
 	glm::vec3 rot = glm::vec3(0, 0, 0);
+	glm::quat rotQuat = glm::quat(0, 0, 0, 0);
 	glm::vec3 scl = glm::vec3(1, 1, 1);
 	glm::vec3 offsetTrl = glm::vec3(0, 0, 0);
 	glm::vec3 offsetRot = glm::vec3(0, 0, 0);
@@ -62,6 +63,8 @@ public:
 	static std::vector<std::weak_ptr<RenderObject>> viewList;
 	static std::vector<std::weak_ptr<RenderObject>> screenList;
 
+	static std::vector<std::weak_ptr<RenderObject>> physicsList;
+
 	// will be updated from the use of NewChild(), SwapParentTo() and CloneAsChildOf()
 	// remember to reset this after using any of the above functions to avoid unwanted ownership
 	static std::shared_ptr<RenderObject> newObject;
@@ -75,13 +78,41 @@ public:
 
 	void UpdateModel();
 
+	void UsePhysicsModel();
+
 	void Destroy();
 	void NewChild(std::shared_ptr<RenderObject> child);
 
 	void SwapParentTo(const std::shared_ptr<RenderObject>& newParent);
 	std::shared_ptr<RenderObject> CloneAsChildOf(const std::shared_ptr<RenderObject>& parent) const;
 
-	virtual ~RenderObject() = default;
+	void AddPhysics(int type) {
+		physics = new PhysicsObject(static_cast<PhysicsObject::BODY_TYPE>(type), trl, rot);
+		physicsList.push_back(shared_from_this());
+	}
+	PhysicsObject* GetPhysics() {
+		return physics;
+	}
+	void RemovePhysics() {
+		if (physics) {
+			delete physics;
+			physics = nullptr;
+
+			auto self = shared_from_this();
+			auto it = std::find_if(physicsList.begin(), physicsList.end(), [&self](const std::weak_ptr<RenderObject> obj) {
+				return self.get() == obj.lock().get();
+				});
+			if (it != physicsList.end()) {
+				physicsList.erase(it);
+			}
+		}
+	}
+
+	void RootInit(RENDER_TYPE renderType, int geometryType);
+
+	virtual ~RenderObject() {
+		delete physics;
+	}
 	RenderObject(int geometryType, RENDER_TYPE renderType, unsigned UILayer = 0)
 		: geometryType(geometryType), renderType(renderType), UILayer(UILayer) {
 	}
@@ -93,6 +124,8 @@ public:
 	};
 
 protected:
+
+	PhysicsObject* physics = nullptr;
 
 	glm::vec3 prevTrl = trl;
 	glm::vec3 prevRot = rot;

@@ -5,6 +5,10 @@
 #include "Vertex.h"
 #include "ModelLoader.h"
 
+namespace reactphysics3d {
+	class DebugRenderer;
+}
+
 /******************************************************************************/
 /*!
 		Class MeshBuilder:
@@ -16,7 +20,7 @@ class MeshBuilder
 public:
 	static Mesh* GenerateAxes(const std::string &meshName, float lengthX, float lengthY, float lengthZ);
 	// mode | 0 = normal render, 1 = inverse render
-	static Mesh* GenerateSphere(const std::string& meshName, glm::vec3 color = glm::vec3(1.f), float radius = 1.f, unsigned int slices = 16, unsigned int stacks = 8, unsigned int mode = 0);
+	static Mesh* GenerateSphere(const std::string& meshName, glm::vec3 color = glm::vec3(1.f), float radius = 1.f, unsigned int slices = 16, unsigned int stacks = 8, int textureID = -1, unsigned int mode = 0);
 	static Mesh* GenerateCone(const std::string& meshName, glm::vec3 color, int numSlice, float radius, float height, float bottomOffset = 0);
 	// mode | 0 = normal render, 1 = inverse render
 	static Mesh* GenerateTorus(const std::string& meshName, glm::vec3 color = glm::vec3(1.f), float width = 1.f, float radius = 1.f, unsigned int slices = 16, unsigned int stacks = 16, unsigned int mode = 0);
@@ -34,6 +38,10 @@ public:
 
 	static Mesh* GenerateSkybox(const std::string& meshName, unsigned textureID);
 	static Mesh* GenerateGround(const std::string& meshName, float size, float texSize, unsigned textureID);
+
+	static Mesh* GenerateLine(const std::string& meshName, float length);
+
+	static Mesh* GenratePhysicsWorld(const reactphysics3d::DebugRenderer* debugRenderer);
 };
 
 #endif

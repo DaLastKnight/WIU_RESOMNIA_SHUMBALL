@@ -11,7 +11,7 @@ public:
 	glm::vec3 position;
 	glm::vec3 direction = glm::vec3(0, 0, 1);
 
-	float speed = 3;
+	float speed = 200;
 	glm::vec3 velocity;
 	glm::vec3 smoothVelocity;
 	float sprintMultiplier = 2;
@@ -26,9 +26,9 @@ public:
 
 	void Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 cameraOffset);
 
-	void UpdatePositionWithCamera(double dt, FPCamera& camera);
-	void UpdatePosition(double dt);
-	void SyncRender();
+	void UpdatePhysicsWithCamera(double dt, FPCamera& camera);
+	void UpdatePhysics(double dt);
+	void SyncPhysics();
 
 	void VariableRefresh();
 
@@ -36,7 +36,7 @@ public:
 	~Player();
 
 private:
-
+	PhysicsObject* physics;
 
 };
 

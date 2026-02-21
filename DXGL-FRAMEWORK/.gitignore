@@ -33,4 +33,9 @@ Release/
 
 # Re-include obj files
 !Application/**/Model/*.obj
+
+# Re-include json files
 !Application/**/*.json
+
+# exclude logs
+Application/Log/ReactPhysics3D/*.html

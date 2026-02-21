@@ -6,6 +6,10 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
+#include <reactphysics3d/reactphysics3d.h>
+
+#include "Utils.h"
+
 /******************************************************************************/
 /*!
 \brief
@@ -70,7 +74,7 @@ Then generate the VBO/IBO and store them in Mesh object
 */
 /******************************************************************************/
 
-Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, float radius, unsigned int slices, unsigned int stacks, unsigned int mode)
+Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, float radius, unsigned int slices, unsigned int stacks, int textureID, unsigned int mode)
 {
 	Vertex v; // Vertex definition
 	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
@@ -131,6 +135,8 @@ Mesh* MeshBuilder::GenerateSphere(const std::string& meshName, glm::vec3 color, 
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLE_STRIP;
+	if (textureID != -1)
+		mesh->textureID = textureID;
 
 	return mesh;
 }
@@ -1214,3 +1220,80 @@ Mesh* MeshBuilder::GenerateGround(const std::string& meshName, float size, float
 
 	return mesh;
 }
+
+Mesh* MeshBuilder::GenerateLine(const std::string& meshName, float length) {
+
+	Vertex v;
+	std::vector<Vertex> vertex_buffer_data;
+	std::vector<GLuint> index_buffer_data;
+
+	//x-axis
+	v.pos = glm::vec3(0, 0, 0);	v.color = glm::vec3(1, 1, 1); vertex_buffer_data.push_back(v);
+	v.pos = glm::vec3(length, 0, 0); v .color = glm::vec3(1, 1, 1); vertex_buffer_data.push_back(v);
+
+	index_buffer_data.push_back(0);
+	index_buffer_data.push_back(1);
+
+	Mesh* mesh = new Mesh(meshName);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
+
+	mesh->indexSize = index_buffer_data.size();
+	mesh->mode = Mesh::DRAW_LINES;
+
+	return mesh;
+}
+
+Mesh* MeshBuilder::GenratePhysicsWorld(const reactphysics3d::DebugRenderer* debugRenderer) {
+
+	std::vector<Vertex> vertex_buffer_data;
+
+	// Lines
+	const auto& lines = debugRenderer->getLines();
+	for (const auto& line : lines) {
+
+		vertex_buffer_data.push_back({
+			{ line.point1.x, line.point1.y, line.point1.z },
+			HexToVec3(line.color1)
+			});
+
+		vertex_buffer_data.push_back({
+			{ line.point2.x, line.point2.y, line.point2.z },
+			HexToVec3(line.color2)
+			});
+	}
+
+	// Triangles
+	const auto& triangles = debugRenderer->getTriangles();
+	for (const auto& tri : triangles) {
+
+		vertex_buffer_data.push_back({
+			{ tri.point1.x, tri.point1.y, tri.point1.z },
+			HexToVec3(tri.color1)
+			});
+
+		vertex_buffer_data.push_back({
+			{ tri.point2.x, tri.point2.y, tri.point2.z },
+			HexToVec3(tri.color2)
+			});
+
+		vertex_buffer_data.push_back({
+			{ tri.point3.x, tri.point3.y, tri.point3.z },
+			HexToVec3(tri.color3)
+			});
+	}
+
+	Mesh* mesh = new Mesh("debug physics world");
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
+
+	mesh->indexSize = vertex_buffer_data.size();
+	mesh->mode = Mesh::DRAW_LINES;
+
+	return mesh;
+}
+
