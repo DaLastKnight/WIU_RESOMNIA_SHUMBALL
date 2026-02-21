@@ -78,6 +78,9 @@
     <ClCompile Include="Source\DialogueManager.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GameStateManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -153,6 +156,9 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Source\DialogueManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GameStateManager.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
