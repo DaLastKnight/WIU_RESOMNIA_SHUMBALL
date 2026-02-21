@@ -26,6 +26,8 @@ public:
 		UI_TEST_2,
 
 		PHYSICS_BALL,
+		PHYSICS_BOX,
+		TRIGGER_BOX,
 
 		TOTAL
 	};

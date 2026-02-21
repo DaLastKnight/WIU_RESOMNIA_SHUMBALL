@@ -6,45 +6,266 @@
 using namespace reactphysics3d;
 
 
+
+/********************************* PhysicsObject *********************************/
+
+void PhysicsObject::AddImpulse(glm::vec3 force) {
+	body->setLinearVelocity(rp3d::Vector3(0, 0, 0));
+	body->applyLocalForceAtCenterOfMass(Vec3Convert(force) * PhysicsManager::GetInstance().Get_TIME_STEP());
+}
+void PhysicsObject::AddSoftImpulse(glm::vec3 impulse) {
+	body->applyLocalForceAtCenterOfMass(Vec3Convert(impulse) * PhysicsManager::GetInstance().Get_TIME_STEP());
+}
+
+void PhysicsObject::SetTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {
+	body->setTransform(Vec3ToRp3dTransform(position_vec3, eulerRotation));
+}
+
+void PhysicsObject::SetPosition(glm::vec3 position_vec3) {
+	body->setTransform(Transform(Vec3Convert(position_vec3), body->getTransform().getOrientation()));
+}
+
+void PhysicsObject::SetOrientation(glm::vec3 eulerRotation) {
+	body->setTransform(Transform(body->getTransform().getPosition(), EulerToQuaternion(eulerRotation)));
+}
+
+void PhysicsObject::InterpolateTransform() {
+	Transform newTransform = body->getTransform();
+	double factor = PhysicsManager::GetInstance().GetTimeAccumulator() / PhysicsManager::GetInstance().Get_TIME_STEP();
+	Transform interpolatedTransform = Transform::interpolateTransforms(currentTransform, newTransform, factor);
+	currentTransform = newTransform;
+}
+
+glm::mat4 PhysicsObject::GetModel() {
+	float matrix[16];
+	body->getTransform().getOpenGLMatrix(matrix);
+	return glm::make_mat4(matrix);
+}
+
+glm::vec3 PhysicsObject::GetPostion() {
+	return Vec3Convert(body->getTransform().getPosition());
+}
+
+glm::quat PhysicsObject::GetOrientation() {
+	return  QuaternionToQuat(body->getTransform().getOrientation());
+}
+
+void PhysicsObject::AddCollider(COLLIDER_TYPE type, glm::vec3 colliderAppearace, glm::vec3 position_vec3, glm::vec3 eulerRotation) {
+
+	switch (type) {
+	case BOX: {
+		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
+		BoxShape* boxShape = PhysicsManager::GetInstance().GetPhysicsCommon().createBoxShape(Vec3Convert(colliderAppearace));
+		colliders.push_back(body->addCollider(boxShape, transform));
+		break;
+	}
+	case SPHERE: {
+		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
+		SphereShape* sphereShape = PhysicsManager::GetInstance().GetPhysicsCommon().createSphereShape(colliderAppearace.x);
+		colliders.push_back(body->addCollider(sphereShape, transform));
+		break;
+	}
+	case CAPSULE: {
+		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
+		CapsuleShape* capsuleShape = PhysicsManager::GetInstance().GetPhysicsCommon().createCapsuleShape(colliderAppearace.x, colliderAppearace.y);
+		colliders.push_back(body->addCollider(capsuleShape, transform));
+		break;
+	}
+	default: return;
+	}
+}
+
+void PhysicsObject::SetCollisionActive(bool isEnabled) {
+	for (auto& collider : colliders) {
+		collider->setIsSimulationCollider(isEnabled);
+	}
+}
+
+bool PhysicsObject::GetCollisionActive() {
+	if (!colliders.empty())
+		return colliders[0]->getIsSimulationCollider();
+}
+
+void PhysicsObject::SetTrigger(bool isEnabled) {
+	for (auto& collider : colliders) {
+		collider->setIsTrigger(isEnabled);
+	}
+}
+
+bool PhysicsObject::GetIsTrigger() {
+	if (!colliders.empty())
+		return colliders[0]->getIsTrigger();
+}
+
+void PhysicsObject::SetMaterial(float bounciness, float massDensity, float frictionCoefficient, int colliderIndex) {
+	bounciness = Clamp(bounciness, 0, 1);
+	if (massDensity <= 0)
+		massDensity = 0.000001f;
+	frictionCoefficient = Clamp(frictionCoefficient, 0, 1);
+
+	if (colliderIndex == -1)
+		for (auto& collider : colliders) {
+			Material& material = collider->getMaterial();
+			material.setBounciness(bounciness);
+			material.setMassDensity(massDensity);
+			material.setFrictionCoefficient(frictionCoefficient);
+		}
+	else if (colliderIndex < colliders.size()) {
+		Material& material = colliders[colliderIndex]->getMaterial();
+		material.setBounciness(bounciness);
+		material.setMassDensity(massDensity);
+		material.setFrictionCoefficient(frictionCoefficient);
+	}
+	else
+		Error("PhysicsObject::SetMaterial(): invalide colliderIndex");
+}
+
+void PhysicsObject::SetBounciness(float bounciness, int colliderIndex) {
+	bounciness = Clamp(bounciness, 0, 1);
+
+	if (colliderIndex == -1)
+		for (auto& collider : colliders) {
+			Material& material = collider->getMaterial();
+			material.setBounciness(bounciness);
+		}
+	else if (colliderIndex < colliders.size()) {
+		Material& material = colliders[colliderIndex]->getMaterial();
+		material.setBounciness(bounciness);
+	}
+	else
+		Error("PhysicsObject::SetBounciness(): invalide colliderIndex");
+}
+
+void PhysicsObject::SetMassDensity(float massDensity, int colliderIndex) {
+	if (massDensity <= 0)
+		massDensity = 0.000001f;
+
+	if (colliderIndex == -1)
+		for (auto& collider : colliders) {
+			Material& material = collider->getMaterial();
+			material.setMassDensity(massDensity);
+		}
+	else if (colliderIndex < colliders.size()) {
+		Material& material = colliders[colliderIndex]->getMaterial();
+		material.setMassDensity(massDensity);
+	}
+	else
+		Error("PhysicsObject::SetMassDensity(): invalide colliderIndex");
+}
+
+void PhysicsObject::SetFrictionCoefficient(float frictionCoefficient, int colliderIndex) {
+	frictionCoefficient = Clamp(frictionCoefficient, 0, 1);
+
+	if (colliderIndex == -1)
+		for (auto& collider : colliders) {
+			Material& material = collider->getMaterial();
+			material.setFrictionCoefficient(frictionCoefficient);
+		}
+	else if (colliderIndex < colliders.size()) {
+		Material& material = colliders[colliderIndex]->getMaterial();
+		material.setFrictionCoefficient(frictionCoefficient);
+	}
+	else
+		Error("PhysicsObject::SetFrictionCoefficient(): invalide colliderIndex");
+}
+
+PhysicsObject::PhysicsObject(BODY_TYPE type, glm::vec3 position_vec3, glm::vec3 eulerRotation) {
+	Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
+	currentTransform = transform;
+	body = PhysicsManager::GetInstance().GetWorld()->createRigidBody(transform);
+	this->type = type;
+	body->setType(static_cast<rp3d::BodyType>(type));
+	body->setLinearDamping(0.3f);
+	body->setAngularDamping(0.01f);
+	body->setIsDebugEnabled(true);
+}
+
+PhysicsObject::~PhysicsObject() {
+	PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
+}
+
+
 /********************************* PhysicsEventListener *********************************/
 
 PhysicsEventListener::~PhysicsEventListener() {}
 
 void PhysicsEventListener::onContact(const CollisionCallback::CallbackData& callbackData) {
 
-	ContactData = &callbackData;
+	for (int i = 0; i < callbackData.getNbContactPairs(); i++) {
+		const auto& contactPair = callbackData.getContactPair(i);
 
-	//// For each contact pair
-	//for (uint p = 0; p < callbackData.getNbContactPairs(); p++) {
-	//	// Get the contact pair
-	//	CollisionCallback::ContactPair contactPair = callbackData.getContactPair(p);
-	//	// For each contact point of the contact pair
-	//	for (uint c = 0; c < contactPair.getNbContactPoints(); c++) {
-	//		// Get the contact point
-	//		CollisionCallback::ContactPoint contactPoint = contactPair.getContactPoint(c);
-	//		// Get the contact point on the first collider and convert it in world-space
-	//		Vector3 worldPoint = contactPair.getCollider1()->getLocalToWorldTransform() * contactPoint.getLocalPointOnCollider1();
-	//	}
-	//}
+		for (auto& event : contactEvents) {
+			if (event.physics->Getbody() == contactPair.getBody1() && event.contactType == contactPair.getEventType()) {
+				event.event.Invoke(contactPair.getBody1());
+			}
+			else if (event.physics->Getbody() == contactPair.getBody2() && event.contactType == contactPair.getEventType()) {
+				event.event.Invoke(contactPair.getBody2());
+			}
+		}
+	}
+
 }
 
 void PhysicsEventListener::onTrigger(const OverlapCallback::CallbackData& callbackData) {
-	
-	TriggerData = &callbackData;
-	
-	//// For each contact pair
-	//for (uint p = 0; p < callbackData.getNbOverlappingPairs(); p++) {
-	//	// Get the contact pair
-	//	OverlapCallback::OverlapPair overlapPair = callbackData.getOverlappingPair(p);
-	//}
+
+	for (int i = 0; i < callbackData.getNbOverlappingPairs(); i++) {
+		const auto& overlappingPair = callbackData.getOverlappingPair(i);
+
+		for (auto& event : triggerEvents) {
+			if (event.physics->Getbody() == overlappingPair.getBody1() && event.overlapType == overlappingPair.getEventType()) {
+				event.event.Invoke(overlappingPair.getBody1());
+			}
+			else if (event.physics->Getbody() == overlappingPair.getBody2() && event.overlapType == overlappingPair.getEventType()) {
+				event.event.Invoke(overlappingPair.getBody2());
+			}
+		}
+	}
+
 }
 
-inline const rp3d::CollisionCallback::CallbackData* PhysicsEventListener::GetContectData() {
-	return ContactData;
+void PhysicsEventListener::AddToContactEvents(PhysicsEvent physicsEvent) {
+	if (physicsEvent.event.lock)
+		return;
+
+	auto it = std::find_if(contactEvents.begin(), contactEvents.end(), [&](const PhysicsEvent& event) {
+		return physicsEvent.physics == event.physics;
+		});
+	if (it != contactEvents.end()) {
+		contactEvents.erase(it);
+	}
+
+	contactEvents.push_back(physicsEvent);
 }
 
-inline const rp3d::OverlapCallback::CallbackData* PhysicsEventListener::GetTriggerData() {
-	return TriggerData;
+void PhysicsEventListener::AddToTriggerEvents(PhysicsEvent physicsEvent) {
+	if (physicsEvent.event.lock)
+		return;
+
+	auto it = std::find_if(triggerEvents.begin(), triggerEvents.end(), [&](const PhysicsEvent& event) {
+		return physicsEvent.physics == event.physics;
+		});
+	if (it != triggerEvents.end()) {
+		triggerEvents.erase(it);
+	}
+
+	triggerEvents.push_back(physicsEvent);
+}
+
+void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) {
+	for (unsigned i = 0; i < contactEvents.size(); ) {
+		if (world->getRigidBody(contactEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
+			contactEvents.erase(contactEvents.begin() + i);
+			continue;
+		}
+		i++;
+	}
+	for (unsigned i = 0; i < triggerEvents.size(); ) {
+		if (world->getRigidBody(triggerEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
+			triggerEvents.erase(triggerEvents.begin() + i);
+			continue;
+		}
+		i++;
+	}
 }
 
 
@@ -113,173 +334,3 @@ void PhysicsManager::UpdatePhysics(double dt) {
 	}
 }
 
-
-/********************************* PhysicsObject *********************************/
-
-void PhysicsObject::SetTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {
-	body->setTransform(Vec3ToRp3dTransform(position_vec3, eulerRotation));
-}
-
-void PhysicsObject::SetPosition(glm::vec3 position_vec3) {
-	body->setTransform(Transform(Vec3Convert(position_vec3), body->getTransform().getOrientation()));
-}
-
-void PhysicsObject::SetOrientation(glm::vec3 eulerRotation) {
-	body->setTransform(Transform(body->getTransform().getPosition(), EulerToQuaternion(eulerRotation)));
-}
-
-void PhysicsObject::InterpolateTransform() {
-	Transform newTransform = body->getTransform();
-	double factor = PhysicsManager::GetInstance().GetTimeAccumulator() / PhysicsManager::GetInstance().Get_TIME_STEP();
-	Transform interpolatedTransform = Transform::interpolateTransforms(currentTransform, newTransform, factor);
-	currentTransform = newTransform;
-}
-
-glm::mat4 PhysicsObject::GetModel() {
-	float matrix[16];
-	body->getTransform().getOpenGLMatrix(matrix);
-	return glm::make_mat4(matrix);
-}
-
-glm::vec3 PhysicsObject::GetPostion() {
-	return Vec3Convert(body->getTransform().getPosition());
-}
-
-glm::quat PhysicsObject::GetOrientation() {
-	return  QuaternionToQuat(body->getTransform().getOrientation());
-}
-
-void PhysicsObject::AddCollider(COLLIDER_TYPE type, glm::vec3 colliderAppearace, glm::vec3 position_vec3, glm::vec3 eulerRotation) {
-
-	switch (type) {
-	case BOX: {
-		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
-		BoxShape* boxShape = PhysicsManager::GetInstance().GetPhysicsCommon().createBoxShape(Vec3Convert(colliderAppearace));
-		body->addCollider(boxShape, transform);
-		break;
-	}
-	case SPHERE: {
-		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
-		SphereShape* sphereShape = PhysicsManager::GetInstance().GetPhysicsCommon().createSphereShape(colliderAppearace.x);
-		body->addCollider(sphereShape, transform);
-		break;
-	}
-	case CAPSULE: {
-		Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
-		CapsuleShape* capsuleShape = PhysicsManager::GetInstance().GetPhysicsCommon().createCapsuleShape(colliderAppearace.x, colliderAppearace.y);
-		body->addCollider(capsuleShape, transform);
-		break;
-	}
-	default: return;
-	}
-}
-
-void PhysicsObject::SetCollisionActive(bool isEnabled) {
-	for (auto& collider : colliders) {
-		collider->setIsSimulationCollider(isEnabled);
-	}
-}
-
-bool PhysicsObject::GetCollisionActive() {
-	if (!colliders.empty())
-		return colliders[0]->getIsSimulationCollider();
-}
-
-void PhysicsObject::SetTrigger(bool isEnabled) {
-	for (auto& collider : colliders) {
-		collider->setIsTrigger(isEnabled);
-		collider->setIsSimulationCollider(!isEnabled);
-	}
-}
-
-bool PhysicsObject::GetIsTrigger() {
-	if (!colliders.empty())
-		return colliders[0]->getIsTrigger();
-}
-
-void PhysicsObject::SetMaterial(float bounciness, float massDensity, float frictionCoefficient, int colliderIndex) {
-	bounciness = Clamp(bounciness, 0, 1);
-	if (massDensity <= 0)
-		massDensity = 0.000001f;
-	frictionCoefficient = Clamp(frictionCoefficient, 0, 1);
-
-	if (colliderIndex == -1) 
-		for (auto& collider : colliders) {
-			Material& material = collider->getMaterial();
-			material.setBounciness(bounciness);
-			material.setMassDensity(massDensity);
-			material.setFrictionCoefficient(frictionCoefficient);
-		}
-	else if (colliderIndex < colliders.size()) {
-		Material& material = colliders[colliderIndex]->getMaterial();
-		material.setBounciness(bounciness);
-		material.setMassDensity(massDensity);
-		material.setFrictionCoefficient(frictionCoefficient);
-	}
-	else
-		Error("PhysicsObject::SetMaterial(): invalide colliderIndex");
-}
-
-void PhysicsObject::SetBounciness(float bounciness, int colliderIndex) {
-	bounciness = Clamp(bounciness, 0, 1);
-
-	if (colliderIndex == -1)
-		for (auto& collider : colliders) {
-			Material& material = collider->getMaterial();
-			material.setBounciness(bounciness);
-		}
-	else if (colliderIndex < colliders.size()) {
-		Material& material = colliders[colliderIndex]->getMaterial();
-		material.setBounciness(bounciness);
-	}
-	else
-		Error("PhysicsObject::SetBounciness(): invalide colliderIndex");
-}
-
-void PhysicsObject::SetMassDensity(float massDensity, int colliderIndex) {
-	if (massDensity <= 0)
-		massDensity = 0.000001f;
-
-	if (colliderIndex == -1)
-		for (auto& collider : colliders) {
-			Material& material = collider->getMaterial();
-			material.setMassDensity(massDensity);
-		}
-	else if (colliderIndex < colliders.size()) {
-		Material& material = colliders[colliderIndex]->getMaterial();
-		material.setMassDensity(massDensity);
-	}
-	else
-		Error("PhysicsObject::SetMassDensity(): invalide colliderIndex");
-}
-
-void PhysicsObject::SetFrictionCoefficient(float frictionCoefficient, int colliderIndex) {
-	frictionCoefficient = Clamp(frictionCoefficient, 0, 1);
-
-	if (colliderIndex == -1)
-		for (auto& collider : colliders) {
-			Material& material = collider->getMaterial();
-			material.setFrictionCoefficient(frictionCoefficient);
-		}
-	else if (colliderIndex < colliders.size()) {
-		Material& material = colliders[colliderIndex]->getMaterial();
-		material.setFrictionCoefficient(frictionCoefficient);
-	}
-	else 
-		Error("PhysicsObject::SetFrictionCoefficient(): invalide colliderIndex");
-}
-
-PhysicsObject::PhysicsObject(BODY_TYPE type, glm::vec3 position_vec3, glm::vec3 eulerRotation) {
-	Transform transform = Vec3ToRp3dTransform(position_vec3, eulerRotation);
-	currentTransform = transform;
-	body = PhysicsManager::GetInstance().GetWorld()->createRigidBody(transform);
-	this->type = type;
-	body->setType(static_cast<rp3d::BodyType>(type));
-	body->setLinearDamping(0.5f);
-	body->setAngularDamping(0.01f);
-	body->setIsDebugEnabled(true);
-}
-
-PhysicsObject::~PhysicsObject() {
-	PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
-}

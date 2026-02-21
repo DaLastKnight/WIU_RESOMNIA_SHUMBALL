@@ -29,6 +29,7 @@
 using App = Application;
 using RObj = RenderObject;
 using Cam = FPCamera;
+using PEvent = PhysicsEventListener::PhysicsEvent;
 
 using glm::vec3;
 using glm::mat4;
@@ -107,6 +108,8 @@ void SceneDemo::Init() {
 		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
 
 		meshList[PHYSICS_BALL] = MeshBuilder::GenerateSphere("physics ball", vec3(1.f), 0.5f, 16, 8, TextureLoader::LoadTexture("color.tga"));
+		meshList[PHYSICS_BOX] = MeshBuilder::GenerateCube("physics box", vec3(1.f), 1);
+		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1.f), 1);
 	}
 
 	// init roots
@@ -137,9 +140,10 @@ void SceneDemo::Init() {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
 
-			obj->AddPhysics(PhysicsObject::STATIC);
+			obj->AddPhysics(PhysicsObject::STATIC); // takes in PhysicsObject::BODY_TYPE
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::BOX, vec3(500, 0.5f, 500), vec3(0, -0.5f, 0));
+			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 
 			});
@@ -171,13 +175,32 @@ void SceneDemo::Init() {
 		RObj::setDefaultStat.Subscribe(PHYSICS_BALL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::POLISHED_METAL);
 
-			obj->AddPhysics(PhysicsObject::DYNAMIC); // takes in PhysicsObject::BODY_TYPE
+			obj->AddPhysics(PhysicsObject::DYNAMIC); 
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f, 0, 0));
 			physics->SetBounciness(0.1f);
 			physics->SetFrictionCoefficient(0.2f);
+			physics->UpdateMassProperties(); // must call this after getting all colliders set, if you set another collider after this, you have to call this again
+			physics->SetPosition(vec3(0, 5, 0));
+			});
+		RObj::setDefaultStat.Subscribe(PHYSICS_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+
+			obj->AddPhysics(PhysicsObject::DYNAMIC); 
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
+			physics->SetBounciness(0.1f);
+			physics->SetFrictionCoefficient(0.5f);
 			physics->UpdateMassProperties();
 			physics->SetPosition(vec3(0, 5, 0));
+			});
+		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::MATT);
+
+			obj->AddPhysics(PhysicsObject::STATIC); 
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
+			physics->SetTrigger(true);
 			});
 	}
 
@@ -189,6 +212,10 @@ void SceneDemo::Init() {
 		worldRoot->NewChild(MeshObject::Create(GROUND));
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "spawn_box";
+		newObj->GetPhysics()->SetPosition(vec3(5, 0.5f, 5));
 
 		// light init
 		{
@@ -317,7 +344,7 @@ void SceneDemo::Update(double dt) {
 	// player updates
 	{
 		// update position and camera bobbing
-		if (camera.GetCurrentMode() == Cam::MODE::FIRST_PERSON)
+		if (camera.GetCurrentMode() != Cam::MODE::FREE)
 			player.UpdatePhysicsWithCamera(dt, camera);
 		else
 			player.UpdatePhysics(dt);
@@ -441,6 +468,8 @@ void SceneDemo::Update(double dt) {
 	}
 
 	// update physics
+	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
+	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
 	PhysicsManager::GetInstance().UpdatePhysics(dt);
 
 	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
@@ -448,24 +477,39 @@ void SceneDemo::Update(double dt) {
 		debugPhysicsTimer -= fpsUpdateTime;
 		debugPhysicsWorld = MeshBuilder::GenratePhysicsWorld(debugRenderer);
 	}
-	if (debugPhysicsTimer >= 60) {
-		debugPhysicsTimer -= 60 - fpsUpdateTime;
+	if (debugPhysicsTimer >= fpsUpdateTime * 2) {
+		debugPhysicsTimer -= fpsUpdateTime;
 	}
+	
+	{
+		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
+		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
 
-	// physics objects
-	for (unsigned i = 0; i < physicsList.size(); ) {
-		if (physicsList[i].expired()) {
-			physicsList.erase(physicsList.begin() + i);
-			continue;
+		// physics objects
+		for (unsigned i = 0; i < physicsList.size(); ) {
+			if (physicsList[i].expired()) {
+				physicsList.erase(physicsList.begin() + i);
+				continue;
+			}
+			auto obj = physicsList[i].lock();
+			auto physics = obj->GetPhysics();
+			physics->InterpolateTransform();
+			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
+
+			if (obj->name == "spawn_box") {
+				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
+					worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+					auto& newObj = RenderObject::newObject;
+					auto physics = newObj->GetPhysics();
+
+					physics->AddTorque(vec3(100, 100, 100));
+					});
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
+				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+			}
+
+			i++;
 		}
-		auto obj = physicsList[i].lock();
-		auto physics = obj->GetPhysics();
-		physics->InterpolateTransform();
-		obj->UsePhysicsModel();
-		
-
-
-		i++;
 	}
 
 	// player sync
@@ -479,8 +523,9 @@ void SceneDemo::Update(double dt) {
 	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
+	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
 	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
-	AddDebugText("player.renderGroup.trl: " + VecToString(player.renderGroup.lock()->trl));
+	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
 
 }
 
@@ -713,9 +758,14 @@ void SceneDemo::HandleKeyPress() {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
 
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
 			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
 		}
+
+		// fake jump lol
+		/*if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+			player.renderGroup.lock()->GetPhysics()->AddSoftImpulse(vec3(0, 10000, 0));
+		}*/
 	}
 }
 

@@ -53,6 +53,9 @@ public:
     // toggle if any movements of camera can be done through camera's update
     bool bobbingActive = false;
 
+    float rotSmoothing = 10;
+    float moveSmoothing = 15;
+
     FPCamera();
     ~FPCamera();
 
@@ -105,8 +108,6 @@ private:
     float phi;
     float theta;
 
-    float rotSmoothing = 10;
-    float moveSmoothing = 20;
     float smoothPhi;
     float smoothTheta;
     float smoothPsi;

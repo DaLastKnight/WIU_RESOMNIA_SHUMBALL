@@ -22,9 +22,9 @@ void Player::Init(std::shared_ptr<RenderObject> parent, int type, glm::vec3 came
 
 	physics = newObj->GetPhysics();
 	physics->AddCollider(PhysicsObject::CAPSULE, vec3(0.5f, 1, 0));
-	physics->SetFrictionCoefficient(1);
+	physics->SetMaterial(0, 0.5f, 0.5f);
 	physics->UpdateMassProperties();
-	physics->SetPosition(vec3(0, 0, 0));
+	physics->SetPosition(vec3(0, 10, 0));
 	physics->SetAllowedRotationAxes(vec3(0, 1, 0));
 	physics->SetAllowSleep(false);
 
@@ -59,7 +59,7 @@ void Player::UpdatePhysicsWithCamera(double dt, FPCamera& camera) {
 		velocity = finalTrlDire * speed * smoothSprintMultiplier * static_cast<float>(dt);
 
 		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
-		physics->SetVelocity(smoothVelocity);
+		physics->SetVelocity(smoothVelocity + physics->GetVelocity() * vec3(0, 1, 0));
 
 		camera.basePosition = position + cameraOffset;
 		camera.basePosition += smoothVelocity * camera.movePositionOffset - smoothVelocity;
@@ -68,7 +68,7 @@ void Player::UpdatePhysicsWithCamera(double dt, FPCamera& camera) {
 		smoothSprintMultiplier = Smooth(smoothSprintMultiplier, targetSprintMultiplier, 20.f, dt);
 
 		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
-		physics->SetVelocity(smoothVelocity);
+		physics->SetVelocity(smoothVelocity + physics->GetVelocity() * vec3(0, 1, 0));
 
 		camera.basePosition = position + cameraOffset;
 	}
@@ -92,11 +92,11 @@ void Player::UpdatePhysics(double dt) {
 		velocity = finalTrlDire * speed * smoothSprintMultiplier * static_cast<float>(dt);
 
 		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
-		position += smoothVelocity;
+		physics->SetVelocity(smoothVelocity + physics->GetVelocity() * vec3(0, 1, 0));
 	}
 	else {
 		smoothVelocity = Smooth(smoothVelocity, velocity, 7.5f, dt);
-		position += smoothVelocity;
+		physics->SetVelocity(smoothVelocity + physics->GetVelocity() * vec3(0, 1, 0));
 	}
 }
 
