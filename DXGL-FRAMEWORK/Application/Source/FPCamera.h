@@ -41,8 +41,9 @@ public:
 
     glm::vec3 ViewIntersectXZPlane;
 
-    float movePositionOffset = 0;
-
+    float movePositionOffset = 1.1f;
+    float sprintPsiMultiplier = 0.75f;
+    
     float bobbingSpeed = 1;
     float bobbingSmoothSpeed = 0;
     float bobbingMaxX = 0.12f;
@@ -52,10 +53,13 @@ public:
     // toggle if any movements of camera can be done through camera's update
     bool bobbingActive = false;
 
+    float rotSmoothing = 10;
+    float moveSmoothing = 15;
+
     FPCamera();
     ~FPCamera();
 
-    void Init(glm::vec3 position, glm::vec3 direction);
+    void Init(glm::vec3 position, glm::vec3 direction = glm:: vec3(0, 0, 1));
     void Reset();
     void Update(double dt);
 
@@ -79,12 +83,12 @@ public:
         TOTAL_CAMERA_MODE,
     };
 
-    MODE currentMode = MODE::FREE;
-
     inline const MODE& GetCurrentMode() { return currentMode; }
     void Set(MODE mode);
 
 private:
+
+    MODE currentMode = MODE::FREE;
 
     bool allowSelfMovement = true;
     bool allowPositionMovement = false;
@@ -104,8 +108,6 @@ private:
     float phi;
     float theta;
 
-    float rotSmoothing = 10;
-    float moveSmoothing = 20;
     float smoothPhi;
     float smoothTheta;
     float smoothPsi;
