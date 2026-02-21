@@ -282,6 +282,15 @@ void SceneDemo::Init() {
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
+		screenRoot->NewChild(TextObject::Create("dial_speaker", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.5f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		screenRoot->NewChild(TextObject::Create("dial_text", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.575f, 0);
+		newObj->scl = vec3(30, 30, 1);
+
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}
@@ -435,8 +444,29 @@ void SceneDemo::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
-		if (obj->name.find("_debugtxt_") != std::string::npos) {
-			obj->allowRender = debug;
+		
+
+
+
+
+		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+			if (textObj->name.find("dial_s") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("dial_t") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("_debugtxt_") != std::string::npos) {
+				textObj->allowRender = debug;
+			}
 		}
 
 		obj->UpdateModel();

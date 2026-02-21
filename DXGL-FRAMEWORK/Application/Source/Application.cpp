@@ -12,7 +12,6 @@
 
 #include "Scene.h"
 #include "SceneDemo.h"
-#include "SceneWhack.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
