@@ -23,6 +23,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "GameStateManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -330,12 +331,6 @@ void SceneDemo::Update(double dt) {
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
 	DialogueManager::GetInstance().UpdateDialogue(dt);
-
-	if (DialogueManager::GetInstance().CheckActivePack())
-	{
-		AddDebugText(DialogueManager::GetInstance().GetCurrentSpeaker());
-		AddDebugText(DialogueManager::GetInstance().GetVisibleLine());
-	}
   
   // fps limitation + timer advancement
 	if (dt > 0.1f) {

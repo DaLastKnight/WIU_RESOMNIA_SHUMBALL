@@ -4,13 +4,14 @@
 /*
 	How to use GameStateManager:
 	GameStateManager is a singleton class, where it manages the state of the game
-	between scenes (instead of having a GameStateManager per scene). It is
-	really simple to use:
+	between scenes (instead of having a GameStateManager per scene). Simply use 
+	if-statements or switch statements to enable certain mechanics in the game
+	based on the game state shared between scenes. Here's the functions to use:
 
 	SetGameState: Sets the current game state
 	GetCurrentGameState: Returns the current game state
 	GetPreviousGameState: Returns the previous game state
-	CheckSameState: In-built function to return whether current game state = argument
+	CheckSameState: In-built function to return whether current game state == argument
 */
 
 enum class GAME_STATE
