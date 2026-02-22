@@ -62,7 +62,7 @@ private:
 		}
 	}
 
-	void HandleKeyPress() override;
+	void HandleKeyPress();
 
 	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
 	void RenderObj(const std::shared_ptr<RenderObject> obj);

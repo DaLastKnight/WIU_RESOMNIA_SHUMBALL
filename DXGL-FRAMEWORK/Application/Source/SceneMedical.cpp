@@ -478,13 +478,12 @@ void SceneMedical::Update(double dt) {
 	{
 		// update position and camera bobbing
 		if (player.allowControl)
-			player.UpdatePositionWithCamera(dt, camera);
+			player.UpdatePhysicsWithCamera(dt, camera);
 		else {
-			Cam tempCamera = camera;
-			player.UpdatePositionWithCamera(dt, tempCamera);
+			player.UpdatePhysics(dt);
 		}
 		// make sure the player's render group is updated to be the same as player's actual position
-		player.SyncRender();
+		player.SyncPhysics();
 	}
 
 	// camera
@@ -720,7 +719,6 @@ void SceneMedical::Exit() {
 }
 
 void SceneMedical::HandleKeyPress() {
-	BaseScene::HandleKeyPress();
 
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
