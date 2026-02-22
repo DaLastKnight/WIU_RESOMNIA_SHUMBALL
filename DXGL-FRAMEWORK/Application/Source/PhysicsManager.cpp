@@ -42,7 +42,7 @@ glm::mat4 PhysicsObject::GetModel() {
 	return glm::make_mat4(matrix);
 }
 
-glm::vec3 PhysicsObject::GetPostion() {
+glm::vec3 PhysicsObject::GetPosition() {
 	return Vec3Convert(body->getTransform().getPosition());
 }
 
