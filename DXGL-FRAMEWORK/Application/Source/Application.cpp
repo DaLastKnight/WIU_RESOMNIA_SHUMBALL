@@ -12,6 +12,7 @@
 
 #include "Scene.h"
 #include "SceneDemo.h"
+#include "SceneRhythm.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
@@ -136,7 +137,7 @@ void Application::Init()
 void Application::Run()
 {
 	//Main Loop
-	Scene *scene = new SceneDemo();
+	Scene *scene = new SceneRhythm();
 	scene->Init();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
