@@ -272,8 +272,7 @@ void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) 
 /********************************* PhysicsManager *********************************/
 
 void PhysicsManager::InitWorld() {
-	PhysicsWorld::WorldSettings settings; // change settings with this if needed
-	world = physicsCommon.createPhysicsWorld();
+	world = physicsCommon.createPhysicsWorld(worldSettings);
 	world->setEventListener(&eventListener);
 	world->setSleepLinearVelocity(0.01f);
 	world->setSleepAngularVelocity(0.01f);

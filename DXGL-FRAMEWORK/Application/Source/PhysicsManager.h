@@ -168,6 +168,9 @@ public:
         return physicsManager;
     }
 
+    rp3d::PhysicsWorld::WorldSettings& GetWorldSettingsObject() {
+        return worldSettings = rp3d::PhysicsWorld::WorldSettings();
+    }
     void InitWorld();
     void CleanUp();
 
@@ -201,6 +204,7 @@ private:
 
     rp3d::PhysicsCommon physicsCommon;
 
+    rp3d::PhysicsWorld::WorldSettings worldSettings;
     rp3d::PhysicsWorld* world;
 
     static constexpr double TIME_STEP = 1 / 60.0;
