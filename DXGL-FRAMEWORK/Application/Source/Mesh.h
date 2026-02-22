@@ -26,6 +26,7 @@ public:
 	void Render();
 	static void SetMaterialLoc(unsigned kA, unsigned kD, unsigned kS, unsigned nS);
 	void Render(unsigned offset, unsigned count);
+	void RenderPhysicsWorld();
 
 	std::vector<Material> materials;
 	static unsigned locationKa;
