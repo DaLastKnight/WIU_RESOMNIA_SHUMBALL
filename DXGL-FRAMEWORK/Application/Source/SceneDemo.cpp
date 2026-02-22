@@ -53,6 +53,11 @@ SceneDemo::~SceneDemo() {
 }
 
 void SceneDemo::Init() {
+
+	// set physics world settings
+	auto& worldSettings = PhysicsManager::GetInstance().GetWorldSettingsObject();
+	//worldSettings.gravity = rp3d::Vector3(0, -9.81, 0); //this is the default gravity
+
 	BaseScene::Init();
 
 	// physics debug init
