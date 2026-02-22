@@ -158,7 +158,6 @@
   <ItemGroup>
     <ClCompile Include="Source\PhysicsManager.cpp" />
     <ClCompile Include="Source\DialogueManager.cpp" />
-    <ClCompile Include="Source\GameStateManager.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\AudioManager.cpp" />
@@ -179,7 +178,6 @@
     <ClInclude Include="Source\PhysicsManager.h" />
     <ClInclude Include="Source\DataManager.h" />
     <ClInclude Include="Source\DialogueManager.h" />
-    <ClInclude Include="Source\GameStateManager.h" />
     <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\Application.h" />
     <ClInclude Include="Source\Atmosphere.h" />
