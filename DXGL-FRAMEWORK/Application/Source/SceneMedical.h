@@ -80,6 +80,10 @@ private:
 
 	bool cullFaceActive = true;
 	bool wireFrameActive = false;
+
+	bool renderDebugPhysics = false;
+	Mesh* debugPhysicsWorld;
+	double debugPhysicsTimer = 0;
 	
 	// Medical Gun Game Scene Specifics
 	int waveNumber = 1;
@@ -89,14 +93,12 @@ private:
 	int maxEntitiesAI = 0;
 	int remainingEntitiesP = 0;
 	int remainingEntitiesAI = 0;
-	int overloadingState = 0;
+
+	int overloadingStack = 0;
 	int maxOverload = 5;
 
-	// Used for later during collision checking between objects
-	/*void HandleCollisions();
-	void Player2EnemyCollisionCheck();
-	void Player2EnvironmentCollisionCheck();
-	void Nanobot2EnemyCollisionCheck();*/
+	float bacteriaSpawnTimer = 0.0f;
+	float bacteriaSpawnInterval = 5.0f;
 };
 
 #endif

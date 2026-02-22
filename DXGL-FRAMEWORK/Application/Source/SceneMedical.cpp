@@ -23,6 +23,7 @@
 #include "KeyboardController.h"
 #include "AudioManager.h"
 #include "DataManager.h"
+#include "DialogueManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -30,6 +31,7 @@
 using App = Application;
 using RObj = RenderObject;
 using Cam = FPCamera;
+using PEvent = PhysicsEventListener::PhysicsEvent;
 
 using glm::vec3;
 using glm::mat4;
@@ -51,8 +53,22 @@ SceneMedical::SceneMedical() {
 SceneMedical::~SceneMedical() {
 }
 
+
 void SceneMedical::Init() {
+
+	// set physics world settings
+	auto& worldSettings = PhysicsManager::GetInstance().GetWorldSettingsObject();
+	worldSettings.gravity = rp3d::Vector3(0, 0, 0);
+
 	BaseScene::Init();
+
+	{
+		if (ALLOW_PHYSICS_DEBUG) {
+			PhysicsManager::GetInstance().SetUpLogger("SceneDemo");
+			PhysicsManager::GetInstance().SeteDebugRendering(true);
+			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
+		}
+	}
 
 	// directory init
 	{
@@ -177,7 +193,7 @@ void SceneMedical::Init() {
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
+			obj->material.Set(Material::BRIGHT); 
 			});
 		RObj::setDefaultStat.Subscribe(ENV_SPHERE_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
@@ -210,9 +226,11 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(AXES));
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
-
-		worldRoot->NewChild(MeshObject::Create(ENV_SKYBOX));
-		newObj->scl = vec3(0.1f, 0.1f, 0.1f);
+		
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_SKYBOX));
+			newObj->scl = vec3(0.1f, 0.1f, 0.1f);
+		}
 
 		// light init
 		{
@@ -310,9 +328,20 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(40, -45, 30);
 		newObj->scl = glm::vec3(40, 10, 40);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-		newObj->trl = glm::vec3(45, 0, 45);
-		newObj->scl = glm::vec3(20, 50, 20);
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
+			newObj->name = "Environment Curve Wall";
+			newObj->trl = glm::vec3(45, 0, 45);
+			newObj->offsetScl = glm::vec3(20, 50, 20);
+
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(0.5f);
+			physics->SetPosition(newObj->trl);
+		}
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(45, 35, 0);
 		newObj->scl = glm::vec3(20, 30, 10);
@@ -322,16 +351,37 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(-20, -50, 10);
 		newObj->scl = glm::vec3(50, 10, 30);
-		worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-		newObj->trl = glm::vec3(-50, 0, 10);
-		newObj->scl = glm::vec3(20, 50, 20);
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
+			newObj->name = "Environment Curve Wall 2";
+			newObj->trl = glm::vec3(-50, 0, 10);
+			newObj->offsetScl = glm::vec3(20, 50, 20);
+
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(0.5f);
+			physics->SetPosition(newObj->trl);
+		}
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(-50, 40, -40);
 		newObj->scl = glm::vec3(30, 30, 40);
-		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
-		newObj->trl = glm::vec3(0, 0, -50);
-		newObj->scl = glm::vec3(30, 100, 10);
+		//{
+		//	worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
+		//	newObj->name = "Environment Wall";
+		//	newObj->trl = glm::vec3(0, 0, -50);
+		//	newObj->offsetScl = glm::vec3(30, 100, 10);
 
+		//	newObj->AddPhysics(PhysicsObject::STATIC);
+		//	auto physics = newObj->GetPhysics();
+
+		//	physics->AddCollider(PhysicsObject::BOX, vec3(15, 50, 5), vec3(0, 0, 0));
+		//	physics->SetBounciness(0.f);
+		//	physics->SetFrictionCoefficient(0.5f);
+		//	physics->SetPosition(newObj->trl);
+		//}
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(10, 0, -5);
 		newObj->scl = glm::vec3(5, 50, 5);
@@ -408,6 +458,8 @@ void SceneMedical::Update(double dt) {
 	ClearDebugText();
 
 	// fps calculation
+	const float fpsUpdateTime = 0.5f;
+	static float avgFps = 0;
 	{
 		static float timer = 0;
 		static int frameCount = 0;
@@ -462,32 +514,50 @@ void SceneMedical::Update(double dt) {
 	AddDebugText("Bacteria Left: 10/" + std::to_string(maxEntitiesP));
 	AddDebugText("Viruses Left: 5/" + std::to_string(maxEntitiesAI));
 
+	// Temporary for now
+	// When the Game State handler, the code snippet below will be stored properly
+	DialogueManager::GetInstance().UpdateDialogue(dt);
+
 	if (dt > 0.1f) {
 		dt = 0.1f;
 	}
+	debugPhysicsTimer += dt;
+
+	// simulation fps calculation
+	static float simAvgFps = 0;
+	{
+		static float timer = 0;
+		static int frameCount = 0;
+		timer += dt;
+		frameCount++;
+		if (timer >= fpsUpdateTime) {
+			simAvgFps = frameCount / timer;
+			timer = 0;
+			frameCount = 0;
+		}
+	}
+	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
 	auto& viewList = RObj::viewList;
 	auto& screenList = RObj::screenList;
+	auto& physicsList = RObj::physicsList;
 
 	// if you ever felt that you need dt inside HandleKeyPress(), that means you are doing smt wro- i mean, you need to use a variable to pass the info and commit changes in Update instead, HandleKeyPress() should not have those kinda logic inside it
 	HandleKeyPress();
 
-	// player
+	// player updates
 	{
 		// update position and camera bobbing
-		if (player.allowControl)
+		if (camera.GetCurrentMode() != Cam::MODE::FREE)
 			player.UpdatePhysicsWithCamera(dt, camera);
-		else {
+		else
 			player.UpdatePhysics(dt);
-		}
-		// make sure the player's render group is updated to be the same as player's actual position
-		player.SyncPhysics();
 	}
 
 	// camera
-	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
+	/*camera.Update(dt);*/ // this must be right after player's block of code to make sure it is sync
 
 	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
@@ -530,7 +600,8 @@ void SceneMedical::Update(double dt) {
 
 		}
 
-		obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
+		if (!obj->GetPhysics())
+			obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
 	}
 
@@ -542,13 +613,18 @@ void SceneMedical::Update(double dt) {
 		}
 		auto obj = viewList[i].lock();
 
+		if (obj->geometryType == GROUP) {
+			obj->allowRender = debug;
+		}
+
 
 
 		if (debug) {
 
 		}
 
-		obj->UpdateModel();
+		if (!obj->GetPhysics())
+			obj->UpdateModel();
 		i++;
 	}
 
@@ -561,8 +637,28 @@ void SceneMedical::Update(double dt) {
 		auto obj = screenList[i].lock();
 
 
-		if (debug) {
 
+
+
+
+		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+			if (textObj->name.find("dial_s") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("dial_t") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("_debugtxt_") != std::string::npos) {
+				textObj->allowRender = debug;
+			}
 		}
 
 		obj->UpdateModel();
@@ -610,6 +706,52 @@ void SceneMedical::Update(double dt) {
 		i++;
 	}
 
+	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
+	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
+	PhysicsManager::GetInstance().UpdatePhysics(dt);
+
+	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugRenderer && debugPhysicsTimer >= fpsUpdateTime) {
+		debugPhysicsTimer -= fpsUpdateTime;
+		debugPhysicsWorld = MeshBuilder::GenratePhysicsWorld(debugRenderer);
+	}
+	if (debugPhysicsTimer >= fpsUpdateTime * 2) {
+		debugPhysicsTimer -= fpsUpdateTime;
+	}
+
+	{
+		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
+		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
+
+		// physics objects
+		for (unsigned i = 0; i < physicsList.size(); ) {
+			if (physicsList[i].expired()) {
+				physicsList.erase(physicsList.begin() + i);
+				continue;
+			}
+			auto obj = physicsList[i].lock();
+			auto physics = obj->GetPhysics();
+			physics->InterpolateTransform();
+			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
+			if (obj->name == "Environment Wall")
+			{
+				physics->contactEvent.Subscribe(
+					[&](const rp3d::Body* other)
+					{
+						std::cout << "Wall contacted something!\n";
+					});
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->contactEvent, rp3d::CollisionCallback::ContactPair::EventType::ContactStart));
+			}
+			i++;
+		}
+	}
+
+	// player sync
+	{
+		player.SyncPhysics();
+	}
+
+	camera.Update(dt);
 }
 
 
