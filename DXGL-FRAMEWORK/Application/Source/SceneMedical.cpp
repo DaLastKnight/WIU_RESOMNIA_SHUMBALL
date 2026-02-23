@@ -770,7 +770,7 @@ void SceneMedical::Update(double dt) {
 			if (distance <= 0.5f + 0.5f)
 			{
 				virus.object->Destroy();
-				viruses.erase(viruses.begin() + i);
+				viruses.erase(viruses.begin() + i); // Remove the exact element
 
 				overloadingStack++;
 				remainingEntitiesAI--;
