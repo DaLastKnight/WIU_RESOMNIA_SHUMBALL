@@ -30,11 +30,13 @@ public:
 		BACTERIA_MODEL,
 		VIRUS_MODEL,
 		ENV_SKYBOX,
+		ENV_WALL,
 		ENV_SPHERE_MODEL,
 		ENV_BLOCK_MODEL,
 		ENV_STRING_MODEL,
 		ENV_LIQUID_MODEL,
 		ENV_LIQUID_FLAT_MODEL,
+		GAME_CROSSHAIR,
 
 		TOTAL
 	};
@@ -86,19 +88,51 @@ private:
 	double debugPhysicsTimer = 0;
 	
 	// Medical Gun Game Scene Specifics
-	int waveNumber = 1;
-	int waveTimeLeft = 180;
+	int waveNumber = 1; // default wave at 1
+	int waveTimeLeft = 180; // 3 minutes per wave
 	float waveTimeAccumulator = 0.0f;
-	int maxEntitiesP = 0;
-	int maxEntitiesAI = 0;
-	int remainingEntitiesP = 0;
-	int remainingEntitiesAI = 0;
+
+	int maxEntitiesP = 10;
+	int maxEntitiesAI = 5;
+	int currentSpawningP = 0;
+	int currentSpawningAI = 0;
+	int remainingEntitiesP = 10;
+	int remainingEntitiesAI = 5;
 
 	int overloadingStack = 0;
 	int maxOverload = 5;
 
 	float bacteriaSpawnTimer = 0.0f;
-	float bacteriaSpawnInterval = 5.0f;
+	float bacteriaSpawnInterval = 3.0f;
+	float virusSpawnTimer = 0.0f;
+	float virusSpawnInterval = 6.0f;
+
+	struct Bacteria
+	{
+		std::shared_ptr<RenderObject> object;
+	};
+
+	std::vector<Bacteria> bacterias;
+
+	struct Virus
+	{
+		std::shared_ptr<RenderObject> object;
+	};
+
+	std::vector<Virus> viruses;
+
+	struct Nanobot
+	{
+		std::shared_ptr<RenderObject> object;
+		float lifetime;
+	};
+
+	bool isNanobotFired = false;
+	int maxNanobotAmmo = 5;
+	int currentActiveNanobotAmmo = 0;
+	std::vector<Nanobot> nanobots;
+
+	bool isGameWon = false;
 };
 
 #endif

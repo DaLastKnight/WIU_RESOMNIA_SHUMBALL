@@ -227,10 +227,8 @@ void SceneMedical::Init() {
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 		
-		{
-			worldRoot->NewChild(MeshObject::Create(ENV_SKYBOX));
-			newObj->scl = vec3(0.1f, 0.1f, 0.1f);
-		}
+		worldRoot->NewChild(MeshObject::Create(ENV_SKYBOX));
+		newObj->scl = vec3(0.1f, 0.1f, 0.1f);
 
 		// light init
 		{
@@ -274,24 +272,69 @@ void SceneMedical::Init() {
 			}
 		}
 
-		// Temporary Placeholder for Bacteria Model Spawning
-		float bactRandTrlX[40] = { 0 };
-		float bactRandTrlY[40] = { 0 };
-		float bactRandTrlZ[40] = { 0 };
-
-		for (int i = 0; i < 40; i++)
 		{
-			bactRandTrlX[i] = rand() % 81 - 40;
-			bactRandTrlY[i] = rand() % 41 - 20;
-			bactRandTrlZ[i] = rand() % 81 - 40;
+			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Left
+			newObj->trl = glm::vec3(-99.9f, 0, 0);
+			newObj->offsetScl = glm::vec3(100, 100, 100);
 
-			worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
-			newObj->trl = glm::vec3(bactRandTrlX[i], bactRandTrlY[i], bactRandTrlZ[i]);
-			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(50, 50, 50), vec3(0, 0, 0));
+			physics->SetPosition(newObj->trl);
+		}
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Right
+			newObj->trl = glm::vec3(99.9f, 0, 0);
+			newObj->offsetScl = glm::vec3(100, 100, 100);
+
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(50, 50, 50), vec3(0, 0, 0));
+			physics->SetPosition(newObj->trl);
+		}
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Back
+			newObj->trl = glm::vec3(0, 0, -99.9f);
+			newObj->offsetScl = glm::vec3(100, 100, 100);
+
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(50, 50, 50), vec3(0, 0, 0));
+			physics->SetPosition(newObj->trl);
+		}
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Front
+			newObj->trl = glm::vec3(0, 0, 99.9f);
+			newObj->offsetScl = glm::vec3(100, 100, 100);
+
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::BOX, vec3(50, 50, 50), vec3(0, 0, 0));
+			physics->SetPosition(newObj->trl);
 		}
 
+		//// Temporary Placeholder for Bacteria Model Spawning
+		//float bactRandTrlX[40] = { 0 };
+		//float bactRandTrlY[40] = { 0 };
+		//float bactRandTrlZ[40] = { 0 };
+
+		//for (int i = 0; i < 40; i++)
+		//{
+		//	bactRandTrlX[i] = rand() % 81 - 40;
+		//	bactRandTrlY[i] = rand() % 41 - 20;
+		//	bactRandTrlZ[i] = rand() % 81 - 40;
+
+		//	worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
+		//	newObj->trl = glm::vec3(bactRandTrlX[i], bactRandTrlY[i], bactRandTrlZ[i]);
+		//	newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
+		//}
+
 		// Temporary Placeholder for Virus Model Spawning
-		float virusRandTrlX[20] = { 0 };
+		/*float virusRandTrlX[20] = { 0 };
 		float virusRandTrlY[20] = { 0 };
 		float virusRandTrlZ[20] = { 0 };
 
@@ -304,7 +347,7 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
 			newObj->trl = glm::vec3(virusRandTrlX[i], virusRandTrlY[i], virusRandTrlZ[i]);
 			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
-		}
+		}*/
 
 		worldRoot->NewChild(MeshObject::Create(ENV_SPHERE_MODEL));
 		newObj->trl = glm::vec3(-50, -50, 50);
@@ -328,20 +371,20 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(40, -45, 30);
 		newObj->scl = glm::vec3(40, 10, 40);
-		//{
-		//	worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-		//	newObj->name = "Environment Curve Wall";
-		//	newObj->trl = glm::vec3(45, 0, 45);
-		//	newObj->offsetScl = glm::vec3(20, 50, 20);
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
+			newObj->name = "Environment Curve Wall";
+			newObj->trl = glm::vec3(45, 0, 45);
+			newObj->offsetScl = glm::vec3(20, 50, 20);
 
-		//	newObj->AddPhysics(PhysicsObject::STATIC);
-		//	auto physics = newObj->GetPhysics();
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
 
-		//	physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
-		//	physics->SetBounciness(0.f);
-		//	physics->SetFrictionCoefficient(0.5f);
-		//	physics->SetPosition(newObj->trl);
-		//}
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(0.5f);
+			physics->SetPosition(newObj->trl);
+		}
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(45, 35, 0);
 		newObj->scl = glm::vec3(20, 30, 10);
@@ -355,12 +398,12 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
 			newObj->name = "Environment Curve Wall 2";
 			newObj->trl = glm::vec3(-50, 0, 10);
-			newObj->offsetScl = glm::vec3(20, 50, 20);
+			newObj->offsetScl = glm::vec3(20, 1, 20);
 
 			newObj->AddPhysics(PhysicsObject::STATIC);
 			auto physics = newObj->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 0.5f, 10), vec3(0, 0, 0));
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 			physics->SetPosition(newObj->trl);
@@ -411,16 +454,12 @@ void SceneMedical::Init() {
 			newObj->rot = glm::vec3(envStringRandRotX[i], 0, envStringRandRotZ[i]);
 			newObj->scl = glm::vec3(0.8f, 0.8f, 0.8f);
 		}
-		
-		worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
-		newObj->trl = glm::vec3(-20, 5, 0);
-		newObj->scl = glm::vec3(1, 1, 1);
 	}
 
 	// view space init
 	{
 		viewRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
-		newObj->trl = glm::vec3(0.35f, -0.2f, -0.5f);
+		newObj->trl = glm::vec3(0.0f, -0.2f, -0.5f);
 		newObj->scl = glm::vec3(0.1f, 0.1f, 0.1f);
 	}
 
@@ -491,28 +530,61 @@ void SceneMedical::Update(double dt) {
 		AddDebugText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
 	}
 	AddDebugText("Wave: " + std::to_string(waveNumber) + "/3");
+
+	// Calculate Game Timers
+	bacteriaSpawnTimer += dt;
+	virusSpawnTimer += dt;
+	for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+	{
+		nanobots[i].lifetime -= dt;
+	}
+
+	// Manage Wave Data
+	if (waveNumber == 1 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	{
+		waveNumber = 2;
+	}
+	else if (waveNumber == 2 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	{
+		waveNumber = 3;
+	}
+	else if (waveNumber == 3 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	{
+		isGameWon = true;
+	}
+
 	if (waveNumber == 1)
 	{
 		maxEntitiesP = 10;
 		maxEntitiesAI = 5;
+		remainingEntitiesP = 10;
+		remainingEntitiesAI = 5;
 	}
 	else if (waveNumber == 2)
 	{
 		maxEntitiesP = 15;
 		maxEntitiesAI = 10;
+		currentSpawningP = 0;
+		currentSpawningAI = 0;
+		remainingEntitiesP = 15;
+		remainingEntitiesAI = 10;
 	}
 	else if (waveNumber == 3)
 	{
-		maxEntitiesP = 30;
-		maxEntitiesAI = 20;
+		maxEntitiesP = 20;
+		maxEntitiesAI = 15;
+		remainingEntitiesP = 20;
+		remainingEntitiesAI = 15;
 	}
 	else
 	{
-		waveNumber = 1; // Set to default if somehow fails
+		waveNumber = 1; // Set to default if somehow fails and is not between 1 to 3
 		std::cout << "Wave may be incorrect" << std::endl;
 	}
-	AddDebugText("Bacteria Left: 10/" + std::to_string(maxEntitiesP));
-	AddDebugText("Viruses Left: 5/" + std::to_string(maxEntitiesAI));
+	AddDebugText("Bacteria Left: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
+	AddDebugText("Viruses Left: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
+	AddDebugText("Current Spawning Bacteria: " + std::to_string(currentSpawningP));
+	AddDebugText("Current Spawning Viruses: " + std::to_string(currentSpawningAI));
 
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
@@ -595,6 +667,109 @@ void SceneMedical::Update(double dt) {
 			obj->offsetRot.y += 45 * dt;
 			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
 		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
+
+		if (isNanobotFired)
+		{
+			currentActiveNanobotAmmo++;
+
+			worldRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
+
+			std::shared_ptr<RenderObject> nanobot = RenderObject::newObject;
+
+			glm::vec3 travelDir = camera.GetPlainDirection();
+			float projectileSpeed = 100000.0f;
+
+			nanobot->offsetRot = glm::vec3(0.f, 90.f, 0.f);
+			nanobot->offsetScl = glm::vec3(0.5f, 0.5f, 0.5f);
+
+			nanobot->AddPhysics(PhysicsObject::DYNAMIC);
+			auto physics = nanobot->GetPhysics();
+			physics->SetPosition(camera.GetPlainPosition() + travelDir);
+
+			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f), vec3(0));
+
+			glm::vec3 finalForce = travelDir * projectileSpeed;
+
+			physics->AddImpulse(finalForce);
+
+			Nanobot nb;
+			nb.object = nanobot;
+			nb.lifetime = 5.0f;
+
+			nanobots.push_back(nb);
+
+			isNanobotFired = false;
+		}
+
+		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+		{
+			if (nanobots[i].lifetime <= 0.0f)
+			{
+				std::cout << "Destroyed Nanobot by lifetime" << std::endl;
+				
+			    nanobots[i].object->Destroy();
+				nanobots.erase(nanobots.begin() + i);
+				currentActiveNanobotAmmo--;
+			}
+		}
+
+		if (bacteriaSpawnTimer >= bacteriaSpawnInterval && currentSpawningP < maxEntitiesP)
+		{
+			bacteriaSpawnTimer = 0.0f;
+
+			worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
+
+			std::shared_ptr<RenderObject> bacteria = RenderObject::newObject;
+
+			float posX = static_cast<float>(rand() % 81 - 40);
+			float posY = static_cast<float>(rand() % 21 - 10);
+			float posZ = static_cast<float>(rand() % 81 - 40);
+
+			while (glm::vec3(posX, posY, posZ) == camera.GetPlainPosition()) // Prevent spawning on player
+			{
+				posX = static_cast<float>(rand() % 81 - 40);
+				posY = static_cast<float>(rand() % 21 - 10);
+				posZ = static_cast<float>(rand() % 81 - 40);
+			}
+
+			bacteria->AddPhysics(PhysicsObject::KINEMATIC);
+			auto physics = bacteria->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 0));
+
+			physics->SetPosition(glm::vec3(posX, posY, posZ));
+
+			currentSpawningP++;
+		}
+
+		if (virusSpawnTimer >= virusSpawnInterval && currentSpawningAI < maxEntitiesAI)
+		{
+			virusSpawnTimer = 0.0f;
+
+			worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
+
+			std::shared_ptr<RenderObject> virus = RenderObject::newObject;
+
+			float posX = static_cast<float>(rand() % 81 - 40);
+			float posY = static_cast<float>(rand() % 21 - 10);
+			float posZ = static_cast<float>(rand() % 81 - 40);
+
+			while (glm::vec3(posX, posY, posZ) == camera.GetPlainPosition()) // Prevent spawning on player
+			{
+				posX = static_cast<float>(rand() % 81 - 40);
+				posY = static_cast<float>(rand() % 21 - 10);
+				posZ = static_cast<float>(rand() % 81 - 40);
+			}
+
+			virus->AddPhysics(PhysicsObject::DYNAMIC);
+			auto physics = virus->GetPhysics();
+
+			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 0));
+
+			physics->SetPosition(glm::vec3(posX, posY, posZ));
+
+			currentSpawningAI++;
+		}
 
 		if (debug) {
 
@@ -706,8 +881,6 @@ void SceneMedical::Update(double dt) {
 		i++;
 	}
 
-	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
-	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
 	PhysicsManager::GetInstance().UpdatePhysics(dt);
 
 	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
@@ -720,6 +893,7 @@ void SceneMedical::Update(double dt) {
 	}
 
 	{
+		PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
 		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
 		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
 
@@ -740,7 +914,7 @@ void SceneMedical::Update(double dt) {
 					{
 						std::cout << "Wall contacted something!\n";
 					});
-				eventListener.AddToTriggerEvents(PEvent(physics, physics->contactEvent, rp3d::CollisionCallback::ContactPair::EventType::ContactStart));
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
 			}
 			i++;
 		}
@@ -944,7 +1118,10 @@ void SceneMedical::HandleKeyPress() {
 
 		// action
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-			AudioManager::GetInstance().PlayMUS(0, 1);
+			if (currentActiveNanobotAmmo < maxNanobotAmmo)
+			{
+				isNanobotFired = true;
+			}
 		}
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
 			AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
