@@ -328,20 +328,20 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(40, -45, 30);
 		newObj->scl = glm::vec3(40, 10, 40);
-		{
-			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-			newObj->name = "Environment Curve Wall";
-			newObj->trl = glm::vec3(45, 0, 45);
-			newObj->offsetScl = glm::vec3(20, 50, 20);
+		//{
+		//	worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
+		//	newObj->name = "Environment Curve Wall";
+		//	newObj->trl = glm::vec3(45, 0, 45);
+		//	newObj->offsetScl = glm::vec3(20, 50, 20);
 
-			newObj->AddPhysics(PhysicsObject::STATIC);
-			auto physics = newObj->GetPhysics();
+		//	newObj->AddPhysics(PhysicsObject::STATIC);
+		//	auto physics = newObj->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
-			physics->SetBounciness(0.f);
-			physics->SetFrictionCoefficient(0.5f);
-			physics->SetPosition(newObj->trl);
-		}
+		//	physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+		//	physics->SetBounciness(0.f);
+		//	physics->SetFrictionCoefficient(0.5f);
+		//	physics->SetPosition(newObj->trl);
+		//}
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(45, 35, 0);
 		newObj->scl = glm::vec3(20, 30, 10);
@@ -368,20 +368,20 @@ void SceneMedical::Init() {
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(-50, 40, -40);
 		newObj->scl = glm::vec3(30, 30, 40);
-		//{
-		//	worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
-		//	newObj->name = "Environment Wall";
-		//	newObj->trl = glm::vec3(0, 0, -50);
-		//	newObj->offsetScl = glm::vec3(30, 100, 10);
+		{
+			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
+			newObj->name = "Environment Wall";
+			newObj->trl = glm::vec3(0, 0, -50);
+			newObj->offsetScl = glm::vec3(30, 100, 10);
 
-		//	newObj->AddPhysics(PhysicsObject::STATIC);
-		//	auto physics = newObj->GetPhysics();
+			newObj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = newObj->GetPhysics();
 
-		//	physics->AddCollider(PhysicsObject::BOX, vec3(15, 50, 5), vec3(0, 0, 0));
-		//	physics->SetBounciness(0.f);
-		//	physics->SetFrictionCoefficient(0.5f);
-		//	physics->SetPosition(newObj->trl);
-		//}
+			physics->AddCollider(PhysicsObject::BOX, vec3(15, 50, 5), vec3(0, 0, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(0.5f);
+			physics->SetPosition(newObj->trl);
+		}
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(10, 0, -5);
 		newObj->scl = glm::vec3(5, 50, 5);
