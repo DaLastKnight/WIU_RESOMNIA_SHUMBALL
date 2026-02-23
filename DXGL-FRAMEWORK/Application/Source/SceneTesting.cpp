@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "SceneBowling.h"
+#include "SceneTesting.h"
 
 //Include GLEW
 #include <GL/glew.h>
@@ -13,8 +13,6 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
-#include <iostream>
-
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -24,6 +22,7 @@
 #include "KeyboardController.h"
 #include "AudioManager.h"
 #include "DataManager.h"
+#include "DialogueManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -31,6 +30,7 @@
 using App = Application;
 using RObj = RenderObject;
 using Cam = FPCamera;
+using PEvent = PhysicsEventListener::PhysicsEvent;
 
 using glm::vec3;
 using glm::mat4;
@@ -52,37 +52,17 @@ SceneBowling::SceneBowling() {
 SceneBowling::~SceneBowling() {
 }
 
-bool SceneBowling::CheckCircleAABB(
-	const glm::vec3& circlePos,
-	float radius,
-	const glm::vec3& boxCenter,
-	const glm::vec3& boxHalfSize)
-{
-	// Ignore Y axis (top-down XZ collision)
-
-	float cx = circlePos.x;
-	float cz = circlePos.z;
-
-	// Compute min/max from center and half-size
-	float minX = boxCenter.x - boxHalfSize.x;
-	float maxX = boxCenter.x + boxHalfSize.x;
-	float minZ = boxCenter.z - boxHalfSize.z;
-	float maxZ = boxCenter.z + boxHalfSize.z;
-
-	// Clamp circle center to box
-	float closestX = glm::clamp(cx, minX, maxX);
-	float closestZ = glm::clamp(cz, minZ, maxZ);
-
-	float dx = cx - closestX;
-	float dz = cz - closestZ;
-
-	float distanceSquared = dx * dx + dz * dz;
-
-	return distanceSquared < (radius * radius);
-}
-
 void SceneBowling::Init() {
 	BaseScene::Init();
+
+	// physics debug init
+	{
+		if (ALLOW_PHYSICS_DEBUG) {
+			PhysicsManager::GetInstance().SetUpLogger("SceneBowling");
+			PhysicsManager::GetInstance().SeteDebugRendering(true);
+			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
+		}
+	}
 
 	// directory init
 	{
@@ -90,6 +70,7 @@ void SceneBowling::Init() {
 		AudioManager::GetInstance().SetDirectorySFX("SceneBowling/SFX");
 		TextureLoader::SetDirectory("SceneBowling/Image");
 		ModelLoader::SetDirectory("SceneBowling/Model");
+		DialogueManager::GetInstance().SetDirectory("SceneBowling/Dialogue");
 	}
 
 	// audio init
@@ -102,11 +83,16 @@ void SceneBowling::Init() {
 
 	}
 
+	// dialogue init
+	{
+		DialogueManager::GetInstance().LoadDialoguePack("ExampleDialogue.json");
+	}
+
 	// atmosphere init
 	{
 		atmosphere.Set(vec3(0.05f, 0.07f, 0.1f), 0.05f, 0.000001f, 2, 20);
 		UpdateAtmosphereUniform();
-	}
+	}	
 
 	// Init VBO here
 	{
@@ -115,42 +101,39 @@ void SceneBowling::Init() {
 			meshList[i] = nullptr;
 		}
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTGA("Wooden_floor.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTGA("skybox.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
+		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1), 0.15f);
+		meshList[DEBUG_LINE] = MeshBuilder::GenerateLine("debug line", 1);
 
-		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTGA("Cascadia_Mono.tga"));
+		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
-		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
+		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTexture("flashlight_texture.tga"));
+		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTexture("BOWLING_BALL.tga"));
+		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTexture("BOWLING_PIN.tga"));
 
-		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTGA("flashlight_texture.tga"));
-		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTGA("BOWLING_BALL.tga"));
-		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTGA("BOWLING_PIN.tga"));
+		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 0.5f);
+		meshList[BALL_HIT_BOX] = MeshBuilder::GenerateSphere("Ball_Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 16.0f);
 
-		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(1.0f,1.0f,1.0f), 0.5f);
-		meshList[BALL_HIT_BOX] = MeshBuilder::GenerateSphere("Ball_Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 1.0f ,16.0f);
+		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
+		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
 
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTGA("color.tga"));
+		meshList[PHYSICS_BALL] = MeshBuilder::GenerateSphere("physics ball", vec3(1.f), 0.5f, 16, 8, TextureLoader::LoadTexture("color.tga"));
+		meshList[PHYSICS_BOX] = MeshBuilder::GenerateCube("physics box", vec3(1.f), 1);
+		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1.f), 1);
 	}
 
 	// init roots
 	{
 		worldRoot = std::make_shared<RObj>();
-		worldRoot->renderType = RObj::WORLD;
-		worldRoot->geometryType = GROUP;
-		worldRoot->UpdateModel();
+		worldRoot->RootInit(RObj::WORLD, GROUP);
 
 		viewRoot = std::make_shared<RObj>();
-		viewRoot->renderType = RObj::VIEW;
-		viewRoot->geometryType = GROUP;
-		viewRoot->UpdateModel();
+		viewRoot->RootInit(RObj::VIEW, GROUP);
 
 		screenRoot = std::make_shared<RObj>();
-		screenRoot->renderType = RObj::SCREEN;
-		screenRoot->geometryType = GROUP;
-		screenRoot->UpdateModel();
+		screenRoot->RootInit(RObj::SCREEN, GROUP);
 
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
@@ -168,6 +151,13 @@ void SceneBowling::Init() {
 		RObj::setDefaultStat.Subscribe(GROUND, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
+
+			obj->AddPhysics(PhysicsObject::STATIC); // takes in PhysicsObject::BODY_TYPE
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(500, 0.5f, 500), vec3(0, -0.5f, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(0.5f);
+
 			});
 		RObj::setDefaultStat.Subscribe(SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); // affected by light, tho the material is set in a way so that it is always bright, just like NO_LIGHT (this makes sure fog can still be casted on it while be bright at times without fog)
@@ -178,12 +168,15 @@ void SceneBowling::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
-			obj->offsetScl = vec3(0.15f);
+			});
+		RObj::setDefaultStat.Subscribe(DEBUG_LINE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NO_LIGHT);
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
 			});
+
 		RObj::setDefaultStat.Subscribe(BOWLING_BALL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(BOWLING_PIN, [](const std::shared_ptr<RObj>& obj) {
@@ -197,6 +190,36 @@ void SceneBowling::Init() {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
+		RObj::setDefaultStat.Subscribe(PHYSICS_BALL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+
+			obj->AddPhysics(PhysicsObject::DYNAMIC); 
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f, 0, 0));
+			physics->SetBounciness(0.1f);
+			physics->SetFrictionCoefficient(0.2f);
+			physics->UpdateMassProperties(); // must call this after getting all colliders set, if you set another collider after this, you have to call this again
+			physics->SetPosition(vec3(0, 5, 0));
+			});
+		RObj::setDefaultStat.Subscribe(PHYSICS_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+
+			obj->AddPhysics(PhysicsObject::DYNAMIC); 
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
+			physics->SetBounciness(0.1f);
+			physics->SetFrictionCoefficient(0.5f);
+			physics->UpdateMassProperties();
+			physics->SetPosition(vec3(0, 5, 0));
+			});
+		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::MATT);
+
+			obj->AddPhysics(PhysicsObject::STATIC); 
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
+			physics->SetTrigger(true);
+			});
 	}
 
 	auto& newObj = RObj::newObject;
@@ -207,6 +230,10 @@ void SceneBowling::Init() {
 		worldRoot->NewChild(MeshObject::Create(GROUND));
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "spawn_box";
+		newObj->GetPhysics()->SetPosition(vec3(5, 0.5f, 5));
 
 		// light init
 		{
@@ -291,11 +318,11 @@ void SceneBowling::Init() {
 			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
 			newObj->name = "Lay_Out1_BOWLING_PIN_1";
 			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
-			
+
 		}
 
 		//hitbox testing (layout 1 pins)
-		{
+		/* {
 			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
 			newObj->name = "Lay_Out1_Hit_box_10";
 			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
@@ -345,7 +372,7 @@ void SceneBowling::Init() {
 			newObj->name = "Lay_Out1_Hit_box_1";
 			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
 			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-		}
+		}*/
 
 		//bowling ball
 		{
@@ -364,22 +391,21 @@ void SceneBowling::Init() {
 
 	// view space init
 	{
-			viewRoot->NewChild(MeshObject::Create(BOWLING_BALL));
-			newObj->name = "VIEW_BALL";
-			newObj->trl = glm::vec3(0.3f, -0.3f, -0.8f);
-			newObj->scl = glm::vec3(0.4f);
-			newObj->allowRender = false;
+		viewRoot->NewChild(MeshObject::Create(BOWLING_BALL));
+		newObj->name = "VIEW_BALL";
+		newObj->trl = glm::vec3(0.3f, -0.3f, -0.8f);
+		newObj->scl = glm::vec3(0.4f);
+		newObj->allowRender = false;
 	}
 
 	// screen space init
 	{
-		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		//screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		//newObj->trl = vec3(-0.85f, -0.85f, 0);
-		//newObj->scl = vec3(80, 80, 1);
-
+		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
+		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
+		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
+		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
+		newObj->trl = vec3(-0.85f, -0.85f, 0);
+		newObj->scl = vec3(80, 80, 1);
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
@@ -388,11 +414,11 @@ void SceneBowling::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-		camera.Set(FPCamera::MODE::FREE);
+		camera.Init(glm::vec3(1, 1.5f, -1));
+		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
-		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
 	}
 
 	RObj::newObject.reset();
@@ -403,11 +429,11 @@ void SceneBowling::Update(double dt) {
 	ClearDebugText();
 
 	// fps calculation
+	const float fpsUpdateTime = 0.5f;
+	static float avgFps = 0;
 	{
 		static float timer = 0;
 		static int frameCount = 0;
-		static float avgFps = 0;
-		const float fpsUpdateTime = 0.5f;
 		timer += dt;
 		frameCount++;
 		if (timer >= fpsUpdateTime) {
@@ -415,51 +441,55 @@ void SceneBowling::Update(double dt) {
 			timer = 0;
 			frameCount = 0;
 		}
-		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
 	}
+  
+	// Temporary for now
+	// When the Game State handler, the code snippet below will be stored properly
+	DialogueManager::GetInstance().UpdateDialogue(dt);
 
+	if (DialogueManager::GetInstance().CheckActivePack())
+	{
+		AddDebugText(DialogueManager::GetInstance().GetCurrentSpeaker());
+		AddDebugText(DialogueManager::GetInstance().GetVisibleLine());
+	}
+  
+  // fps limitation + timer advancement
 	if (dt > 0.1f) {
 		dt = 0.1f;
 	}
+	debugPhysicsTimer += dt;
+
+	// simulation fps calculation
+	static float simAvgFps = 0;
+	{
+		static float timer = 0;
+		static int frameCount = 0;
+		timer += dt;
+		frameCount++;
+		if (timer >= fpsUpdateTime) {
+			simAvgFps = frameCount / timer;
+			timer = 0;
+			frameCount = 0;
+		}
+	}
+	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
 	auto& viewList = RObj::viewList;
 	auto& screenList = RObj::screenList;
+	auto& physicsList = RObj::physicsList;
 
 	// if you ever felt that you need dt inside HandleKeyPress(), that means you are doing smt wro- i mean, you need to use a variable to pass the info and commit changes in Update instead, HandleKeyPress() should not have those kinda logic inside it
 	HandleKeyPress();
 
-	// player
+	// player updates
 	{
 		// update position and camera bobbing
-		if (player.allowControl)
-			player.UpdatePositionWithCamera(dt, camera);
-		else {
-			Cam tempCamera = camera;
-			player.UpdatePositionWithCamera(dt, tempCamera);
-		}
-		// make sure the player's render group is updated to be the same as player's actual position
-		player.SyncRender();
-	}
-
-	// camera
-	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
-
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
-	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
-	if (debug) {
-		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
-		//AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
-		//AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
-		//AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
-	}
-
-	if (objectives)
-	{
-		AddDebugText("Objective: Score 8 points");
-		AddDebugText("Objective: Score 15 points");
-		AddDebugText("Objective: Score 25 points");
+		if (camera.GetCurrentMode() != Cam::MODE::FREE)
+			player.UpdatePhysicsWithCamera(dt, camera);
+		else
+			player.UpdatePhysics(dt);
 	}
 
 	// world render objects
@@ -513,83 +543,18 @@ void SceneBowling::Update(double dt) {
 			}
 		}
 
-		if (obj->name == "Bowling_Ball_Hit_Box")
-		{
-			float moveSpeed = 10.0f;
-
-			// Move forward
-			obj->trl += player.direction * moveSpeed * static_cast<float>(dt);
-
-			// Roll visually
-			obj->rot.x += 200 * dt;
-
-			// ==========================================================
-			// COLLISION CHECK AGAINST ALL PIN HIT BOXES
-			// ==========================================================
-			for (auto& other_wptr : RObj::worldList)
-			{
-				auto other = other_wptr.lock();
-				if (!other) continue;
-
-				// Only check against pin hit boxes
-				if (other->name.find("Lay_Out1_Hit_box") != std::string::npos)
-				{
-					glm::vec3 boxCenter = other->trl;
-
-					// Since you scale them as (0.7, 3.7, 0.7)
-					// Half size is scl / 2
-					glm::vec3 boxHalfSize = other->scl * 0.5f;
-
-					bool collision = CheckCircleAABB(
-						obj->trl,          // ball position
-						Ball_Radius,
-						boxCenter,
-						boxHalfSize
-					);
-
-					if (collision)
-					{
-						// Stop the ball
-						obj->trl -= player.direction * moveSpeed * static_cast<float>(dt);
-
-						// OPTIONAL: knock the pin back
-						other->trl += player.direction * 0.5f;
-						other->rot.z += 45.0f;
-
-						other->isDirty = true;
-
-						break; // stop checking more pins
-					}
-				}
-			}
-
-			obj->isDirty = true;
-		}
-
-
-
 		if (obj->name.find("Lay_Out1") != std::string::npos)
 		{
 			obj->allowRender = hit_Box;
 		}
 
-
-
 		if (debug) {
 
 		}
 
-		obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
+		if (!obj->GetPhysics())
+			obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
-	}
-
-	for (auto& obj_wptr : RObj::worldList)
-	{
-		auto obj = obj_wptr.lock();
-		if (obj && obj->name == "Lay_Out1")
-		{
-			obj->allowRender = !layOutSwitch;
-		}
 	}
 
 	for (auto& obj_wptr : RObj::worldList)
@@ -609,7 +574,6 @@ void SceneBowling::Update(double dt) {
 			obj->allowRender = holdingBall;
 	}
 
-
 	// view render objects
 	for (unsigned i = 0; i < viewList.size(); ) {
 		if (viewList[i].expired()) {
@@ -618,13 +582,18 @@ void SceneBowling::Update(double dt) {
 		}
 		auto obj = viewList[i].lock();
 
+		if (obj->geometryType == GROUP) {
+			obj->allowRender = debug;
+		}
+
 
 
 		if (debug) {
 
 		}
 
-		obj->UpdateModel();
+		if (!obj->GetPhysics())
+			obj->UpdateModel();
 		i++;
 	}
 
@@ -636,9 +605,8 @@ void SceneBowling::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
-
-		if (debug) {
-
+		if (obj->name.find("_debugtxt_") != std::string::npos) {
+			obj->allowRender = debug;
 		}
 
 		obj->UpdateModel();
@@ -686,20 +654,79 @@ void SceneBowling::Update(double dt) {
 		i++;
 	}
 
+	// update physics
+	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
+	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
+	PhysicsManager::GetInstance().UpdatePhysics(dt);
+
+	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugRenderer && debugPhysicsTimer >= fpsUpdateTime) {
+		debugPhysicsTimer -= fpsUpdateTime;
+		debugPhysicsWorld = MeshBuilder::GenratePhysicsWorld(debugRenderer);
+	}
+	if (debugPhysicsTimer >= fpsUpdateTime * 2) {
+		debugPhysicsTimer -= fpsUpdateTime;
+	}
+	
+	{
+		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
+		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
+
+		// physics objects
+		for (unsigned i = 0; i < physicsList.size(); ) {
+			if (physicsList[i].expired()) {
+				physicsList.erase(physicsList.begin() + i);
+				continue;
+			}
+			auto obj = physicsList[i].lock();
+			auto physics = obj->GetPhysics();
+			physics->InterpolateTransform();
+			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
+
+			if (obj->name == "spawn_box") {
+				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
+					worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+					auto& newObj = RenderObject::newObject;
+					auto physics = newObj->GetPhysics();
+
+					physics->AddTorque(vec3(100, 100, 100));
+					});
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
+				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+			}
+
+			i++;
+		}
+	}
+
+	// player sync
+	{
+		player.SyncPhysics();
+	}
+
+	// camera
+	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
+
+	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
+	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
+	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
+	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
+	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
+	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+
 }
 
 
 void SceneBowling::Render() {
 	BaseScene::Render();
-
+	
 	// render scene
 	struct ListInfo {
 		std::shared_ptr<RObj> obj;
 		mat4 model;
 		float depth;
 		ListInfo(std::shared_ptr<RObj> obj, mat4 model, float depth)
-			: obj(obj), model(model), depth(depth) {
-		}
+			: obj(obj), model(model), depth(depth) {}
 	};
 	std::vector<ListInfo> transparencyList;
 	transparencyList.reserve(40);
@@ -755,6 +782,14 @@ void SceneBowling::Render() {
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 
+	// render debug physics
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugPhysicsWorld) {
+		modelStack.Clear();
+		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+		debugPhysicsWorld->RenderPhysicsWorld();
+	}
 
 	viewStack.PushMatrix();
 	viewStack.LoadIdentity();
@@ -796,7 +831,6 @@ void SceneBowling::Exit() {
 }
 
 void SceneBowling::HandleKeyPress() {
-	BaseScene::HandleKeyPress();
 
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
@@ -815,16 +849,27 @@ void SceneBowling::HandleKeyPress() {
 		}
 	}
 
+	// debug keys
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
 		debug = !debug;
-
-		if (debug) {
-			camera.Set(Cam::MODE::FREE);
-			player.allowControl = false;
+		renderDebugPhysics = false;
+		camera.Set(Cam::MODE::FIRST_PERSON);
+		player.allowControl = true;
+	}
+	if (debug) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_C)) {
+			if (camera.GetCurrentMode() != Cam::MODE::FREE) {
+				camera.Set(Cam::MODE::FREE);
+				player.allowControl = false;
+			}
+			else {
+				camera.Set(Cam::MODE::FIRST_PERSON);
+				player.allowControl = true;
+			}
 		}
-		else {
-			camera.Set(Cam::MODE::FIRST_PERSON);
-			player.allowControl = true;
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P)) {
+			renderDebugPhysics = !renderDebugPhysics;
 		}
 	}
 
@@ -835,9 +880,41 @@ void SceneBowling::HandleKeyPress() {
 		if (cameraMode != Cam::MODE::PAUSE) {
 			prevMode = cameraMode;
 			camera.Set(Cam::MODE::PAUSE);
+			player.allowControl = false;
 		}
 		else {
 			camera.Set(prevMode);
+			player.allowControl = true;
+		}
+	}
+
+	// dialogue controls
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE))
+	{
+		// In an actual usecase, only the ControlCurrentDialogue() should exist in here
+		// but for the sake of the demo, I coded out how to start dialogue from a key input
+		
+		// Only the code below should exist here
+		/*if (DialogueManager::GetInstance().CheckActivePack())
+		{
+			DialogueManager::GetInstance().ControlCurrentDialogue();
+		}*/
+		
+		static bool startedDialogue = false;
+
+		if (!DialogueManager::GetInstance().CheckActivePack())
+		{
+			startedDialogue = false;
+		}
+		else
+		{
+			DialogueManager::GetInstance().ControlCurrentDialogue();
+		}
+
+		if (!startedDialogue)
+		{
+			DialogueManager::GetInstance().StartDialogue("ExampleDialogue");
+			startedDialogue = true;
 		}
 	}
 
@@ -848,24 +925,6 @@ void SceneBowling::HandleKeyPress() {
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J)) {
 		hit_Box = !hit_Box;
 	}
-
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H)) {
-		objectives = !objectives;
-	}
-
-	//if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Y)) {
-
-	//	layOutSwitch = !layOutSwitch;
-
-	//	for (auto& obj_wptr : RObj::worldList)
-	//	{
-	//		auto obj = obj_wptr.lock();
-	//		if (obj && obj->name == "Lay_Out1")
-	//		{
-	//			obj->allowRender = !LayOutSwitch;
-	//		}
-	//	}
-	//}
 
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_T))
 	{
@@ -890,8 +949,6 @@ void SceneBowling::HandleKeyPress() {
 			}
 		}
 	}
-
-
 
 	// player controls
 	if (player.allowControl) {
@@ -949,6 +1006,15 @@ void SceneBowling::HandleKeyPress() {
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
+			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
+		}
+
+		// fake jump lol
+		/*if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+			player.renderGroup.lock()->GetPhysics()->AddSoftImpulse(vec3(0, 10000, 0));
+		}*/
 	}
 }
 
@@ -1017,8 +1083,6 @@ void SceneBowling::RenderObj(const std::shared_ptr<RObj> obj) {
 	meshList[obj->geometryType]->material = meshMaterial;
 
 }
-
-
 
 void SceneBowling::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 

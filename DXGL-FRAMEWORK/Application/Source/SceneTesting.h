@@ -1,5 +1,5 @@
-#ifndef SCENE_DEMO_H
-#define SCENE_DEMO_H
+#ifndef SCENE_BOWLING_H
+#define SCENE_BOWLING_H
 
 #include "BaseScene.h"
 
@@ -15,6 +15,7 @@ public:
 		SKYBOX,
 		LIGHT,
 		GROUP,
+		DEBUG_LINE,
 
 		FONT_CASCADIA_MONO,
 		// add more variables here
@@ -22,11 +23,16 @@ public:
 		BOWLING_BALL,
 		BOWLING_PIN,
 
+
 		HIT_BOX,
 		BALL_HIT_BOX,
 
 		UI_TEST,
 		UI_TEST_2,
+
+		PHYSICS_BALL,
+		PHYSICS_BOX,
+		TRIGGER_BOX,
 
 		TOTAL
 	};
@@ -38,8 +44,6 @@ public:
 	void Update(double dt) override;
 	void Render() override;
 	void Exit() override;
-
-	bool CheckCircleAABB(const glm::vec3& circlePos, float radius, const glm::vec3& boxCenter, const glm::vec3& boxHalfSize);
 
 private:
 
@@ -56,7 +60,7 @@ private:
 		}
 	}
 
-	void HandleKeyPress() override;
+	void HandleKeyPress();
 
 	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
 	void RenderObj(const std::shared_ptr<RenderObject> obj);
@@ -75,6 +79,10 @@ private:
 	bool cullFaceActive = true;
 	bool wireFrameActive = false;
 
+	bool renderDebugPhysics = false;
+	Mesh* debugPhysicsWorld;
+	double debugPhysicsTimer = 0;
+
 	glm::vec3 savedBallWorldPos;
 
 	//variables for bowling ball
@@ -83,9 +91,7 @@ private:
 	bool spin = false;
 
 	bool hit_Box = false;
-	bool objectives = false;
-	bool layOutSwitch = false;
-
+	
 };
 
 #endif

@@ -11,7 +11,8 @@
 #include <stdlib.h>
 
 #include "Scene.h"
-#include "SceneBowling.h"
+#include "SceneDemo.h"
+#include "SceneTesting.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
