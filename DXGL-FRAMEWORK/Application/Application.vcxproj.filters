@@ -77,6 +77,8 @@
     </ClCompile>
     <ClCompile Include="Source\DialogueManager.cpp">
       <Filter>Framework</Filter>
+    <ClCompile Include="Source\SceneBowling.cpp">
+      <Filter>Scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +156,8 @@
     </ClInclude>
     <ClInclude Include="Source\DialogueManager.h">
       <Filter>Framework</Filter>
+    <ClInclude Include="Source\SceneBowling.h">
+      <Filter>Scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

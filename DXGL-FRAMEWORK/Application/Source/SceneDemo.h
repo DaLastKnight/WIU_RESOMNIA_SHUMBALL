@@ -18,7 +18,6 @@ public:
 		DEBUG_LINE,
 
 		FONT_CASCADIA_MONO,
-
 		// add more variables here
 		FLASHLIGHT,
 

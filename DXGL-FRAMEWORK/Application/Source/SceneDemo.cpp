@@ -265,6 +265,7 @@ void SceneDemo::Init() {
 				UpdateLightUniform(newLightObj);
 			}
 		}
+
 	}
 
 	// view space init
