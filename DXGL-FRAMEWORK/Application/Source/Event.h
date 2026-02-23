@@ -15,6 +15,9 @@
 * 
 * || use
 * demoEvent.Invoke(parameter_1, parameter_2 ...); // calls the lambda / function that you subscribed to with the parameters you pluged in
+* 
+* || lock
+* demoEvent.lock = true; // make it so that new subscription cannot overwrite the existing subscription
 */
 
 /* how to use | EventPack:
@@ -26,6 +29,9 @@
 *
 * || use
 * demoEventPack.Invoke(key_variable, parameter_1, parameter_2 ...); // same as Event but with a key to find the lambda / function you subscribed
+* 
+* || lock
+* demoEventPack.lock = true; // same as Event, but locks the whole pack instead of 1 subscription, does not affect unsubscribed slots
 */
 
 template<typename Return, typename... Args>
@@ -34,8 +40,11 @@ public:
 
 	using Listener = std::function<Return(Args...)>;
 
+	bool lock = false;
+
 	void Subscribe(Listener fn) {
-		listener = std::move(fn);
+		if (!lock)
+			listener = std::move(fn);
 	}
 
 	Return Invoke(Args... args) {
@@ -55,8 +64,11 @@ public:
 
 	using Listener = std::function<void(Args...)>;
 
+	bool lock = false;
+
 	void Subscribe(Listener fn) {
-		listener = std::move(fn);
+		if (!lock)
+			listener = std::move(fn);
 	}
 
 	void Invoke(Args... args) {
@@ -76,9 +88,10 @@ public:
 
 	using Listener = std::function<Return(Args...)>;
 
+	bool lock = false;
+
 	bool Subscribe(const Key& key, Listener fn) {
-		auto it = listeners.find(key);
-		if (it != listeners.end())
+		if (lock && listeners.find(key) != listeners.end())
 			return false;
 		listeners[key] = std::move(fn);
 		return true;
@@ -101,9 +114,10 @@ public:
 
 	using Listener = std::function<void(Args...)>;
 
+	bool lock = false;
+
 	bool Subscribe(const Key& key, Listener fn) {
-		auto it = listeners.find(key);
-		if (it != listeners.end())
+		if (lock && listeners.find(key) != listeners.end())
 			return false;
 		listeners[key] = std::move(fn);
 		return true;

@@ -163,3 +163,18 @@ void Mesh::Render(unsigned offset, unsigned count)
 		glDisableVertexAttribArray(3);
 	}
 }
+
+
+void Mesh::RenderPhysicsWorld() {
+	glEnableVertexAttribArray(0); // 1st attribute buffer : vertices
+	glEnableVertexAttribArray(1); // 2nd attribute buffer : colors
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));
+
+	glDrawArrays(GL_LINES, 0, indexSize);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+}

@@ -178,7 +178,9 @@ void FPCamera::Update(double dt) {
 	smoothPhi = Smooth(smoothPhi, phi, rotSmoothing, dt);
 	smoothTheta = Smooth(smoothTheta, theta, rotSmoothing, dt);
 	smoothPsi = Smooth(smoothPsi, psi, moveSmoothing, dt);
-	smoothPosition = Smooth(smoothPosition, basePosition, moveSmoothing, dt);
+	smoothPosition.x = Smooth(smoothPosition.x, basePosition.x, moveSmoothing, dt);
+	smoothPosition.y = Smooth(smoothPosition.y, basePosition.y, moveSmoothing / 10, dt);
+	smoothPosition.z = Smooth(smoothPosition.z, basePosition.z, moveSmoothing, dt);
 
 	// bobbing
 	bobbingElapsed += dt * bobbingSmoothSpeed;

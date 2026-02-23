@@ -13,7 +13,15 @@ StopWatch::StopWatch()
         // Error; application can't continue.
     }
 
-    wTimerRes = min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+    auto clamp = [](float value, float min, float max) {
+        if (value < min)
+            return min;
+        else if (value > max)
+            return max;
+        return value;
+    };
+
+    wTimerRes = clamp(TARGET_RESOLUTION, tc.wPeriodMin, tc.wPeriodMax);
     timeBeginPeriod(wTimerRes); 
 }
 

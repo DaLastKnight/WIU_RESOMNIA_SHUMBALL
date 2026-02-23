@@ -22,6 +22,7 @@
 #include "KeyboardController.h"
 #include "AudioManager.h"
 #include "DataManager.h"
+#include "PhysicsManager.h"
 
 #include "Utils.h"
 
@@ -119,6 +120,10 @@ void BaseScene::Init()
 		atmosphereUniformLocations[U_ATMOSPHERE_DENSEST_RANGE] = glGetUniformLocation(m_programID, "atmosphere.densestRange");
 	}
 
+	// init physics
+	{
+		PhysicsManager::GetInstance().InitWorld();
+	}
 }
 
 void BaseScene::Update(double dt) {
@@ -210,13 +215,10 @@ void BaseScene::Exit()
 	viewRoot.reset();
 	screenRoot.reset();
 
+	PhysicsManager::GetInstance().CleanUp();
+
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 	glDeleteProgram(m_programID);
-}
-
-void BaseScene::HandleKeyPress()
-{
-	
 }
 
 

@@ -1,3 +1,6 @@
+
+#define NOMINMAX
+
 /**
  KeyboardController
  Referenced: CKeyboardController by Toh Da Jun (Mar 2020)

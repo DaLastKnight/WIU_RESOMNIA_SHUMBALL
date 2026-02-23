@@ -15,6 +15,7 @@ public:
 		SKYBOX,
 		LIGHT,
 		GROUP,
+		DEBUG_LINE,
 
 		FONT_CASCADIA_MONO,
 		// add more variables here
@@ -22,6 +23,10 @@ public:
 
 		UI_TEST,
 		UI_TEST_2,
+
+		PHYSICS_BALL,
+		PHYSICS_BOX,
+		TRIGGER_BOX,
 
 		TOTAL
 	};
@@ -49,7 +54,7 @@ private:
 		}
 	}
 
-	void HandleKeyPress() override;
+	void HandleKeyPress();
 
 	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
 	void RenderObj(const std::shared_ptr<RenderObject> obj);
@@ -67,6 +72,10 @@ private:
 
 	bool cullFaceActive = true;
 	bool wireFrameActive = false;
+
+	bool renderDebugPhysics = false;
+	Mesh* debugPhysicsWorld;
+	double debugPhysicsTimer = 0;
 	
 };
 
