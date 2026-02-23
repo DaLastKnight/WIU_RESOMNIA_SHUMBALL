@@ -317,38 +317,6 @@ void SceneMedical::Init() {
 			physics->SetPosition(newObj->trl);
 		}
 
-		//// Temporary Placeholder for Bacteria Model Spawning
-		//float bactRandTrlX[40] = { 0 };
-		//float bactRandTrlY[40] = { 0 };
-		//float bactRandTrlZ[40] = { 0 };
-
-		//for (int i = 0; i < 40; i++)
-		//{
-		//	bactRandTrlX[i] = rand() % 81 - 40;
-		//	bactRandTrlY[i] = rand() % 41 - 20;
-		//	bactRandTrlZ[i] = rand() % 81 - 40;
-
-		//	worldRoot->NewChild(MeshObject::Create(BACTERIA_MODEL));
-		//	newObj->trl = glm::vec3(bactRandTrlX[i], bactRandTrlY[i], bactRandTrlZ[i]);
-		//	newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
-		//}
-
-		// Temporary Placeholder for Virus Model Spawning
-		/*float virusRandTrlX[20] = { 0 };
-		float virusRandTrlY[20] = { 0 };
-		float virusRandTrlZ[20] = { 0 };
-
-		for (int i = 0; i < 20; i++)
-		{
-			virusRandTrlX[i] = rand() % 81 - 40;
-			virusRandTrlY[i] = rand() % 41 - 20;
-			virusRandTrlZ[i] = rand() % 81 - 40;
-
-			worldRoot->NewChild(MeshObject::Create(VIRUS_MODEL));
-			newObj->trl = glm::vec3(virusRandTrlX[i], virusRandTrlY[i], virusRandTrlZ[i]);
-			newObj->scl = glm::vec3(0.5f, 0.5f, 0.5f);
-		}*/
-
 		worldRoot->NewChild(MeshObject::Create(ENV_SPHERE_MODEL));
 		newObj->trl = glm::vec3(-50, -50, 50);
 		newObj->scl = glm::vec3(20, 20, 20);
@@ -708,8 +676,8 @@ void SceneMedical::Update(double dt) {
 			{
 				std::cout << "Destroyed Nanobot by lifetime" << std::endl;
 				
-			    nanobots[i].object->Destroy();
-				nanobots.erase(nanobots.begin() + i);
+			    nanobots[i].object->Destroy(); // Remove Physics and Visual Body, struct already destroyed with the shared_ptr so no reset needed
+				nanobots.erase(nanobots.begin() + i); // Remove from container
 				currentActiveNanobotAmmo--;
 			}
 		}
@@ -776,12 +744,14 @@ void SceneMedical::Update(double dt) {
 			currentSpawningAI++;
 		}
 
-		for (auto& virus : viruses)
+		for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
 		{
-			/*if (!virus.object || !virus.object->GetPhysics())
+			auto& virus = viruses[i];
+
+			if (!virus.object || !virus.object->GetPhysics())
 			{
 				continue;
-			}*/
+			}
 
 			auto physics = virus.object->GetPhysics();
 			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
@@ -800,12 +770,12 @@ void SceneMedical::Update(double dt) {
 			if (distance <= 0.5f + 0.5f)
 			{
 				virus.object->Destroy();
-				virus.object.reset();
+				viruses.erase(viruses.begin() + i);
+
 				overloadingStack++;
+				remainingEntitiesAI--;
 			}
 		}
-
-		viruses.erase(std::remove_if(viruses.begin(), viruses.end(), [](const Virus& v) { return !v.object; }), viruses.end());
 
 		if (debug) {
 
