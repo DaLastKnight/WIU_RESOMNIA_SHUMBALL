@@ -214,10 +214,10 @@ void PhysicsEventListener::onTrigger(const OverlapCallback::CallbackData& callba
 
 		for (auto& event : triggerEvents) {
 			if (event.physics->Getbody() == overlappingPair.getBody1() && event.overlapType == overlappingPair.getEventType()) {
-				event.event.Invoke(overlappingPair.getBody1());
+				event.event.Invoke(overlappingPair.getBody2());
 			}
 			else if (event.physics->Getbody() == overlappingPair.getBody2() && event.overlapType == overlappingPair.getEventType()) {
-				event.event.Invoke(overlappingPair.getBody2());
+				event.event.Invoke(overlappingPair.getBody1());
 			}
 		}
 	}
