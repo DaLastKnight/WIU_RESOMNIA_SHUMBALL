@@ -60,12 +60,24 @@ void RenderObject::SortScreenList() {
 }
 
 void RenderObject::UpdateModel() {
-	if (isDirty || trl != prevTrl || rot != prevRot || scl != prevScl || colorFilter != prevColorFilter || prevAlpha != alpha) {
+	bool onlyAccumulatedStats = false;
+
+	if (trl != prevTrl || rot != prevRot || scl != prevScl) {
 		prevTrl = trl;
 		prevRot = rot;
 		prevScl = scl;
+		isDirty = true;
+	}
+	else if (prevColorFilter != colorFilter || prevAlpha != alpha) {
+		prevColorFilter = colorFilter;
+		prevAlpha = alpha;
+		isDirty = true;
+		onlyAccumulatedStats = true;
+	}
+
+	if (isDirty) {
 		isDirty = false;
-		model = GetModel();
+		model = GetModel(onlyAccumulatedStats);
 		for (auto child : children) {
 			child->UpdateModelWithParent(model);
 		}
@@ -77,6 +89,24 @@ void RenderObject::UsePhysicsModel() {
 	rot = QuatToEuler(physics->GetOrientation());
 	rotQuat = physics->GetOrientation();
 	UpdateModel();*/
+
+	if (prevColorFilter != colorFilter || prevAlpha != alpha) {
+		prevColorFilter = colorFilter;
+		prevAlpha = alpha;
+
+		std::shared_ptr<RenderObject> selected = shared_from_this();
+		accumulatedColorFilter = vec3(1);
+		accumulatedAlpha = 1;
+		while (selected) {
+			accumulatedColorFilter *= selected->colorFilter;
+			accumulatedAlpha *= selected->alpha;
+			selected = selected->parent.lock();
+		}
+	}
+
+	if (physics->Getbody()->isSleeping())
+		return;
+
 	model = physics->GetModel();
 	if (offsetTrl != vec3(0))
 		model = model * glm::translate(mat4(1), vec3(offsetTrl.x, offsetTrl.y, offsetTrl.z));
@@ -88,16 +118,6 @@ void RenderObject::UsePhysicsModel() {
 		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.z), vec3(0, 0, 1));
 	if (offsetScl != vec3(1))
 		model = model * glm::scale(mat4(1), vec3(offsetScl.x, offsetScl.y, offsetScl.z));
-
-	std::shared_ptr<RenderObject> selected = shared_from_this();
-	accumulatedColorFilter = vec3(1);
-	accumulatedAlpha = 1;
-
-	while (selected) {
-		accumulatedColorFilter *= selected->colorFilter;
-		accumulatedAlpha *= selected->alpha;
-		selected = selected->parent.lock();
-	}
 
 	for (auto child : children) {
 		child->UpdateModelWithParent(model);
@@ -169,7 +189,7 @@ RenderObject::~RenderObject() {
 	delete physics;
 }
 
-glm::mat4 RenderObject::GetModel() {
+glm::mat4 RenderObject::GetModel(bool onlyAccumulatedStats) {
 	std::stack<std::shared_ptr<RenderObject>> hierarchyStack;
 
 	std::shared_ptr<RenderObject> selected = shared_from_this();
@@ -179,9 +199,13 @@ glm::mat4 RenderObject::GetModel() {
 	while (selected) {
 		accumulatedColorFilter *= selected->colorFilter;
 		accumulatedAlpha *= selected->alpha;
-		hierarchyStack.push(selected);
+		if (!onlyAccumulatedStats)
+			hierarchyStack.push(selected);
 		selected = selected->parent.lock();
 	}
+
+	if (onlyAccumulatedStats)
+		return model;
 
 	MatrixStack thisModelStack;
 	thisModelStack.Clear();

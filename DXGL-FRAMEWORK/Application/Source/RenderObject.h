@@ -139,7 +139,7 @@ protected:
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
 
-	glm::mat4 GetModel();
+	glm::mat4 GetModel(bool onlyAccumulatedStats = false);
 	void UpdateModelWithParent(glm::mat4 parentModel);
 
 	std::shared_ptr<RenderObject> Clone() const;
