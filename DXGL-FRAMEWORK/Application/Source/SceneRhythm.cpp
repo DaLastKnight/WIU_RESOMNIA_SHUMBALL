@@ -83,7 +83,7 @@ void SceneRhythm::Init() {
 
 	// atmosphere init
 	{
-		atmosphere.Set(vec3(0.05f, 0.07f, 0.1f), 0.05f, 0.000001f, 2, 20);
+		atmosphere.Set(vec3(0.05f, 0.05f, 0.05f), 1, 2, 1, 10);
 		UpdateAtmosphereUniform();
 	}	
 
@@ -121,6 +121,7 @@ void SceneRhythm::Init() {
 		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base texture", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
 
 		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1), 1);
+		meshList[INVISIBLE_WALL] = MeshBuilder::GenerateCube("invisible wall", vec3(1), 1);
 	}
 
 	// init roots
@@ -235,9 +236,19 @@ void SceneRhythm::Init() {
 		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->allowRender = false;
 			});
+		RObj::setDefaultStat.Subscribe(INVISIBLE_WALL, [](const std::shared_ptr<RObj>& obj) {
+			obj->allowRender = false;
+
+			obj->AddPhysics(PhysicsObject::STATIC); // takes in PhysicsObject::BODY_TYPE
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(250, 0.5f, 0.5f), vec3(0, 0.5f, 0));
+			physics->SetBounciness(0.f);
+			physics->SetFrictionCoefficient(1.f);
+			});
 	}
 
 	auto& newObj = RObj::newObject;
+	PhysicsObject* physics = nullptr;
 	// world space init
 	{
 		worldRoot->NewChild(MeshObject::Create(AXES));
@@ -248,33 +259,67 @@ void SceneRhythm::Init() {
 
 		float layerOffset = 0.035f;
 		worldRoot->NewChild(MeshObject::Create(RT_BASE_UI));
-		newObj->trl = vec3(0, 1.5f, 0);
+		newObj->name = "rt base ui";
+		newObj->trl = vec3(-30, 1.5f, 0);
 		auto rtUI = newObj;
+		uiPointsOfInterest[rtUI->name] = rtUI;
 
 		rtUI->NewChild(MeshObject::Create(RT_UPLOAD_BTN));
-		newObj->trl = vec3(0.225f, -0.15f, layerOffset * 2);
+		newObj->name = "upload btn";
+		newObj->trl = vec3(0.225f, -0.165f, layerOffset * 2);
+		uiPointsOfInterest[newObj->name] = newObj;
 		newObj->NewChild(MeshObject::Create(RT_UPLOAD_BTN_BG));
-		newObj->trl = vec3(0, 0, -layerOffset);
+		newObj->name = "upload bg";
+		newObj->trl = vec3(0, 0, layerOffset * -0.25f);
+		uiPointsOfInterest[newObj->name] = newObj;
 
 		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "upload trigger";
 		newObj->AddPhysics(PhysicsObject::STATIC);
-		auto physics = newObj->GetPhysics();
-		physics->AddCollider(PhysicsObject::BOX, vec3(0.2f, 0.1f, 0.001f));
-		physics->SetPosition(vec3(0, 0, 0));
+		physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.3f, 0.05f, 0.001f));
+		physics->SetTrigger(true);
+		triggerList[newObj->name] = newObj;
 
 		rtUI->NewChild(MeshObject::Create(RT_LOSSLESS_BTN));
-		newObj->trl = vec3(-0.225f, -0.15f, layerOffset * 2);
+		newObj->name = "lossless btn";
+		newObj->trl = vec3(-0.225f, -0.165f, layerOffset * 2);
+		uiPointsOfInterest[newObj->name] = newObj;
 		newObj->NewChild(MeshObject::Create(RT_LOSSLESS_BTN_BG));
-		newObj->trl = vec3(0, 0, -layerOffset);
+		newObj->name = "lossless bg";
+		newObj->trl = vec3(0, 0, layerOffset * -0.25f);
+		uiPointsOfInterest[newObj->name] = newObj;
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "lossless trigger";
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.12f, 0.025f, 0.001f));
+		physics->SetTrigger(true);
+		triggerList[newObj->name] = newObj;
 
 		rtUI->NewChild(MeshObject::Create(RT_COMPRESSED_BTN));
-		newObj->trl = vec3(-0.225f, -0.2f, layerOffset * 2);
+		newObj->name = "compressed btn";
+		newObj->trl = vec3(-0.225f, -0.215f, layerOffset * 2);
+		uiPointsOfInterest[newObj->name] = newObj;
 		newObj->NewChild(MeshObject::Create(RT_COMPRESSED_BTN_BG));
-		newObj->trl = vec3(0, 0, -layerOffset);
+		newObj->name = "compressed bg";
+		newObj->trl = vec3(0, 0, layerOffset * -0.25f);
+		uiPointsOfInterest[newObj->name] = newObj;
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "compressed trigger";
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.15f, 0.025f, 0.001f));
+		physics->SetTrigger(true);
+		triggerList[newObj->name] = newObj;
 
 		worldRoot->NewChild(MeshObject::Create(RT_PANEL_BASE));
-		newObj->trl = vec3(0, 1.6f, layerOffset);
+		newObj->name = "panel ui";
+		newObj->trl = vec3(30, 1.6f, layerOffset);
 		auto panelUI = newObj;
+		uiPointsOfInterest[panelUI->name] = panelUI;
 
 		panelUI->NewChild(MeshObject::Create(RT_OPU_BASE));
 		newObj->trl = vec3(-0.225f, 0, layerOffset);
@@ -284,46 +329,22 @@ void SceneRhythm::Init() {
 		opuBase->NewChild(MeshObject::Create(RT_OPU));
 		newObj->trl = vec3(-0.0675f, 0.0675f, layerOffset * 2);
 
+		worldRoot->NewChild(MeshObject::Create(INVISIBLE_WALL));
+		physics = newObj->GetPhysics();
+		physics->SetTransform(vec3(0, 0, 5), vec3());
+		worldRoot->NewChild(MeshObject::Create(INVISIBLE_WALL));
+		physics = newObj->GetPhysics();
+		physics->SetTransform(vec3(5, 0, 0), vec3(0, 90, 0));
+		worldRoot->NewChild(MeshObject::Create(INVISIBLE_WALL));
+		physics = newObj->GetPhysics();
+		physics->SetTransform(vec3(0, 0, -5), vec3());
+		worldRoot->NewChild(MeshObject::Create(INVISIBLE_WALL));
+		physics = newObj->GetPhysics();
+		physics->SetTransform(vec3(-5, 0, 0), vec3(0, 90, 0));
+
 		// light init
 		{
 			std::shared_ptr<LightObject> newLightObj;
-
-			worldRoot->NewChild(LightObject::Create(LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(0, 20, 0);
-				newLightObj->name = "demo light";
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_POINT;
-				lightProperties.color = vec3(1, 1, 1);
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.001f;
-				lightProperties.kQ = 0.001f;
-				UpdateLightUniform(newLightObj);
-			}
-
-			worldRoot->NewChild(LightObject::Create(LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(20, 5, 0);
-				newLightObj->name = "demo light spot";
-				newLightObj->initialDire = vec3(0, -1, 0); 
-				newLightObj->rot = vec3(45, 45, 0);
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_SPOT;
-				lightProperties.color = vec3(1, 0.824f, 0.11f);
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.005f;
-				lightProperties.kQ = 0.01f;
-				// spot light variables 
-				lightProperties.cosCutoff = 31.f;
-				lightProperties.cosInner = 29.f;
-				UpdateLightUniform(newLightObj);
-			}
 		}
 	}
 
@@ -354,13 +375,22 @@ void SceneRhythm::Init() {
 
 	/************************ bellow for external class inits ************************/
 	{
+		// raycast init
+		physicsRaycast.defaultRaycastEvent.Subscribe([&](const rp3d::RaycastInfo& rcInfo) {
+			return PhysicsRaycast::STOP_ON_CONTACT;
+			});
+
 		// camera init
 		camera.Init(glm::vec3(1, 1.5f, -1), vec3(0, 0, -1));
 		camera.Set(FPCamera::MODE::FIRST_PERSON);
+		camera.bobbingMaxPsi = 0.6f;
+		camera.bobbingMaxX = 0.05f;
+		camera.bobbingMaxY = 0.025f;
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
-		player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0, 0, 5));
+		player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0, 0, 4));
+		player.speed = 75;
 	}
 
 	RObj::newObject.reset();
@@ -413,10 +443,23 @@ void SceneRhythm::Update(double dt) {
 		loadInTimer += dt;
 		camera.SetDirection(vec3(0, 0, -1));
 
-		if (loadInTimer > 1) {
+		if (loadInTimer > 0.2f) {
+			currentState = START_INTERMISSION;
+		}
+		break;
+	case START_INTERMISSION:
+		dynamicIntermissionTimer += dt;
+		if (dynamicIntermissionTimer > 3) {
+			dynamicIntermissionTimer = 0;
 			currentState = INTERMISSION;
 		}
-
+		break;
+	case END_INTERMISSION:
+		dynamicIntermissionTimer += dt;
+		if (dynamicIntermissionTimer > 5) {
+			dynamicIntermissionTimer = 0;
+			currentState = START_GAME;
+		}
 		break;
 
 	default: break;
@@ -467,11 +510,39 @@ void SceneRhythm::Update(double dt) {
 			break;
 		}
 
-		
-		if (obj->name == "demo light spot") {
-			obj->offsetRot.y += 45 * dt;
-			obj->isDirty = true; 
-		} 
+		if (obj->name == "rt base ui") {
+			static float accel = 0;
+			switch (currentState) {
+			case START_INTERMISSION:
+				accel = 0;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.5f, 0), 25, dt);
+				break;
+			case INTERMISSION:
+				break;
+			case END_INTERMISSION:
+				accel += 5 * dt;
+				obj->trl.x += accel * dt;
+				break;
+			default: break;
+			}
+		}
+
+		if (obj->name == "panel ui") {
+			static float accel = 0;
+			switch (currentState) {
+			case START_INTERMISSION:
+				accel = 0;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.6f, 0.035f), 25, dt);
+				break;
+			case INTERMISSION:
+				break;
+			case END_INTERMISSION:
+				accel += 5 * dt;
+				obj->trl.x -= accel * dt;
+				break;
+			default: break;
+			}
+		}
 
 		if (debug) {
 
@@ -493,7 +564,6 @@ void SceneRhythm::Update(double dt) {
 		if (obj->geometryType == GROUP) {
 			obj->allowRender = debug;
 		}
-
 
 
 		if (debug) {
@@ -591,6 +661,13 @@ void SceneRhythm::Update(double dt) {
 		debugPhysicsTimer -= fpsUpdateTime;
 	}
 
+	// raycast
+	if (currentState == INTERMISSION || currentState == RESULT) {
+		physicsRaycast.ClearInfo();
+		rp3d::Ray ray = MakeRay(camera.GetFinalPosition(), camera.GetFinalPosition() + camera.GetFinalDirection(), 2);
+		PhysicsManager::GetInstance().GetWorld()->raycast(ray, &physicsRaycast);
+	}
+
 	{
 		PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
 		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
@@ -607,7 +684,105 @@ void SceneRhythm::Update(double dt) {
 			physics->InterpolateTransform();
 			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
 
+			switch (currentState) {
+			case START_INTERMISSION:
+			case INTERMISSION:
+			case END_INTERMISSION: {
+				if (obj->name == "upload trigger") {
+					auto uploadBg = uiPointsOfInterest["upload bg"].lock();
+					physics->SetPosition(getPosFromModel(uploadBg->model));
+					auto uploadBtn = uiPointsOfInterest["upload btn"].lock();
 
+					auto index = physicsRaycast.FindHit(physics->Getbody());
+					if (index != -1) {
+						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
+
+						if (lmb_down) {
+							uploadBg->scl = Smooth(uploadBg->scl, vec3(0.9f), 5, dt);
+							uploadBtn->scl = Smooth(uploadBtn->scl, vec3(0.9f), 5, dt);
+						}
+						else {
+							uploadBg->scl = Smooth(uploadBg->scl, vec3(1), 10.f, dt);
+							uploadBtn->scl = Smooth(uploadBtn->scl, vec3(1), 10.f, dt);
+						}
+
+						if (lmb_released) {
+							currentState = END_INTERMISSION;
+						}
+					}
+					else {
+						uploadBg->scl = Smooth(uploadBg->scl, vec3(1, 0, 1), 10.f, dt);
+						uploadBtn->scl = Smooth(uploadBtn->scl, vec3(1), 10.f, dt);
+					}
+				}
+				if (obj->name == "lossless trigger") {
+					auto losslessBg = uiPointsOfInterest["lossless bg"].lock();
+					physics->SetPosition(getPosFromModel(losslessBg->model));
+					auto losslessBtn = uiPointsOfInterest["lossless btn"].lock();
+
+					auto index = physicsRaycast.FindHit(physics->Getbody());
+					if (index != -1) {
+						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
+
+						if (lmb_down) {
+							losslessBg->scl = Smooth(losslessBg->scl, vec3(0.9f), 5, dt);
+							losslessBtn->scl = Smooth(losslessBtn->scl, vec3(0.9f), 5, dt);
+						}
+						else {
+							losslessBg->scl = Smooth(losslessBg->scl, vec3(1), 10.f, dt);
+							losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1), 10.f, dt);
+						}
+
+						if (lmb_released) {
+							difficulty = 1;
+						}
+					}
+					else {
+						losslessBg->scl = Smooth(losslessBg->scl, vec3(1, 0, 1), 10.f, dt);
+						losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1), 10.f, dt);
+					}
+				}
+				if (obj->name == "compressed trigger") {
+					auto compresseddBg = uiPointsOfInterest["compressed bg"].lock();
+					physics->SetPosition(getPosFromModel(compresseddBg->model));
+					auto compressedBtn = uiPointsOfInterest["compressed btn"].lock();
+
+					auto index = physicsRaycast.FindHit(physics->Getbody());
+					if (index != -1) {
+						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
+
+						if (lmb_down) {
+							compresseddBg->scl = Smooth(compresseddBg->scl, vec3(0.9f), 5, dt);
+							compressedBtn->scl = Smooth(compressedBtn->scl, vec3(0.9f), 5, dt);
+						}
+						else {
+							compresseddBg->scl = Smooth(compresseddBg->scl, vec3(1), 10.f, dt);
+							compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1), 10.f, dt);
+						}
+
+						if (lmb_released) {
+							difficulty = 0;
+						}
+					}
+					else {
+						compresseddBg->scl = Smooth(compresseddBg->scl, vec3(1, 0, 1), 10.f, dt);
+						compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1), 10.f, dt);
+					}
+				}
+				break;
+			}
+			case GAME: {
+
+				break;
+			}
+			case START_RESULT:
+			case RESULT:
+			case END_RESULT: {
+
+				break;
+			}
+			default: break;
+			}
 
 			i++;
 		}
@@ -712,6 +887,7 @@ void SceneRhythm::Render() {
 		modelStack.Clear();
 		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
 		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+		glUniform1i(m_parameters[U_LIGHT_ENABLED], 0);
 
 		debugPhysicsWorld->RenderPhysicsWorld();
 	}
@@ -856,6 +1032,26 @@ void SceneRhythm::HandleKeyPress() {
 			}
 
 			player.velocity = finalTrlChange;
+
+			lmb_pressed = lmb_down = lmb_released = rmb_pressed = rmb_down = rmb_released = false;
+			if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
+				lmb_pressed = true;
+			}
+			if (MouseController::GetInstance()->IsButtonDown(MouseController::LMB)) {
+				lmb_down = true;
+			}
+			if (MouseController::GetInstance()->IsButtonReleased(MouseController::LMB)) {
+				lmb_released = true;
+			}
+			if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
+				rmb_pressed = true;
+			}
+			if (MouseController::GetInstance()->IsButtonDown(MouseController::RMB)) {
+				rmb_down = true;
+			}
+			if (MouseController::GetInstance()->IsButtonReleased(MouseController::RMB)) {
+				rmb_released = true;
+			}
 		}
 	}
 }
@@ -925,8 +1121,6 @@ void SceneRhythm::RenderObj(const std::shared_ptr<RObj> obj) {
 	meshList[obj->geometryType]->material = meshMaterial;
 
 }
-
-
 
 void SceneRhythm::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 

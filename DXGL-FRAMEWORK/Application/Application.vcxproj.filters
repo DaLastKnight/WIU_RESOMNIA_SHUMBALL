@@ -81,6 +81,9 @@
     <ClCompile Include="Source\SceneRhythm.cpp">
       <Filter>Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SRhythmRaycast.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -160,6 +163,9 @@
     </ClInclude>
     <ClInclude Include="Source\SceneRhythm.h">
       <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SRhythmRaycast.h">
+      <Filter>Scene Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

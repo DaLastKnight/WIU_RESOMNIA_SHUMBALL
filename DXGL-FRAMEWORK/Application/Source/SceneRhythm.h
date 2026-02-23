@@ -3,6 +3,10 @@
 
 #include "BaseScene.h"
 
+#include "SRhythmRaycast.h"
+
+#include "Console.h"
+
 
 class SceneRhythm : public BaseScene
 {
@@ -22,9 +26,14 @@ private:
 
 	enum STATE {
 		LOAD_IN,
+		START_INTERMISSION,
 		INTERMISSION,
-		IN_GAME,
+		END_INTERMISSION,
+		START_GAME,
+		GAME,
+		START_RESULT,
 		RESULT,
+		END_RESULT,
 		EXIT,
 
 		TOTAL_STATE
@@ -33,6 +42,7 @@ private:
 	STATE currentState;
 
 	float loadInTimer = 0;
+	float dynamicIntermissionTimer = 0;
 
 	enum GEOMETRY_TYPE : int
 	{
@@ -61,6 +71,7 @@ private:
 		RHYTHM_BASE,
 
 		TRIGGER_BOX,
+		INVISIBLE_WALL,
 
 		TOTAL
 	};
@@ -83,6 +94,22 @@ private:
 
 	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
 	void RenderObj(const std::shared_ptr<RenderObject> obj);
+
+	std::map<std::string, std::weak_ptr<RenderObject>> uiPointsOfInterest;
+	std::map<std::string, std::weak_ptr<RenderObject>> triggerList;
+
+	PhysicsRaycast physicsRaycast;
+
+	// game info
+	int difficulty = 0;
+
+	// input info
+	bool lmb_pressed;
+	bool lmb_down;
+	bool lmb_released;
+	bool rmb_pressed;
+	bool rmb_down;
+	bool rmb_released;
 
 	// debug
 	bool debug = false;

@@ -27,6 +27,9 @@ void TextureLoader::SetDirectory(const std::string& directoryPath) {
 
 GLuint TextureLoader::LoadTexture(const char* file_path) {
 	std::string filePath(file_path);
+
+	Print("loading " + std::string(file_path) + "...", 1);
+
 	if (filePath.find(".tga") != std::string::npos || filePath.find(".TGA") != std::string::npos) {
 		return LoadTGA(file_path);
 	}
@@ -95,6 +98,7 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 
 	delete []data;
 
+	Print("loaded " + actualFilePath, 2);
 	return texture;						
 }
 
@@ -139,5 +143,6 @@ GLuint TextureLoader::LoadPNG(const char* filename)
 
 	stbi_image_free(img);
 
+	Print("loaded " + actualFilePath, 2);
 	return texture;
 }
