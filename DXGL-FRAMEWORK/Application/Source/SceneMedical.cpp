@@ -434,15 +434,9 @@ void SceneMedical::Init() {
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
-		screenRoot->NewChild(MeshObject::Create(PNG_TEST));
-		newObj->trl = vec3(-0.75f, -0.75f, 0);
-		newObj->scl = vec3(80, 80, 1);
+		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
+		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
+		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
@@ -522,6 +516,7 @@ void SceneMedical::Update(double dt) {
 		isGameWon = true;
 	}
 
+	// Doesn't actually work yet as these values are constantly set again and again
 	if (waveNumber == 1)
 	{
 		maxEntitiesP = 10;
@@ -554,6 +549,7 @@ void SceneMedical::Update(double dt) {
 	AddDebugText("Viruses Left: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
 	AddDebugText("Current Spawning Bacteria: " + std::to_string(currentSpawningP));
 	AddDebugText("Current Spawning Viruses: " + std::to_string(currentSpawningAI));
+	AddDebugText("Current Overload Stack: " + std::to_string(overloadingStack));
 
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
@@ -701,14 +697,51 @@ void SceneMedical::Update(double dt) {
 				posZ = static_cast<float>(rand() % 81 - 40);
 			}
 
-			bacteria->AddPhysics(PhysicsObject::KINEMATIC);
+			bacteria->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = bacteria->GetPhysics();
 
 			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 0));
 
 			physics->SetPosition(glm::vec3(posX, posY, posZ));
 
+			Bacteria b;
+			b.object = bacteria;
+			bacterias.push_back(b);
+
 			currentSpawningP++;
+		}
+
+		for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+		{
+			auto& bacteria = bacterias[i];
+
+			if (!bacteria.object || !bacteria.object->GetPhysics())
+			{
+				continue;
+			}
+
+			auto physics = bacteria.object->GetPhysics();
+			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
+
+			float distance = glm::length(AIDir);
+
+			if (distance > 0.1f)
+			{
+				AIDir = glm::normalize(AIDir);
+
+				float bacteriaMovementSpeed = 2.0f;
+				glm::vec3 finalVel = AIDir * bacteriaMovementSpeed;
+				physics->SetVelocity(finalVel);
+			}
+
+			if (distance <= 1.0f + 1.0f)
+			{
+				bacteria.object->Destroy();
+				bacterias.erase(bacterias.begin() + i); // Remove the exact element
+
+				overloadingStack++;
+				remainingEntitiesP--;
+			}
 		}
 
 		if (virusSpawnTimer >= virusSpawnInterval && currentSpawningAI < maxEntitiesAI)
@@ -739,7 +772,7 @@ void SceneMedical::Update(double dt) {
 
 			Virus v;
 			v.object = virus;
-			viruses.push_back(v);
+			viruses.push_back(v); // Send to container
 
 			currentSpawningAI++;
 		}
@@ -762,12 +795,12 @@ void SceneMedical::Update(double dt) {
 			{
 				AIDir = glm::normalize(AIDir);
 
-				float virusMovementSpeed = 1.5f;
+				float virusMovementSpeed = 2.0f;
 				glm::vec3 finalVel = AIDir * virusMovementSpeed;
 				physics->SetVelocity(finalVel);
 			}
 
-			if (distance <= 0.5f + 0.5f)
+			if (distance <= 1.0f + 1.0f)
 			{
 				virus.object->Destroy();
 				viruses.erase(viruses.begin() + i); // Remove the exact element
@@ -1192,6 +1225,9 @@ void SceneMedical::RenderObj(const std::shared_ptr<RObj> obj) {
 	if (obj->material.type != Material::MESH_MATERIAL) {
 		meshList[obj->geometryType]->material = obj->material;
 	}
+
+	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
+	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();

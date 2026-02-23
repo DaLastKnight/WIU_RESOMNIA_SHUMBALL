@@ -102,6 +102,7 @@ private:
 
 	int overloadingStack = 0;
 	int maxOverload = 5;
+	int timesOverloaded = 0; // only use if not enough time to implement losing and resetting to at least base wave
 
 	float bacteriaSpawnTimer = 0.0f;
 	float bacteriaSpawnInterval = 3.0f;
@@ -136,6 +137,8 @@ private:
 	std::vector<Nanobot> nanobots;
 
 	bool isGameWon = false;
+
+	void ChangeWave(); // Use when doing wave system to change wave and accurately update displayed data, to call only once
 };
 
 #endif
