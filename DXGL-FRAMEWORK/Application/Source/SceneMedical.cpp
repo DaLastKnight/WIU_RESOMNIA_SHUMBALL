@@ -729,6 +729,16 @@ void SceneMedical::Update(double dt) {
 			{
 				AIDir = glm::normalize(AIDir);
 
+				// Notes for Bacteria AI patrol movement
+				// Since the bacteria already have colliders with the walls of the map
+				// Maintain total randomisation of spawning location as done with virus models
+				// "Patrol" movement will refer to the idea of just moving but never truly targetting the player
+				// After n time, set the bacteria's velocity to a certain value for it to move in a different direction
+				// Do this by randomising a reference location (patrol point) and get the direction vector
+				// Repeatedly run this patrol movement so that the bacteria will continuously target different patrol points
+				// As a result, they will appear to move mindlessly but in actuality follow a randomised patrol pattern
+				// Try to keep patrol points at the fixed y value of the bacteria, only randomising x and z values
+
 				float bacteriaMovementSpeed = 2.0f;
 				glm::vec3 finalVel = AIDir * bacteriaMovementSpeed;
 				physics->SetVelocity(finalVel);
