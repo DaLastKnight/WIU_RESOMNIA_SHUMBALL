@@ -42,6 +42,8 @@ public:
 
 private:
 
+	bool dirtyWorldList = false;
+
 	enum SFX_TYPE {
 		GOOFY_AHH_ASRIEL_STAR_SOUND,
 
