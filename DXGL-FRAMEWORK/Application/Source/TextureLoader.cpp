@@ -41,19 +41,19 @@ GLuint TextureLoader::LoadTexture(const char* file_path) {
 	return GLuint();
 }
 
-GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memory
+GLuint TextureLoader::LoadTGA(const char* file_path)				// load TGA file to memory
 {
 	std::string actualFilePath = directory + file_path;
 	std::ifstream fileStream(actualFilePath, std::ios::binary);
-	if(!fileStream.is_open()) {
+	if (!fileStream.is_open()) {
 		Error("TextureLoader::LoadTGA(): Impossible to open " + actualFilePath + ". Are you in the right directory?");
 		return 0;
 	}
 
-	GLubyte		header[ 18 ];									// first 6 useful header bytes
+	GLubyte		header[18];									// first 6 useful header bytes
 	GLuint		bytesPerPixel;								    // number of bytes per pixel in TGA gile
 	GLuint		imageSize;									    // for setting memory
-	GLubyte *	data;
+	GLubyte* data;
 	GLuint		texture = 0;
 	unsigned	width, height;
 
@@ -61,27 +61,27 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	width = header[12] + header[13] * 256;
 	height = header[14] + header[15] * 256;
 
- 	if(	width <= 0 ||								// is width <= 0
+	if (width <= 0 ||								// is width <= 0
 		height <= 0 ||								// is height <=0
 		(header[16] != 24 && header[16] != 32))		// is TGA 24 or 32 Bit
 	{
 		fileStream.close();							// close file on failure
 		Error("TextureLoader::LoadTGA(): File header error.");
-		return 0;										
+		return 0;
 	}
 
-	bytesPerPixel	= header[16] / 8;						//divide by 8 to get bytes per pixel
-	imageSize		= width * height * bytesPerPixel;	// calculate memory required for TGA data
-	
-	data = new GLubyte[ imageSize ];
+	bytesPerPixel = header[16] / 8;						//divide by 8 to get bytes per pixel
+	imageSize = width * height * bytesPerPixel;	// calculate memory required for TGA data
+
+	data = new GLubyte[imageSize];
 	fileStream.seekg(18, std::ios::beg);
-	fileStream.read((char *)data, imageSize);
-	fileStream.close();	
+	fileStream.read((char*)data, imageSize);
+	fileStream.close();
 
 	glGenTextures(1, &texture);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	if(bytesPerPixel == 3)
+	if (bytesPerPixel == 3)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
 	else //bytesPerPixel == 4
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
@@ -96,10 +96,10 @@ GLuint TextureLoader::LoadTGA(const char *file_path)				// load TGA file to memo
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	//end of modifiable code
 
-	delete []data;
+	delete[]data;
 
 	Print("loaded " + actualFilePath, 2);
-	return texture;						
+	return texture;
 }
 
 GLuint TextureLoader::LoadPNG(const char* filename)
