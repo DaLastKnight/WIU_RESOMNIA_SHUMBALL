@@ -424,6 +424,7 @@ void SceneMedical::Init() {
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 			physics->SetPosition(newObj->trl);
+			physics->SetCollisionActive(true);
 		}
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(10, 0, -5);
@@ -452,7 +453,7 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
 			newObj->trl = glm::vec3(envStringRandTrlX[i], 0, envStringRandTrlZ[i]);
 			newObj->rot = glm::vec3(envStringRandRotX[i], 0, envStringRandRotZ[i]);
-			newObj->scl = glm::vec3(0.8f, 0.8f, 0.8f);
+			newObj->scl = glm::vec3(0.8f, 1.0f, 0.8f);
 		}
 	}
 
@@ -768,7 +769,32 @@ void SceneMedical::Update(double dt) {
 
 			physics->SetPosition(glm::vec3(posX, posY, posZ));
 
+			Virus v;
+			v.object = virus;
+			viruses.push_back(v);
+
 			currentSpawningAI++;
+		}
+
+		for (auto& virus : viruses)
+		{
+			if (!virus.object || !virus.object->GetPhysics())
+			{
+				continue;
+			}
+			auto physics = virus.object->GetPhysics();
+			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
+
+			float distance = glm::length(AIDir);
+
+			if (distance > 0.1f)
+			{
+				AIDir = glm::normalize(AIDir);
+
+				float virusMovementSpeed = 1.0f;
+				glm::vec3 finalVel = AIDir * virusMovementSpeed;
+				physics->SetVelocity(finalVel);
+			}
 		}
 
 		if (debug) {
@@ -914,7 +940,18 @@ void SceneMedical::Update(double dt) {
 					{
 						std::cout << "Wall contacted something!\n";
 					});
-				eventListener.AddToTriggerEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
+				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
+				physics->contactEvent.lock = true;
+			}
+			if (obj->name == "player")
+			{
+				physics->contactEvent.Subscribe(
+					[&](const rp3d::Body* other)
+				    {
+					std::cout << "Wall contacted something!\n";
+					});
+				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
+				physics->contactEvent.lock = true;
 			}
 			i++;
 		}
@@ -1139,7 +1176,7 @@ void SceneMedical::HandleKeyPress() {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
 
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Q))
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P))
 		{ // Test
 			waveNumber++;
 		}

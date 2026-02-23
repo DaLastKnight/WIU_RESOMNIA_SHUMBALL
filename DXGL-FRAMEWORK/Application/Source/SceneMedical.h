@@ -117,6 +117,7 @@ private:
 	struct Virus
 	{
 		std::shared_ptr<RenderObject> object;
+		float kbTimer = 0.0f;
 	};
 
 	std::vector<Virus> viruses;
@@ -128,7 +129,7 @@ private:
 	};
 
 	bool isNanobotFired = false;
-	int maxNanobotAmmo = 5;
+	int maxNanobotAmmo = 15;
 	int currentActiveNanobotAmmo = 0;
 	std::vector<Nanobot> nanobots;
 
