@@ -60,7 +60,7 @@ void RenderObject::SortScreenList() {
 }
 
 void RenderObject::UpdateModel() {
-	if (isDirty || trl != prevTrl || rot != prevRot || scl != prevScl) {
+	if (isDirty || trl != prevTrl || rot != prevRot || scl != prevScl || colorFilter != prevColorFilter || prevAlpha != alpha) {
 		prevTrl = trl;
 		prevRot = rot;
 		prevScl = scl;

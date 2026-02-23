@@ -134,6 +134,8 @@ protected:
 	glm::vec3 prevTrl = trl;
 	glm::vec3 prevRot = rot;
 	glm::vec3 prevScl = scl;
+	glm::vec3 prevColorFilter = colorFilter;
+	float prevAlpha = alpha;
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
 

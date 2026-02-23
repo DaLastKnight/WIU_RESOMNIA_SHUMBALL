@@ -74,18 +74,12 @@ void SceneRhythm::Init() {
 	// audio init
 	{
 		// music init
-		AudioManager::GetInstance().LoadMUS("A_CYBERS_WORLD_DELTARUNE_Chapter_2_Soundtrack_Toby_Fox.ogg", 166); 
+		AudioManager::GetInstance().LoadMUS("A_CYBERS_WORLD_DELTARUNE_Chapter_2_Soundtrack_Toby_Fox.ogg", 166);
 
 		// sfx init
 		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
 
 	}
-
-	// atmosphere init
-	{
-		atmosphere.Set(vec3(0.05f, 0.05f, 0.05f), 1, 2, 1, 10);
-		UpdateAtmosphereUniform();
-	}	
 
 	// Init VBO here
 	{
@@ -94,17 +88,15 @@ void SceneRhythm::Init() {
 			meshList[i] = nullptr;
 		}
 
-		auto blackTexture = TextureLoader::LoadTexture("black.png");
-
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, blackTexture);
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", blackTexture);
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5);
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox");
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
-		meshList[BLACK] = MeshBuilder::GenerateQuad("black", vec3(), 1, 1, blackTexture);
+		meshList[BLACK] = MeshBuilder::GenerateQuad("black", vec3(), 1, 1, TextureLoader::LoadTexture("black.png"));
 
 		meshList[RT_BASE_UI] = MeshBuilder::GenerateQuad("rt base ui", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_base_ui.png"), true);
 		meshList[RT_PANEL_BASE] = MeshBuilder::GenerateQuad("rt panel base", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_panel_base.png"), true);
@@ -149,7 +141,7 @@ void SceneRhythm::Init() {
 			obj->material.Set(Material::NO_LIGHT); 
 			});
 		RObj::setDefaultStat.Subscribe(GROUND, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(vec3(0.1f), vec3(0.65f), vec3(0), 1);
+			obj->material.Set(vec3(0.6f), vec3(0.65f), vec3(0), 1);
 			obj->offsetRot = vec3(-90, 0, 0);
 
 			obj->AddPhysics(PhysicsObject::STATIC); // takes in PhysicsObject::BODY_TYPE
@@ -178,55 +170,56 @@ void SceneRhythm::Init() {
 			});
 
 		RObj::setDefaultStat.Subscribe(RT_BASE_UI, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->scl = vec3(2, 2, 1);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_PANEL_BASE, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->scl = vec3(2, 2, 1);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_DISC, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_OPU, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_OPU_BASE, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_UPLOAD_BTN, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_UPLOAD_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_LOSSLESS_BTN, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_LOSSLESS_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_COMPRESSED_BTN, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(RT_COMPRESSED_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
+			obj->material.Set(Material::BRIGHT);
 			obj->hasTransparency = true;
 			});
 
 		RObj::setDefaultStat.Subscribe(RHYTHM_BASE, [](const std::shared_ptr<RObj>& obj) {
-			int height = 50;
-			int width = 10;
+			obj->material.Set(Material::NEON);
+			int height = 10;
+			int width = 4;
 			obj->offsetScl = vec3(width, height, 1);
 			obj->offsetTrl = vec3(0, height * 0.5f, 0);
 
@@ -342,19 +335,49 @@ void SceneRhythm::Init() {
 		physics = newObj->GetPhysics();
 		physics->SetTransform(vec3(-5, 0, 0), vec3(0, 90, 0));
 
+		worldRoot->NewChild(MeshObject::Create(RHYTHM_BASE));
+		newObj->name = "rhythm base";
+		newObj->trl = vec3(0, 0.2f, 0);
+		newObj->rot = vec3(-90, 0, 0);
+		inGamePointsOfInterest[newObj->name] = newObj;
+
 		// light init
 		{
 			std::shared_ptr<LightObject> newLightObj;
+
+			rtUI->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				auto& lp = newLightObj->lightProperties;
+				lp.type = Light::LIGHT_POINT;
+				lp.color = vec3(0.92f, 0.95f, 1);
+				lp.power = 1;
+				lp.kC = 0.75f;
+				lp.kL = 0.005f;
+				lp.kQ = 0.05f;
+
+				UpdateLightUniform(newLightObj);
+			}
+
+			panelUI->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				auto& lp = newLightObj->lightProperties;
+				lp.type = Light::LIGHT_POINT;
+				lp.color = vec3(0.92f, 0.95f, 1);
+				lp.power = 0.75f;
+				lp.kC = 0.5f;
+				lp.kL = 0.01f;
+				lp.kQ = 0.1f;
+
+				UpdateLightUniform(newLightObj);
+			}
 		}
 	}
 
 	// view space init
 	{
-		viewRoot->NewChild(MeshObject::Create(GROUP));
-		auto rhythmGameGroup = newObj;
-		newObj->name = "rhythm game";
-		newObj->trl = vec3(0, -1, -2);
-		newObj->rot = vec3(-75, 0, 0);
+		
 	}
 
 	// screen space init
@@ -382,7 +405,7 @@ void SceneRhythm::Init() {
 
 		// camera init
 		camera.Init(glm::vec3(1, 1.5f, -1), vec3(0, 0, -1));
-		camera.Set(FPCamera::MODE::FIRST_PERSON);
+		camera.Set(FPCamera::MODE::LOCK_ON);
 		camera.bobbingMaxPsi = 0.6f;
 		camera.bobbingMaxX = 0.05f;
 		camera.bobbingMaxY = 0.025f;
@@ -394,6 +417,17 @@ void SceneRhythm::Init() {
 	}
 
 	RObj::newObject.reset();
+
+	// atmosphere init
+	{
+		atmosphere.Set(vec3(0.09f, 0.12f, 0.2f), 0, 0.01f, 1, 10);
+		UpdateAtmosphereUniform();
+	}
+
+	// game info init
+	{
+		globalSurroundingColor = vec3(0.09f, 0.12f, 0.2f);
+	}
 }
 
 void SceneRhythm::Update(double dt) {
@@ -438,12 +472,17 @@ void SceneRhythm::Update(double dt) {
 	}
 	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
 
+	// atmosphere
+	atmosphere.color = Smooth(atmosphere.color, globalSurroundingColor, 20, dt);
+	UpdateAtmosphereUniform(U_ATMOSPHERE_COLOR);
+
 	switch (currentState) {
 	case LOAD_IN:
 		loadInTimer += dt;
 		camera.SetDirection(vec3(0, 0, -1));
 
 		if (loadInTimer > 0.2f) {
+			camera.Set(FPCamera::MODE::FIRST_PERSON);
 			currentState = START_INTERMISSION;
 		}
 		break;
@@ -456,7 +495,7 @@ void SceneRhythm::Update(double dt) {
 		break;
 	case END_INTERMISSION:
 		dynamicIntermissionTimer += dt;
-		if (dynamicIntermissionTimer > 5) {
+		if (dynamicIntermissionTimer > 3) {
 			dynamicIntermissionTimer = 0;
 			currentState = START_GAME;
 		}
@@ -483,6 +522,25 @@ void SceneRhythm::Update(double dt) {
 			player.UpdatePhysics(dt);
 	}
 
+	// in game poi
+	for (auto& pair : inGamePointsOfInterest) {
+		auto obj = pair.second.lock();
+
+		if (currentState == START_GAME) {
+			obj->allowRender = true;
+			obj->alpha = Smooth(obj->alpha, 1.f, 30, dt);
+		}
+		else if (currentState == GAME) {
+
+		}
+		else if (currentState == START_RESULT) {
+			obj->alpha = Smooth(obj->alpha, 0.f, 20, dt);
+		}
+		else {
+			obj->alpha = 0.f;
+		}
+	}
+
 	// world render objects
 	for (unsigned i = 0; i < worldList.size(); ) {
 		if (worldList[i].expired()) {
@@ -500,10 +558,12 @@ void SceneRhythm::Update(double dt) {
 		case SKYBOX:
 			obj->trl = camera.GetFinalPosition();
 			obj->allowRender = !renderDebugPhysics;
+			obj->colorFilter = Smooth(obj->colorFilter, globalSurroundingColor, 20, dt);
 			break;
 
 		case GROUND:
 			obj->allowRender = !renderDebugPhysics;
+			obj->colorFilter = Smooth(obj->colorFilter, globalSurroundingColor, 20, dt);
 			break;
 
 		default:
@@ -1075,6 +1135,9 @@ void SceneRhythm::RenderObj(const std::shared_ptr<RObj> obj) {
 	if (obj->material.type != Material::MESH_MATERIAL) {
 		meshList[obj->geometryType]->material = obj->material;
 	}
+
+	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
+	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();

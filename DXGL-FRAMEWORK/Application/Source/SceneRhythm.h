@@ -96,12 +96,14 @@ private:
 	void RenderObj(const std::shared_ptr<RenderObject> obj);
 
 	std::map<std::string, std::weak_ptr<RenderObject>> uiPointsOfInterest;
+	std::map<std::string, std::weak_ptr<RenderObject>> inGamePointsOfInterest;
 	std::map<std::string, std::weak_ptr<RenderObject>> triggerList;
 
 	PhysicsRaycast physicsRaycast;
 
 	// game info
 	int difficulty = 0;
+	glm::vec3 globalSurroundingColor;
 
 	// input info
 	bool lmb_pressed;

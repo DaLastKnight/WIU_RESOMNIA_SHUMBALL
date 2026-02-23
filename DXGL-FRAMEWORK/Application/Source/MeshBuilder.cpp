@@ -1050,11 +1050,11 @@ Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, un
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName, unsigned textureID) {
+Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName, int textureID) {
 	Vertex v; // Vertex definition
 	std::vector<Vertex> vertex_buffer_data; // Vertex Buffer Objects
 	std::vector<GLuint> index_buffer_data; // Element Buffer Objects
-	v.color = glm::vec3(1, 1, 1);
+	v.color = glm::vec3(1);
 	float size = 1000;
 	float width = size, height = size, length = size;
 
@@ -1175,12 +1175,13 @@ Mesh* MeshBuilder::GenerateSkybox(const std::string& meshName, unsigned textureI
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	if (textureID != -1)
 	mesh->textureID = textureID;
 
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateGround(const std::string& meshName, float size, float texSize, unsigned textureID)
+Mesh* MeshBuilder::GenerateGround(const std::string& meshName, float size, float texSize, int textureID)
 {
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;
@@ -1226,6 +1227,7 @@ Mesh* MeshBuilder::GenerateGround(const std::string& meshName, float size, float
 
 	mesh->indexSize = index_buffer_data.size();
 	mesh->mode = Mesh::DRAW_TRIANGLES;
+	if (textureID != -1)
 	mesh->textureID = textureID;
 
 	return mesh;
