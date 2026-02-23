@@ -110,6 +110,7 @@ private:
 	struct Bacteria
 	{
 		std::shared_ptr<RenderObject> object;
+		int bacteriaHP = 2;
 	};
 
 	std::vector<Bacteria> bacterias;
@@ -117,7 +118,7 @@ private:
 	struct Virus
 	{
 		std::shared_ptr<RenderObject> object;
-		float kbTimer = 0.0f;
+		int virusHP = 3;
 	};
 
 	std::vector<Virus> viruses;

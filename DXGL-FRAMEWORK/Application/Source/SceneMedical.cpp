@@ -778,10 +778,11 @@ void SceneMedical::Update(double dt) {
 
 		for (auto& virus : viruses)
 		{
-			if (!virus.object || !virus.object->GetPhysics())
+			/*if (!virus.object || !virus.object->GetPhysics())
 			{
 				continue;
-			}
+			}*/
+
 			auto physics = virus.object->GetPhysics();
 			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
 
@@ -791,11 +792,20 @@ void SceneMedical::Update(double dt) {
 			{
 				AIDir = glm::normalize(AIDir);
 
-				float virusMovementSpeed = 1.0f;
+				float virusMovementSpeed = 1.5f;
 				glm::vec3 finalVel = AIDir * virusMovementSpeed;
 				physics->SetVelocity(finalVel);
 			}
+
+			if (distance <= 0.5f + 0.5f)
+			{
+				virus.object->Destroy();
+				virus.object.reset();
+				overloadingStack++;
+			}
 		}
+
+		viruses.erase(std::remove_if(viruses.begin(), viruses.end(), [](const Virus& v) { return !v.object; }), viruses.end());
 
 		if (debug) {
 
@@ -943,7 +953,7 @@ void SceneMedical::Update(double dt) {
 				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
 				physics->contactEvent.lock = true;
 			}
-			if (obj->name == "player")
+			else if (obj->name == "player")
 			{
 				physics->contactEvent.Subscribe(
 					[&](const rp3d::Body* other)
@@ -953,6 +963,16 @@ void SceneMedical::Update(double dt) {
 				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
 				physics->contactEvent.lock = true;
 			}
+			/*else if (obj->geometryType == VIRUS_MODEL)
+			{
+				physics->triggerEvent.Subscribe(
+					[&](const rp3d::Body* other)
+					{
+						std::cout << "Virus collided\n";
+					});
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart));
+				physics->triggerEvent.lock = true;
+			}*/
 			i++;
 		}
 	}
