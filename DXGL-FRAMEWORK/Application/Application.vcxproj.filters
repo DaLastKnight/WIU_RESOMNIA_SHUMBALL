@@ -84,6 +84,9 @@
     <ClCompile Include="Source\SRhythmRaycast.cpp">
       <Filter>Scene Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Source\NotificationManager.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -165,6 +168,9 @@
       <Filter>Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Source\SRhythmRaycast.h">
+      <Filter>Scene Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\NotificationManager.h">
       <Filter>Scene Resource</Filter>
     </ClInclude>
   </ItemGroup>

@@ -156,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\NotificationManager.cpp" />
     <ClCompile Include="Source\PhysicsManager.cpp" />
     <ClCompile Include="Source\DialogueManager.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="Source\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\NotificationManager.h" />
     <ClInclude Include="Source\PhysicsManager.h" />
     <ClInclude Include="Source\DataManager.h" />
     <ClInclude Include="Source\DialogueManager.h" />
