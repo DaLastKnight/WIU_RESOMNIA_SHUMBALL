@@ -96,6 +96,9 @@ void BaseScene::Init()
 		m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 		m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
 
+		m_parameters[U_COLOR_FILTER] = glGetUniformLocation(m_programID, "colorFilter");
+		m_parameters[U_COLOR_ALPHA] = glGetUniformLocation(m_programID, "colorAlp");
+
 		Mesh::SetMaterialLoc(m_parameters[U_MATERIAL_AMBIENT], m_parameters[U_MATERIAL_DIFFUSE], m_parameters[U_MATERIAL_SPECULAR], m_parameters[U_MATERIAL_SHININESS]);
 	
 		for (unsigned lightIndex = 0; lightIndex < MAX_LIGHT; lightIndex++) {

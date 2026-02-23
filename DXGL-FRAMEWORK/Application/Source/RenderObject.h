@@ -40,6 +40,9 @@ public:
 	int geometryType;
 	Material material;
 
+	glm::vec3 colorFilter = glm::vec3(1);
+	float alpha = 1;
+
 	bool hasTransparency = false;
 	bool allowRender = true;
 	bool relativeTrl = false; // only affect screen render, trl will be from -1 to 1 in relative distance to center and side of the screen, instead of in px
