@@ -59,11 +59,13 @@ inline glm::vec3 Vec3Convert(rp3d::Vector3 vector3) {
 	return glm::vec3(vector3.x, vector3.y, vector3.z);
 }
 
+inline rp3d::Quaternion QuatToQuaternion(glm::quat orientation) {
+	return rp3d::Quaternion(orientation.x, orientation.y, orientation.z, orientation.w);
+}
+
 inline rp3d::Quaternion EulerToQuaternion(glm::vec3 eulerVec3) {
-	rp3d::Quaternion qx(rp3d::Vector3(1, 0, 0), glm::radians(eulerVec3.x));
-	rp3d::Quaternion qy(rp3d::Vector3(0, 1, 0), glm::radians(eulerVec3.y));
-	rp3d::Quaternion qz(rp3d::Vector3(0, 0, 1), glm::radians(eulerVec3.z));
-	return qz * qy * qx;
+	glm::quat quater = glm::quat(glm::radians(eulerVec3));
+	return QuatToQuaternion(quater);
 }
 
 inline rp3d::Transform Vec3ToRp3dTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {

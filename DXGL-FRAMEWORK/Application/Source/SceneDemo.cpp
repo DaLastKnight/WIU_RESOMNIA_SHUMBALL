@@ -555,8 +555,10 @@ void SceneDemo::Update(double dt) {
 					worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
 					auto& newObj = RenderObject::newObject;
 					auto physics = newObj->GetPhysics();
-
+					newObj->colorFilter = vec3(1, 0.5f, 0.5f);
 					physics->AddTorque(vec3(100, 100, 100));
+
+					newObj.reset();
 					});
 				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
 				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
@@ -860,7 +862,19 @@ void SceneDemo::HandleKeyPress() {
 		}
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
+			auto& newObj = RenderObject::newObject;
 			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
+			newObj->alpha = 0.75f;
+			newObj->colorFilter = vec3(1, 1, 0);
+			newObj->hasTransparency = true;
+
+			newObj->NewChild(MeshObject::Create(FLASHLIGHT));
+			newObj->alpha = 0.75f;
+			newObj->hasTransparency = true;
+			newObj->colorFilter = vec3(1, 0, 1);
+			newObj->trl = vec3(1);
+
+			newObj.reset();
 		}
 
 		// fake jump lol
@@ -889,6 +903,9 @@ void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
 	if (obj->material.type != Material::MESH_MATERIAL) {
 		meshList[obj->geometryType]->material = obj->material;
 	}
+
+	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
+	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();
