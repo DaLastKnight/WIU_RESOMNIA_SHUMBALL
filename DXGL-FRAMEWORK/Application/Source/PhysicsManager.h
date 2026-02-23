@@ -150,7 +150,7 @@ public:
     // only add none locked events
     void AddToTriggerEvents(PhysicsEvent physicsEvent);
 
-    void UpdateEventValidity(const rp3d::PhysicsWorld* world);
+    void RemoveEventsOf(PhysicsObject* physics);
 
 private:
 

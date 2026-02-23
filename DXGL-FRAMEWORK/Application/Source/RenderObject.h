@@ -71,6 +71,7 @@ public:
 
 	// Subscribe() to a lambda and itll be Invoke() when creating a object with the same key
 	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDefaultStat;
+	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDestroyedEvent;
 
 	bool isDirty = true;
 
@@ -110,9 +111,7 @@ public:
 
 	void RootInit(RENDER_TYPE renderType, int geometryType);
 
-	virtual ~RenderObject() {
-		delete physics;
-	}
+	virtual ~RenderObject();
 	RenderObject(int geometryType, RENDER_TYPE renderType, unsigned UILayer = 0)
 		: geometryType(geometryType), renderType(renderType), UILayer(UILayer) {
 	}
@@ -141,6 +140,8 @@ protected:
 		return nullptr;
 	}
 	void CloneChildrenFrom(const RenderObject& parentOfClonedChidren);
+
+	void DetachFromParent();
 
 	void AddHierarchyToList(RENDER_TYPE type, std::shared_ptr<RenderObject> obj);
 
