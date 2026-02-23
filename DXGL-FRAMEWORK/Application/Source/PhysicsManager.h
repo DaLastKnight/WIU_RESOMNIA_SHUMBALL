@@ -72,7 +72,7 @@ public:
     void SetOrientation(glm::vec3 eulerRotation);
     void InterpolateTransform();
     glm::mat4 GetModel();
-    glm::vec3 GetPostion();
+    glm::vec3 GetPosition();
     glm::quat GetOrientation();
 
     // colliderAppearace |
@@ -150,7 +150,7 @@ public:
     // only add none locked events
     void AddToTriggerEvents(PhysicsEvent physicsEvent);
 
-    void UpdateEventValidity(const rp3d::PhysicsWorld* world);
+    void RemoveEventsOf(PhysicsObject* physics);
 
 private:
 

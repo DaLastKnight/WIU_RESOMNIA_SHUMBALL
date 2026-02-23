@@ -195,6 +195,9 @@ void SceneDemo::Init() {
 			physics->UpdateMassProperties(); // must call this after getting all colliders set, if you set another collider after this, you have to call this again
 			physics->SetPosition(vec3(0, 5, 0));
 			});
+		RObj::setDestroyedEvent.Subscribe(PHYSICS_BALL, [&](const std::shared_ptr<RObj>& obj) { // these specific lines is required for all physics object that can be deleted in the programe, its safe to add it for all physics objects to be safe in case if you missed any
+			dirtyWorldList = true;
+			});
 		RObj::setDefaultStat.Subscribe(PHYSICS_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::POLISHED_METAL);
 
@@ -206,6 +209,9 @@ void SceneDemo::Init() {
 			physics->UpdateMassProperties();
 			physics->SetPosition(vec3(0, 5, 0));
 			});
+		RObj::setDestroyedEvent.Subscribe(PHYSICS_BOX, [&](const std::shared_ptr<RObj>& obj) { 
+			dirtyWorldList = true;
+			});
 		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
 
@@ -213,6 +219,9 @@ void SceneDemo::Init() {
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
 			physics->SetTrigger(true);
+			});
+		RObj::setDestroyedEvent.Subscribe(TRIGGER_BOX, [&](const std::shared_ptr<RObj>& obj) {
+			dirtyWorldList = true;
 			});
 	}
 
@@ -514,8 +523,6 @@ void SceneDemo::Update(double dt) {
 	}
 
 	// update physics
-	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
-	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
 	PhysicsManager::GetInstance().UpdatePhysics(dt);
 
 	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
@@ -528,6 +535,7 @@ void SceneDemo::Update(double dt) {
 	}
 	
 	{
+		PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
 		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
 		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
 
@@ -553,6 +561,12 @@ void SceneDemo::Update(double dt) {
 				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
 				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
 			}
+			else if (obj->geometryType == PHYSICS_BOX || obj->geometryType == PHYSICS_BALL) { // do not actually write this in yuor code, all input detections should be in HandleKeyPress(), i wrote here is bc i dont want to create a bool member variable just for a test
+				if (MouseController::GetInstance()->IsButtonPressed(MouseController::BUTTON_TYPE::RMB)) {
+					obj->Destroy();
+					obj.reset();
+				}
+			}
 
 			i++;
 		}
@@ -570,8 +584,19 @@ void SceneDemo::Update(double dt) {
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
+	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPosition()));
 	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+
+	// clean world list if dirty
+	if (dirtyWorldList) {
+		for (unsigned i = 0; i < worldList.size(); ) {
+			if (worldList[i].expired()) {
+				worldList.erase(worldList.begin() + i);
+				continue;
+			}
+			i++;
+		}
+	}
 
 }
 

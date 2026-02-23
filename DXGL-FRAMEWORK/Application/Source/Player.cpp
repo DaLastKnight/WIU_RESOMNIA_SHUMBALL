@@ -102,7 +102,7 @@ void Player::UpdatePhysics(double dt) {
 
 void Player::SyncPhysics() {
 	auto obj = renderGroup.lock();
-	position = physics->GetPostion();
+	position = physics->GetPosition();
 	obj->trl = position;
 	obj->rot.y = atan2f(direction.z, direction.x);
 	obj->UpdateModel();

@@ -24,6 +24,7 @@ std::shared_ptr<RenderObject> RenderObject::newObject;
 std::vector<std::weak_ptr<RenderObject>> RenderObject::physicsList;
 
 EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
+EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDestroyedEvent;
 
 void RenderObject::SortScreenList() {
 	std::array<std::vector<std::weak_ptr<RenderObject>>, MAX_UI_LAYERS> bucketList;
@@ -93,15 +94,8 @@ void RenderObject::UsePhysicsModel() {
 }
 
 void RenderObject::Destroy() {
-	if (auto shared_parent = parent.lock()) {
-		for (unsigned i = 0; i < shared_parent->children.size(); i++) {
-			auto& p_child = shared_parent->children[i];
-			if (p_child.get() == this) {
-				shared_parent->children.erase(shared_parent->children.begin() + i);
-				break;
-			}
-		}
-	}
+	DetachFromParent();
+	setDestroyedEvent.Invoke(geometryType, shared_from_this());
 }
 
 void RenderObject::NewChild(std::shared_ptr<RenderObject> child) {
@@ -160,6 +154,10 @@ void RenderObject::RootInit(RENDER_TYPE renderType, int geometryType) {
 	this_shared->UpdateModel();
 }
 
+RenderObject::~RenderObject() {
+	delete physics;
+}
+
 glm::mat4 RenderObject::GetModel() {
 	std::stack < std::shared_ptr<RenderObject>> hierarchyStack;
 
@@ -205,6 +203,18 @@ void RenderObject::CloneChildrenFrom(const RenderObject& parentOfClonedChidren) 
 	for (auto& child : parentOfClonedChidren.children) {
 		children.push_back(child->Clone());
 		children.back()->parent = shared_from_this();
+	}
+}
+
+void RenderObject::DetachFromParent() {
+	if (auto shared_parent = parent.lock()) {
+		for (unsigned i = 0; i < shared_parent->children.size(); i++) {
+			auto& p_child = shared_parent->children[i];
+			if (p_child.get() == this) {
+				shared_parent->children.erase(shared_parent->children.begin() + i);
+				break;
+			}
+		}
 	}
 }
 

@@ -42,7 +42,7 @@ glm::mat4 PhysicsObject::GetModel() {
 	return glm::make_mat4(matrix);
 }
 
-glm::vec3 PhysicsObject::GetPostion() {
+glm::vec3 PhysicsObject::GetPosition() {
 	return Vec3Convert(body->getTransform().getPosition());
 }
 
@@ -181,6 +181,7 @@ PhysicsObject::PhysicsObject(BODY_TYPE type, glm::vec3 position_vec3, glm::vec3 
 }
 
 PhysicsObject::~PhysicsObject() {
+	PhysicsManager::GetInstance().GetEventListener().RemoveEventsOf(this);
 	PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
 }
 
@@ -251,20 +252,20 @@ void PhysicsEventListener::AddToTriggerEvents(PhysicsEvent physicsEvent) {
 	triggerEvents.push_back(physicsEvent);
 }
 
-void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) {
-	for (unsigned i = 0; i < contactEvents.size(); ) {
-		if (world->getRigidBody(contactEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
-			contactEvents.erase(contactEvents.begin() + i);
-			continue;
-		}
-		i++;
+void PhysicsEventListener::RemoveEventsOf(PhysicsObject* physics) {
+	{
+		auto it = std::find_if(contactEvents.begin(), contactEvents.end(), [&physics](const PhysicsEvent& pEvent) {
+			return physics == pEvent.physics;
+			});
+		if (it != contactEvents.end())
+			contactEvents.erase(it);
 	}
-	for (unsigned i = 0; i < triggerEvents.size(); ) {
-		if (world->getRigidBody(triggerEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
-			triggerEvents.erase(triggerEvents.begin() + i);
-			continue;
-		}
-		i++;
+	{
+		auto it = std::find_if(triggerEvents.begin(), triggerEvents.end(), [&physics](const PhysicsEvent& pEvent) {
+			return physics == pEvent.physics;
+			});
+		if (it != triggerEvents.end())
+			triggerEvents.erase(it);
 	}
 }
 
