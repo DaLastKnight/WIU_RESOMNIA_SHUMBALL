@@ -197,10 +197,10 @@ void PhysicsEventListener::onContact(const CollisionCallback::CallbackData& call
 
 		for (auto& event : contactEvents) {
 			if (event.physics->Getbody() == contactPair.getBody1() && event.contactType == contactPair.getEventType()) {
-				event.event.Invoke(contactPair.getBody1());
+				event.event.Invoke(contactPair.getBody2());
 			}
 			else if (event.physics->Getbody() == contactPair.getBody2() && event.contactType == contactPair.getEventType()) {
-				event.event.Invoke(contactPair.getBody2());
+				event.event.Invoke(contactPair.getBody1());
 			}
 		}
 	}
