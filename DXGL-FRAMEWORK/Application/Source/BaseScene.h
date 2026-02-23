@@ -48,6 +48,9 @@ public:
 		U_TEXT_ENABLED,
 		U_TEXT_COLOR,
 
+		U_COLOR_FILTER,
+		U_COLOR_ALPHA,
+
 		U_TOTAL,
 	};
 

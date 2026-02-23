@@ -88,6 +88,17 @@ void RenderObject::UsePhysicsModel() {
 		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.z), vec3(0, 0, 1));
 	if (offsetScl != vec3(1))
 		model = model * glm::scale(mat4(1), vec3(offsetScl.x, offsetScl.y, offsetScl.z));
+
+	std::shared_ptr<RenderObject> selected = shared_from_this();
+	accumulatedColorFilter = vec3(1);
+	accumulatedAlpha = 1;
+
+	while (selected) {
+		accumulatedColorFilter *= selected->colorFilter;
+		accumulatedAlpha *= selected->alpha;
+		selected = selected->parent.lock();
+	}
+
 	for (auto child : children) {
 		child->UpdateModelWithParent(model);
 	}
@@ -159,10 +170,15 @@ RenderObject::~RenderObject() {
 }
 
 glm::mat4 RenderObject::GetModel() {
-	std::stack < std::shared_ptr<RenderObject>> hierarchyStack;
+	std::stack<std::shared_ptr<RenderObject>> hierarchyStack;
 
 	std::shared_ptr<RenderObject> selected = shared_from_this();
+	accumulatedColorFilter = vec3(1);
+	accumulatedAlpha = 1;
+
 	while (selected) {
+		accumulatedColorFilter *= selected->colorFilter;
+		accumulatedAlpha *= selected->alpha;
 		hierarchyStack.push(selected);
 		selected = selected->parent.lock();
 	}
@@ -173,6 +189,7 @@ glm::mat4 RenderObject::GetModel() {
 
 	while (!hierarchyStack.empty()) {
 		TransformModelStack(thisModelStack, hierarchyStack.top());
+
 		hierarchyStack.pop();
 	}
 
@@ -185,6 +202,11 @@ void RenderObject::UpdateModelWithParent(glm::mat4 parentModel) {
 	ms.LoadMatrix(parentModel);
 	TransformModelStack(ms, shared_from_this());
 	model = ms.Top();
+
+	auto parent_shared = parent.lock();
+	accumulatedColorFilter = colorFilter * parent_shared->accumulatedColorFilter;
+	accumulatedAlpha = alpha * parent_shared->accumulatedAlpha;
+
 	for (auto child : children) {
 		child->UpdateModelWithParent(model);
 	}
@@ -272,6 +294,8 @@ void RenderObject::TransformModelStack(MatrixStack& modelStack, const std::share
 		modelStack.Rotate(obj->offsetRot.z, 0, 0, 1);
 	if (obj->offsetScl != vec3(1))
 		modelStack.Scale(obj->offsetScl.x, obj->offsetScl.y, obj->offsetScl.z);
+
+
 }
 
 /********************************* MeshObject *********************************/
