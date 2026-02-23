@@ -8,6 +8,32 @@ class SceneRhythm : public BaseScene
 {
 public:
 
+	SceneRhythm();
+	~SceneRhythm();
+
+	void Init() override;
+	void Update(double dt) override;
+	void Render() override;
+	void Exit() override;
+
+private:
+
+	bool dirtyWorldList = false;
+
+	enum STATE {
+		LOAD_IN,
+		INTERMISSION,
+		IN_GAME,
+		RESULT,
+		EXIT,
+
+		TOTAL_STATE
+	};
+
+	STATE currentState;
+
+	float loadInTimer = 0;
+
 	enum GEOMETRY_TYPE : int
 	{
 		AXES = 0,
@@ -17,6 +43,8 @@ public:
 		GROUP,
 
 		FONT_CASCADIA_MONO,
+
+		BLACK,
 
 		RT_BASE_UI,
 		RT_PANEL_BASE,
@@ -32,20 +60,10 @@ public:
 
 		RHYTHM_BASE,
 
+		TRIGGER_BOX,
+
 		TOTAL
 	};
-
-	SceneRhythm();
-	~SceneRhythm();
-
-	void Init() override;
-	void Update(double dt) override;
-	void Render() override;
-	void Exit() override;
-
-private:
-
-	bool dirtyWorldList = false;
 
 	enum SFX_TYPE {
 		GOOFY_AHH_ASRIEL_STAR_SOUND,

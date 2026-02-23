@@ -41,11 +41,10 @@ using std::string;
 /************************************************************************************ scene functions ************************************************************************************/
 /*****************************************************************************************************************************************************************************************/
 
-SceneRhythm::SceneRhythm() {
-}
+SceneRhythm::SceneRhythm() 
+	: currentState(LOAD_IN) {}
 
-SceneRhythm::~SceneRhythm() {
-}
+SceneRhythm::~SceneRhythm() {}
 
 void SceneRhythm::Init() {
 	// set physics world settings
@@ -94,17 +93,34 @@ void SceneRhythm::Init() {
 		{
 			meshList[i] = nullptr;
 		}
+
+		auto blackTexture = TextureLoader::LoadTexture("black.png");
+
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, blackTexture);
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", blackTexture);
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
+		meshList[BLACK] = MeshBuilder::GenerateQuad("black", vec3(), 1, 1, blackTexture);
+
 		meshList[RT_BASE_UI] = MeshBuilder::GenerateQuad("rt base ui", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_base_ui.png"), true);
+		meshList[RT_PANEL_BASE] = MeshBuilder::GenerateQuad("rt panel base", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_panel_base.png"), true);
+		meshList[RT_DISC] = MeshBuilder::GenerateQuad("rt disc", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_disc.png"), true);
+		meshList[RT_OPU] = MeshBuilder::GenerateQuad("rt OPU", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_OPU.png"), true);
+		meshList[RT_OPU_BASE] = MeshBuilder::GenerateQuad("rt OPU base", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_OPU_bg.png"), true);
+		meshList[RT_UPLOAD_BTN] = MeshBuilder::GenerateQuad("rt upload", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_upload_btn.png"), true);
+		meshList[RT_UPLOAD_BTN_BG] = MeshBuilder::GenerateQuad("rt upload bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_upload_btn_bg.png"), true);
+		meshList[RT_LOSSLESS_BTN] = MeshBuilder::GenerateQuad("rt lossless", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_lossless_btn.png"), true);
+		meshList[RT_LOSSLESS_BTN_BG] = MeshBuilder::GenerateQuad("rt lossless bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_lossless_btn_bg.png"), true);
+		meshList[RT_COMPRESSED_BTN] = MeshBuilder::GenerateQuad("rt compressed", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn.png"), true);
+		meshList[RT_COMPRESSED_BTN_BG] = MeshBuilder::GenerateQuad("rt compressed bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn_bg.png"), true);
 
 		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base texture", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
+
+		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1), 1);
 	}
 
 	// init roots
@@ -156,9 +172,54 @@ void SceneRhythm::Init() {
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
 
+		RObj::setDefaultStat.Subscribe(BLACK, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			});
+
 		RObj::setDefaultStat.Subscribe(RT_BASE_UI, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NEON);
-
+			obj->scl = vec3(2, 2, 1);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_PANEL_BASE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->scl = vec3(2, 2, 1);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_DISC, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_OPU, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_OPU_BASE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_UPLOAD_BTN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_UPLOAD_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_LOSSLESS_BTN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_LOSSLESS_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_COMPRESSED_BTN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_COMPRESSED_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
 			obj->hasTransparency = true;
 			});
 
@@ -171,6 +232,9 @@ void SceneRhythm::Init() {
 			obj->hasTransparency = true;
 			});
 
+		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->allowRender = false;
+			});
 	}
 
 	auto& newObj = RObj::newObject;
@@ -182,10 +246,43 @@ void SceneRhythm::Init() {
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
+		float layerOffset = 0.035f;
 		worldRoot->NewChild(MeshObject::Create(RT_BASE_UI));
 		newObj->trl = vec3(0, 1.5f, 0);
-		auto rhythmUI = newObj;
+		auto rtUI = newObj;
 
+		rtUI->NewChild(MeshObject::Create(RT_UPLOAD_BTN));
+		newObj->trl = vec3(0.225f, -0.15f, layerOffset * 2);
+		newObj->NewChild(MeshObject::Create(RT_UPLOAD_BTN_BG));
+		newObj->trl = vec3(0, 0, -layerOffset);
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		auto physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.2f, 0.1f, 0.001f));
+		physics->SetPosition(vec3(0, 0, 0));
+
+		rtUI->NewChild(MeshObject::Create(RT_LOSSLESS_BTN));
+		newObj->trl = vec3(-0.225f, -0.15f, layerOffset * 2);
+		newObj->NewChild(MeshObject::Create(RT_LOSSLESS_BTN_BG));
+		newObj->trl = vec3(0, 0, -layerOffset);
+
+		rtUI->NewChild(MeshObject::Create(RT_COMPRESSED_BTN));
+		newObj->trl = vec3(-0.225f, -0.2f, layerOffset * 2);
+		newObj->NewChild(MeshObject::Create(RT_COMPRESSED_BTN_BG));
+		newObj->trl = vec3(0, 0, -layerOffset);
+
+		worldRoot->NewChild(MeshObject::Create(RT_PANEL_BASE));
+		newObj->trl = vec3(0, 1.6f, layerOffset);
+		auto panelUI = newObj;
+
+		panelUI->NewChild(MeshObject::Create(RT_OPU_BASE));
+		newObj->trl = vec3(-0.225f, 0, layerOffset);
+		auto opuBase = newObj;
+		opuBase->NewChild(MeshObject::Create(RT_DISC));
+		newObj->trl = vec3(0, 0, layerOffset);
+		opuBase->NewChild(MeshObject::Create(RT_OPU));
+		newObj->trl = vec3(-0.0675f, 0.0675f, layerOffset * 2);
 
 		// light init
 		{
@@ -258,11 +355,12 @@ void SceneRhythm::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 1.5f, -1));
+		camera.Init(glm::vec3(1, 1.5f, -1), vec3(0, 0, -1));
 		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
+		player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0, 0, 5));
 	}
 
 	RObj::newObject.reset();
@@ -287,8 +385,6 @@ void SceneRhythm::Update(double dt) {
 		}
 	}
 
-	// Temporary for now
-	// When the Game State handler, the code snippet below will be stored properly
 	DialogueManager::GetInstance().UpdateDialogue(dt);
 
 	// fps limitation + timer advancement
@@ -311,6 +407,20 @@ void SceneRhythm::Update(double dt) {
 		}
 	}
 	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
+
+	switch (currentState) {
+	case LOAD_IN:
+		loadInTimer += dt;
+		camera.SetDirection(vec3(0, 0, -1));
+
+		if (loadInTimer > 1) {
+			currentState = INTERMISSION;
+		}
+
+		break;
+
+	default: break;
+	}
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
@@ -346,6 +456,11 @@ void SceneRhythm::Update(double dt) {
 
 		case SKYBOX:
 			obj->trl = camera.GetFinalPosition();
+			obj->allowRender = !renderDebugPhysics;
+			break;
+
+		case GROUND:
+			obj->allowRender = !renderDebugPhysics;
 			break;
 
 		default:
