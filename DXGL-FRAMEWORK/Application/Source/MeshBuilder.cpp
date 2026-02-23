@@ -406,7 +406,7 @@ Mesh* MeshBuilder::GenerateFrustum(const std::string& meshName, glm::vec3 color,
 	return mesh;
 }
 
-Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height, int textureID)
+Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height, int textureID, bool backFaceRender)
 {
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;
@@ -437,6 +437,16 @@ Mesh* MeshBuilder::GenerateQuad(const std::string& meshName, glm::vec3 color, fl
 	index_buffer_data.push_back(0);
 	index_buffer_data.push_back(2);
 	index_buffer_data.push_back(3);
+
+	if (backFaceRender) {
+		index_buffer_data.push_back(3);
+		index_buffer_data.push_back(2);
+		index_buffer_data.push_back(1);
+
+		index_buffer_data.push_back(3);
+		index_buffer_data.push_back(1);
+		index_buffer_data.push_back(0);
+	}
 
 	Mesh* mesh = new Mesh(meshName);
 

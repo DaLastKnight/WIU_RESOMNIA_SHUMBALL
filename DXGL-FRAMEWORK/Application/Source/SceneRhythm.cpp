@@ -102,6 +102,8 @@ void SceneRhythm::Init() {
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
+		meshList[RT_BASE_UI] = MeshBuilder::GenerateQuad("rt base ui", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_base_ui.png"), true);
+
 		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base texture", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
 	}
 
@@ -154,10 +156,16 @@ void SceneRhythm::Init() {
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
 
+		RObj::setDefaultStat.Subscribe(RT_BASE_UI, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NEON);
+
+			obj->hasTransparency = true;
+			});
+
 		RObj::setDefaultStat.Subscribe(RHYTHM_BASE, [](const std::shared_ptr<RObj>& obj) {
 			int height = 50;
 			int width = 10;
-			obj->offsetScl = vec3(10, height, 1);
+			obj->offsetScl = vec3(width, height, 1);
 			obj->offsetTrl = vec3(0, height * 0.5f, 0);
 
 			obj->hasTransparency = true;
@@ -173,6 +181,11 @@ void SceneRhythm::Init() {
 		worldRoot->NewChild(MeshObject::Create(GROUND));
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
+
+		worldRoot->NewChild(MeshObject::Create(RT_BASE_UI));
+		newObj->trl = vec3(0, 1.5f, 0);
+		auto rhythmUI = newObj;
+
 
 		// light init
 		{
@@ -224,7 +237,6 @@ void SceneRhythm::Init() {
 		newObj->name = "rhythm game";
 		newObj->trl = vec3(0, -1, -2);
 		newObj->rot = vec3(-75, 0, 0);
-		rhythmGameGroup->NewChild(MeshObject::Create(RHYTHM_BASE));
 	}
 
 	// screen space init
@@ -453,8 +465,6 @@ void SceneRhythm::Update(double dt) {
 	}
 
 	// update physics
-	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
-	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
 	PhysicsManager::GetInstance().UpdatePhysics(dt);
 
 	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
@@ -467,6 +477,7 @@ void SceneRhythm::Update(double dt) {
 	}
 
 	{
+		PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
 		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
 		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
 
@@ -501,6 +512,17 @@ void SceneRhythm::Update(double dt) {
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
 	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPosition()));
 	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+
+	// clean world list if dirty
+	if (dirtyWorldList) {
+		for (unsigned i = 0; i < worldList.size(); ) {
+			if (worldList[i].expired()) {
+				worldList.erase(worldList.begin() + i);
+				continue;
+			}
+			i++;
+		}
+	}
 
 }
 
@@ -720,27 +742,6 @@ void SceneRhythm::HandleKeyPress() {
 
 			player.velocity = finalTrlChange;
 		}
-
-		// action
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-			AudioManager::GetInstance().PlayMUS(0, 1);
-		}
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
-			AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
-		}
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
-			if (AudioManager::GetInstance().PlayingMUS())
-				AudioManager::GetInstance().PauseMUS();
-			else
-				AudioManager::GetInstance().ResumeMUS();
-		}
-		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) > 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() + 1);
-		}
-		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
-		}
-
 	}
 }
 

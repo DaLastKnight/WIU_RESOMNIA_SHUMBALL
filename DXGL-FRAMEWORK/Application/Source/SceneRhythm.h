@@ -18,6 +18,18 @@ public:
 
 		FONT_CASCADIA_MONO,
 
+		RT_BASE_UI,
+		RT_PANEL_BASE,
+		RT_DISC,
+		RT_OPU,
+		RT_OPU_BASE,
+		RT_UPLOAD_BTN,
+		RT_UPLOAD_BTN_BG,
+		RT_LOSSLESS_BTN,
+		RT_LOSSLESS_BTN_BG,
+		RT_COMPRESSED_BTN,
+		RT_COMPRESSED_BTN_BG,
+
 		RHYTHM_BASE,
 
 		TOTAL
@@ -32,6 +44,8 @@ public:
 	void Exit() override;
 
 private:
+
+	bool dirtyWorldList = false;
 
 	enum SFX_TYPE {
 		GOOFY_AHH_ASRIEL_STAR_SOUND,
