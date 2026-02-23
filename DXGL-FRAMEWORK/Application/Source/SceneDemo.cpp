@@ -862,10 +862,19 @@ void SceneDemo::HandleKeyPress() {
 		}
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
+			auto& newObj = RenderObject::newObject;
 			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
-			RenderObject::newObject->alpha = 0.5f;
-			RenderObject::newObject->hasTransparency = true;
-			RenderObject::newObject.reset();
+			newObj->alpha = 0.75f;
+			newObj->colorFilter = vec3(1, 1, 0);
+			newObj->hasTransparency = true;
+
+			newObj->NewChild(MeshObject::Create(FLASHLIGHT));
+			newObj->alpha = 0.75f;
+			newObj->hasTransparency = true;
+			newObj->colorFilter = vec3(1, 0, 1);
+			newObj->trl = vec3(1);
+
+			newObj.reset();
 		}
 
 		// fake jump lol
@@ -895,8 +904,8 @@ void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
 		meshList[obj->geometryType]->material = obj->material;
 	}
 
-	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->colorFilter.r);
-	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->alpha);
+	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
+	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();

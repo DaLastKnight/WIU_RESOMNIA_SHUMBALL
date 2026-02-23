@@ -41,7 +41,9 @@ public:
 	Material material;
 
 	glm::vec3 colorFilter = glm::vec3(1);
+	glm::vec3 accumulatedColorFilter;
 	float alpha = 1;
+	float accumulatedAlpha;
 
 	bool hasTransparency = false;
 	bool allowRender = true;
