@@ -72,7 +72,7 @@ public:
     void SetOrientation(glm::vec3 eulerRotation);
     void InterpolateTransform();
     glm::mat4 GetModel();
-    glm::vec3 GetPostion();
+    glm::vec3 GetPosition();
     glm::quat GetOrientation();
 
     // colliderAppearace |
