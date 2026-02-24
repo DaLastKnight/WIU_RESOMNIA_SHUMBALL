@@ -64,7 +64,7 @@ void SceneMedical::Init() {
 
 	{
 		if (ALLOW_PHYSICS_DEBUG) {
-			PhysicsManager::GetInstance().SetUpLogger("SceneDemo");
+			PhysicsManager::GetInstance().SetUpLogger("SceneMedical");
 			PhysicsManager::GetInstance().SeteDebugRendering(true);
 			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
 		}
@@ -125,10 +125,17 @@ void SceneMedical::Init() {
 		meshList[ENV_LIQUID_MODEL] = MeshBuilder::GenerateCylinder("Map Liquid Environment", vec3(1), 360, 0.5f, 1);
 		meshList[ENV_LIQUID_MODEL]->textureID = TextureLoader::LoadTexture("red_liquid.png");
 		meshList[ENV_LIQUID_FLAT_MODEL] = MeshBuilder::GenerateQuad("Map Liquid Flat Environment", vec3(1), 1, 1, TextureLoader::LoadTexture("red_liquid.png"));
+		
 		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
 		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
 		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
-
+		
+		meshList[GAME_CROSSHAIR] = MeshBuilder::GenerateQuad("Crosshair", vec3(1, 1, 0), 1, 1);
+		meshList[GAME_OVERLOADSTACK_BASE] = MeshBuilder::GenerateQuad("Overload UI Base", vec3(0.7f, 0.7f, 0.7f), 1, 1);
+		meshList[GAME_OVERLOADSTACK_PLATE] = MeshBuilder::GenerateQuad("Overload UI Plating", vec3(0), 1, 1);
+		meshList[GAME_OVERLOADSTACK_G] = MeshBuilder::GenerateQuad("Overload UI Safe", vec3(0, 1, 0), 1, 1);
+		meshList[GAME_OVERLOADSTACK_Y] = MeshBuilder::GenerateQuad("Overload UI Warning", vec3(1, 1, 0), 1, 1);
+		meshList[GAME_OVERLOADSTACK_R] = MeshBuilder::GenerateQuad("Overload UI Danger", vec3(1, 0, 0), 1, 1);
 	}
 
 	// init roots
@@ -217,6 +224,30 @@ void SceneMedical::Init() {
 		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(NANOBOT_MODEL, [](const std::shared_ptr<RObj>& obj) {
+			});
+		RObj::setDefaultStat.Subscribe(GAME_CROSSHAIR, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_BASE, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_PLATE, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_G, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_Y, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_R, [](const std::shared_ptr<RObj>& obj) {
+			obj->relativeTrl = true;
+			obj->hasTransparency = true;
 			});
 	}
 
@@ -438,8 +469,21 @@ void SceneMedical::Init() {
 		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
 		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
 
+		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Vertical
+		newObj->scl = glm::vec3(5.f, 20.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Horizontal
+		newObj->scl = glm::vec3(20.f, 5.f, 1);
+
+		screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_BASE));
+		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
+		newObj->scl = glm::vec3(350.f, 50.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_PLATE, 1));
+		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
+		newObj->scl = glm::vec3(340.f, 40.f, 1);
+
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
+		InitSceneMedicalText(FONT_CASCADIA_MONO);
 	}
 
 	/************************ bellow for external class inits ************************/
@@ -458,6 +502,17 @@ void SceneMedical::Init() {
 void SceneMedical::Update(double dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
+	ClearSceneMedicalText();
+
+	// Win/Lose Condition Checking
+	if (overloadingStack >= 5)
+	{
+		ChangeWave(GetWave()); // Reset Wave Data
+		// Delete all previous entities
+		// ...
+		changeInOverloadStack = true;
+		overloadingStack = 0;
+	}
 
 	// fps calculation
 	const float fpsUpdateTime = 0.5f;
@@ -490,9 +545,9 @@ void SceneMedical::Update(double dt) {
 				waveTimeLeft = 180;
 			}
 		}
-		AddDebugText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
+		AddSceneMedicalText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
 	}
-	AddDebugText("Wave: " + std::to_string(waveNumber) + "/3");
+	AddSceneMedicalText("Wave: " + std::to_string(waveNumber) + "/3");
 
 	// Calculate Game Timers
 	bacteriaSpawnTimer += dt;
@@ -504,56 +559,47 @@ void SceneMedical::Update(double dt) {
 	for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
 	{
 		bacterias[i].bacteriaDivertTimer -= dt;
+		if (bacterias[i].bacteriaInvulnerabilityTimer > 0.0f)
+		{
+			bacterias[i].bacteriaInvulnerabilityTimer -= dt;
+			if (bacterias[i].bacteriaInvulnerabilityTimer < 0.0f)
+			{
+				bacterias[i].bacteriaInvulnerabilityTimer = 0.0f;
+			}
+		}
+	}
+	for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
+	{
+		if (viruses[i].virusInvulnerabilityTimer > 0.0f)
+		{
+			viruses[i].virusInvulnerabilityTimer -= dt;
+			if (viruses[i].virusInvulnerabilityTimer < 0.0f)
+			{
+				viruses[i].virusInvulnerabilityTimer = 0.0f;
+			}
+		}
 	}
 
 	// Manage Wave Data
 	if (waveNumber == 1 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
 	{
-		waveNumber = 2;
+		ChangeWave(2);
 	}
 	else if (waveNumber == 2 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
 	{
-		waveNumber = 3;
+		ChangeWave(3);
 	}
 	else if (waveNumber == 3 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
 	{
 		isGameWon = true;
 	}
 
-	// Doesn't actually work yet as these values are constantly set again and again
-	if (waveNumber == 1)
-	{
-		maxEntitiesP = 10;
-		maxEntitiesAI = 5;
-		remainingEntitiesP = 10;
-		remainingEntitiesAI = 5;
-	}
-	else if (waveNumber == 2)
-	{
-		maxEntitiesP = 15;
-		maxEntitiesAI = 10;
-		currentSpawningP = 0;
-		currentSpawningAI = 0;
-		remainingEntitiesP = 15;
-		remainingEntitiesAI = 10;
-	}
-	else if (waveNumber == 3)
-	{
-		maxEntitiesP = 20;
-		maxEntitiesAI = 15;
-		remainingEntitiesP = 20;
-		remainingEntitiesAI = 15;
-	}
-	else
-	{
-		waveNumber = 1; // Set to default if somehow fails and is not between 1 to 3
-		std::cout << "Wave may be incorrect" << std::endl;
-	}
-	AddDebugText("Bacteria Left: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
-	AddDebugText("Viruses Left: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
-	AddDebugText("Current Spawning Bacteria: " + std::to_string(currentSpawningP));
-	AddDebugText("Current Spawning Viruses: " + std::to_string(currentSpawningAI));
-	AddDebugText("Current Overload Stack: " + std::to_string(overloadingStack));
+	AddSceneMedicalText("Bacteria Alive: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
+	AddSceneMedicalText("Viruses Alive: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
+	AddSceneMedicalText("Seen Bacteria: " + std::to_string(currentSpawningP) + "/" + std::to_string(maxEntitiesP));
+	AddSceneMedicalText("Seen Viruses: " + std::to_string(currentSpawningAI) + "/" + std::to_string(maxEntitiesAI));
+	AddSceneMedicalText("Current Overload Stack: " + std::to_string(overloadingStack * 100 / 5) + "%");
+	AddSceneMedicalText("Nanobot Ammo: " + std::to_string(maxNanobotAmmo - currentActiveNanobotAmmo) + "/" + std::to_string(maxNanobotAmmo));
 
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
@@ -712,6 +758,7 @@ void SceneMedical::Update(double dt) {
 			b.object = bacteria;
 			b.bacteriaDivertTimer = 0.0f;
 			b.bacteriaHP = 2;
+			b.bacteriaInvulnerabilityTimer = 0.0f;
 			bacterias.push_back(b);
 
 			currentSpawningP++;
@@ -771,6 +818,7 @@ void SceneMedical::Update(double dt) {
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
 
 				overloadingStack++;
+				changeInOverloadStack = true;
 				remainingEntitiesP--;
 			}
 
@@ -788,11 +836,14 @@ void SceneMedical::Update(double dt) {
 
 				if (distanceToNano <= 1.0f + 1.0f)
 				{
-					if (bacteria.bacteriaHP > 0)
+					if (bacteria.bacteriaHP > 0 && bacteria.bacteriaInvulnerabilityTimer <= 0.0f)
 					{
 						bacteria.bacteriaHP--;
+						bacteria.bacteriaInvulnerabilityTimer = 1.0f;
 					}
-					else
+					
+
+					if (bacteria.bacteriaHP <= 0)
 					{
 						bacteria.object->Destroy();
 						bacterias.erase(bacterias.begin() + i); // Remove the exact element
@@ -834,6 +885,7 @@ void SceneMedical::Update(double dt) {
 			Virus v;
 			v.object = virus;
 			v.virusHP = 3;
+			v.virusInvulnerabilityTimer = 0.0f;
 			viruses.push_back(v); // Send to container
 
 			currentSpawningAI++;
@@ -871,6 +923,7 @@ void SceneMedical::Update(double dt) {
 				viruses.erase(viruses.begin() + i); // Remove the exact element
 
 				overloadingStack++;
+				changeInOverloadStack = true;
 				remainingEntitiesAI--;
 			}
 
@@ -888,18 +941,22 @@ void SceneMedical::Update(double dt) {
 
 				if (distanceToNano <= 1.0f + 1.0f)
 				{
-					if (virus.virusHP > 0)
+					if (virus.virusHP > 0 && virus.virusInvulnerabilityTimer <= 0.0f)
 					{
 						virus.virusHP--;
+						virus.virusInvulnerabilityTimer = 1.0f;
+						std::cout << virus.virusHP << std::endl;
+						std::cout << virus.virusInvulnerabilityTimer << std::endl;
 					}
-					else
+
+					if (virus.virusHP <= 0)
 					{
 						virus.object->Destroy();
 						viruses.erase(viruses.begin() + i); // Remove the exact element
 
 						remainingEntitiesAI--;
 
-						virusDestroyed = true;
+						virusDestroyed = true; // exit the loop and prevent accessing erased memory for the rest of the loop as object is already gone
 					}
 				}
 			}
@@ -945,10 +1002,11 @@ void SceneMedical::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
-
-
-
-
+		if (changeInOverloadStack)
+		{
+			ShowOverloadStack();
+			changeInOverloadStack = false;
+		}
 
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 			if (textObj->name.find("dial_s") != std::string::npos) {
@@ -1293,11 +1351,6 @@ void SceneMedical::HandleKeyPress() {
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
-
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P))
-		{ // Test
-			waveNumber++;
-		}
 	}
 }
 
@@ -1423,7 +1476,7 @@ void SceneMedical::InitDebugText(GEOMETRY_TYPE font) {
 	for (int i = 0; i < 10; i++) {
 		screenRoot->NewChild(TextObject::Create("_debugtxt_" + std::to_string(i), "", vec3(0, 1, 0), font, false, 99));
 		newObj->relativeTrl = true;
-		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->trl = vec3(-0.98f, -0.95f + i * 0.05f, 0);
 		newObj->scl = vec3(30, 30, 1);
 		debugTextList.push_back(newObj);
 	}
@@ -1451,5 +1504,119 @@ bool SceneMedical::AddDebugText(const std::string& text, int index) {
 
 void SceneMedical::ClearDebugText() {
 	for (auto& obj_weak : debugTextList)
+		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
+}
+
+void SceneMedical::ChangeWave(int waveNumber)
+{
+	currentSpawningP = 0;
+	currentSpawningAI = 0;
+
+	waveTimeLeft = 180;
+
+	if (waveNumber == 1)
+	{
+		this->waveNumber = waveNumber;
+
+		maxEntitiesP = 10;
+		maxEntitiesAI = 5;
+		
+		remainingEntitiesP = 10;
+		remainingEntitiesAI = 5;
+	}
+	else if (waveNumber == 2)
+	{
+		this->waveNumber = waveNumber;
+
+		maxEntitiesP = 15;
+		maxEntitiesAI = 10;
+		
+		remainingEntitiesP = 15;
+		remainingEntitiesAI = 10;
+	}
+	else if (waveNumber == 3)
+	{
+		this->waveNumber = waveNumber;
+
+		maxEntitiesP = 20;
+		maxEntitiesAI = 15;
+
+		remainingEntitiesP = 20;
+		remainingEntitiesAI = 15;
+	}
+	else
+	{
+		waveNumber = 1; // Set to default if somehow fails and is not between 1 to 3
+		std::cout << "Wave input may be incorrect, please check and retry again" << std::endl;
+	}
+}
+
+int SceneMedical::GetWave()
+{
+	return waveNumber;
+}
+
+void SceneMedical::ShowOverloadStack()
+{
+	auto& overloadObj = RObj::newObject;
+	for (int i = 0; i < overloadingStack; i++)
+	{
+		if (i < 2)
+		{
+			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_G, 2));
+			overloadObj->relativeTrl = true;
+			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
+			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
+		}
+		if (i >= 2 && i < 4)
+		{
+			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_Y, 2));
+			overloadObj->relativeTrl = true;
+			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
+			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
+		}
+		if (i == 4)
+		{
+			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_R, 2));
+			overloadObj->relativeTrl = true;
+			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
+			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
+		}
+	}
+}
+
+void SceneMedical::InitSceneMedicalText(GEOMETRY_TYPE font) {
+	auto& newObj = RObj::newObject;
+	for (int i = 0; i < 10; i++) {
+		screenRoot->NewChild(TextObject::Create("SceneMedical Text" + std::to_string(i), "", vec3(0, 1, 1), font, false, 99));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(-0.98f, 0.95f - i * 0.05f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		sceneMedicalTextList.push_back(newObj);
+	}
+}
+
+bool SceneMedical::AddSceneMedicalText(const std::string& text, int index) {
+
+	if (index < 0) {
+		for (auto& obj_weak : sceneMedicalTextList) {
+			auto textObj = std::dynamic_pointer_cast<TextObject>(obj_weak.lock());
+
+			if (textObj->text == "") {
+				textObj->text = text;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	index = Clamp(index, 0, 9);
+	std::dynamic_pointer_cast<TextObject>(sceneMedicalTextList[index].lock())->text = text;
+
+	return true;
+}
+
+void SceneMedical::ClearSceneMedicalText() {
+	for (auto& obj_weak : sceneMedicalTextList)
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }

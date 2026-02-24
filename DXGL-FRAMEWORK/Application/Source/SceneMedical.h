@@ -37,7 +37,11 @@ public:
 		ENV_LIQUID_MODEL,
 		ENV_LIQUID_FLAT_MODEL,
 		GAME_CROSSHAIR,
-		GAME_OVERLOADSTACK,
+		GAME_OVERLOADSTACK_BASE,
+		GAME_OVERLOADSTACK_PLATE,
+		GAME_OVERLOADSTACK_G,
+		GAME_OVERLOADSTACK_Y,
+		GAME_OVERLOADSTACK_R,
 
 		TOTAL
 	};
@@ -102,6 +106,8 @@ private:
 
 	int overloadingStack = 0;
 	int maxOverload = 5;
+	float overloadCoolTimer = 0.0f; // Use only if overloading stack is above 3
+	bool changeInOverloadStack = false;
 	int timesOverloaded = 0; // only use if not enough time to implement losing and resetting to at least base wave
 
 	float bacteriaSpawnTimer = 0.0f;
@@ -112,7 +118,10 @@ private:
 	struct Bacteria
 	{
 		std::shared_ptr<RenderObject> object;
+
 		int bacteriaHP = 2;
+		float bacteriaInvulnerabilityTimer = 0.0f;
+
 		float bacteriaDivertTimer = 0.0f;
 		glm::vec3 patPoint;
 	};
@@ -122,7 +131,9 @@ private:
 	struct Virus
 	{
 		std::shared_ptr<RenderObject> object;
+		
 		int virusHP = 3;
+		float virusInvulnerabilityTimer = 0.0f;
 	};
 
 	std::vector<Virus> viruses;
@@ -140,7 +151,15 @@ private:
 
 	bool isGameWon = false;
 
-	void ChangeWave(); // Use when doing wave system to change wave and accurately update displayed data, to call only once
+	void ChangeWave(int waveNumber); // Use when doing wave system to change wave and accurately update displayed data, to call only once
+	int GetWave();
+
+	void ShowOverloadStack();
+
+	std::vector<std::weak_ptr<RenderObject>> sceneMedicalTextList;
+	void InitSceneMedicalText(GEOMETRY_TYPE font);
+	bool AddSceneMedicalText(const std::string& text, int index = -1);
+	void ClearSceneMedicalText();
 };
 
 #endif
