@@ -40,6 +40,11 @@ public:
 	int geometryType;
 	Material material;
 
+	glm::vec3 colorFilter = glm::vec3(1);
+	glm::vec3 accumulatedColorFilter;
+	float alpha = 1;
+	float accumulatedAlpha;
+
 	bool hasTransparency = false;
 	bool allowRender = true;
 	bool relativeTrl = false; // only affect screen render, trl will be from -1 to 1 in relative distance to center and side of the screen, instead of in px
@@ -129,10 +134,12 @@ protected:
 	glm::vec3 prevTrl = trl;
 	glm::vec3 prevRot = rot;
 	glm::vec3 prevScl = scl;
+	glm::vec3 prevColorFilter = colorFilter;
+	float prevAlpha = alpha;
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
 
-	glm::mat4 GetModel();
+	glm::mat4 GetModel(bool onlyAccumulatedStats = false);
 	void UpdateModelWithParent(glm::mat4 parentModel);
 
 	std::shared_ptr<RenderObject> Clone() const;
