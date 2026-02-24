@@ -19,6 +19,7 @@
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
     <ClCompile Include="Source\SceneTesting.cpp" />
+    <ClCompile Include="Source\SceneManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\PhysicsManager.h" />
@@ -47,5 +48,6 @@
     <ClInclude Include="Source\Utils.h" />
     <ClInclude Include="Source\Vertex.h" />
     <ClInclude Include="Source\SceneTesting.h" />
+    <ClInclude Include="Source\SceneManager.h" />
   </ItemGroup>
 </Project>

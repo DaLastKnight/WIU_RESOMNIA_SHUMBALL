@@ -35,7 +35,7 @@ public:
 	~SceneDemo();
 
 	void Init() override;
-	void Update(double dt) override;
+	void Update(float dt) override;
 	void Render() override;
 	void Exit() override;
 

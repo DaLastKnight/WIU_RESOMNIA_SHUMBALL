@@ -40,8 +40,8 @@ public:
 	SceneBowling();
 	~SceneBowling();
 
-	void Init() override;
-	void Update(double dt) override;
+	void Enter() override;
+	void Update(float dt) override;
 	void Render() override;
 	void Exit() override;
 
@@ -92,6 +92,7 @@ private:
 
 	bool hit_Box = false;
 	
+	bool requestSceneChange = false;
 };
 
 #endif

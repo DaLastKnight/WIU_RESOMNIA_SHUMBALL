@@ -84,6 +84,7 @@ void PhysicsObject::SetCollisionActive(bool isEnabled) {
 bool PhysicsObject::GetCollisionActive() {
 	if (!colliders.empty())
 		return colliders[0]->getIsSimulationCollider();
+	return false;
 }
 
 void PhysicsObject::SetTrigger(bool isEnabled) {
@@ -181,7 +182,8 @@ PhysicsObject::PhysicsObject(BODY_TYPE type, glm::vec3 position_vec3, glm::vec3 
 }
 
 PhysicsObject::~PhysicsObject() {
-	PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
+	//PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
+	body = nullptr;
 }
 
 
@@ -252,6 +254,13 @@ void PhysicsEventListener::AddToTriggerEvents(PhysicsEvent physicsEvent) {
 }
 
 void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) {
+
+	if (!world) {
+		contactEvents.clear();
+		triggerEvents.clear();
+		return;
+	}
+
 	for (unsigned i = 0; i < contactEvents.size(); ) {
 		if (world->getRigidBody(contactEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
 			contactEvents.erase(contactEvents.begin() + i);
@@ -281,7 +290,11 @@ void PhysicsManager::InitWorld() {
 }
 
 void PhysicsManager::CleanUp() {
+
+	eventListener = PhysicsEventListener();
+
 	physicsCommon.destroyPhysicsWorld(world);
+	world = nullptr;
 }
 
 void PhysicsManager::SetUpLogger(std::string name) {

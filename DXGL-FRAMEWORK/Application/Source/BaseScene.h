@@ -82,10 +82,14 @@ public:
 	BaseScene();
 	virtual~BaseScene() = 0;
 
-	virtual void Init();
-	virtual void Update(double dt);
-	virtual void Render();
-	virtual void Exit();
+	// SceneManager interface
+	virtual void Enter() override { Init(); }
+	virtual void Update(float dt) override;    
+	virtual void Render() override;
+	virtual void Exit() override;
+
+	// Your original initialization function
+	virtual void Init(); 
 
 protected:
 

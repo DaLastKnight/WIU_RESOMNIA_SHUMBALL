@@ -19,6 +19,8 @@
 #include "MeshBuilder.h"
 #include "TextureLoader.h"
 #include "MouseController.h"
+#include "SceneManager.h"
+#include "SceneDemo.h"
 #include "KeyboardController.h"
 #include "AudioManager.h"
 #include "DataManager.h"
@@ -52,7 +54,7 @@ SceneBowling::SceneBowling() {
 SceneBowling::~SceneBowling() {
 }
 
-void SceneBowling::Init() {
+void SceneBowling::Enter() {
 	BaseScene::Init();
 
 	// physics debug init
@@ -424,7 +426,7 @@ void SceneBowling::Init() {
 	RObj::newObject.reset();
 }
 
-void SceneBowling::Update(double dt) {
+void SceneBowling::Update(float dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 
@@ -714,6 +716,12 @@ void SceneBowling::Update(double dt) {
 	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
 	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
 
+	if (requestSceneChange)
+	{
+		SceneManager::GetInstance().RequestChangeState(new SceneDemo());
+		return;
+	}
+
 }
 
 
@@ -916,6 +924,10 @@ void SceneBowling::HandleKeyPress() {
 			DialogueManager::GetInstance().StartDialogue("ExampleDialogue");
 			startedDialogue = true;
 		}
+	}
+
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_TAB)) {
+		requestSceneChange = true;
 	}
 
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_F)) {
