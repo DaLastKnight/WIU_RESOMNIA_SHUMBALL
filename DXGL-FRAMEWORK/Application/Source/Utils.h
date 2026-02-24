@@ -1,4 +1,5 @@
 // JH
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -18,6 +19,10 @@ inline float Clamp(float value, float min, float max) {
 	else if (value > max)
 		return max;
 	return value;
+}
+
+inline bool InRange(float value, float min, float max) {
+	return !(value < min || value > max);
 }
 
 inline float Wrap(float value, float min, float max) {
@@ -91,5 +96,13 @@ inline glm::vec3 QuatToEuler(glm::quat orientation) {
 inline glm::quat QuaternionToQuat(rp3d::Quaternion orientation) {
 	return glm::quat(orientation.w, orientation.x, orientation.y, orientation.z);
 }
+
+// type must support / and - with its own type
+template<typename T>
+inline float LerpTime(T currentValue, T startValue, T endValue) {
+	return (currentValue - startValue) / (endValue - startValue);
+}
+
+
 
 #endif

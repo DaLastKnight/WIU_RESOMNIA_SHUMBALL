@@ -156,7 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\NotificationManager.cpp" />
+    <ClCompile Include="Source\Ease.cpp" />
     <ClCompile Include="Source\PhysicsManager.cpp" />
     <ClCompile Include="Source\DialogueManager.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -169,6 +169,7 @@
     <ClCompile Include="Source\MatrixStack.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\MeshBuilder.cpp" />
+    <ClCompile Include="Source\RhythmGameManager.cpp" />
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
@@ -178,7 +179,7 @@
     <ClCompile Include="Source\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\NotificationManager.h" />
+    <ClInclude Include="Source\Ease.h" />
     <ClInclude Include="Source\PhysicsManager.h" />
     <ClInclude Include="Source\DataManager.h" />
     <ClInclude Include="Source\DialogueManager.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Source\MeshBuilder.h" />
     <ClInclude Include="Source\ModelLoader.h" />
     <ClInclude Include="Source\RenderObject.h" />
+    <ClInclude Include="Source\RhythmGameManager.h" />
     <ClInclude Include="Source\Scene.h" />
     <ClInclude Include="Source\SceneDemo.h" />
     <ClInclude Include="Source\SceneRhythm.h" />
