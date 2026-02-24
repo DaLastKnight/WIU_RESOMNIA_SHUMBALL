@@ -41,8 +41,7 @@ private:
 
 	STATE currentState;
 
-	float loadInTimer = 0;
-	float dynamicIntermissionTimer = 0;
+	float dynamicStateTimer = 0;
 
 	enum GEOMETRY_TYPE : int
 	{
@@ -68,7 +67,17 @@ private:
 		RT_COMPRESSED_BTN,
 		RT_COMPRESSED_BTN_BG,
 
+		
 		RHYTHM_BASE,
+		RHYTHM_BEAT,
+		RHYTHM_HIT_POINT,
+		RHYTHM_TAP_NOTE,
+		RHYTHM_HOLD_NOTE,
+		RHYTHM_HOLD_NOTE_BODY,
+
+		VFX_TAP_NOTE,
+		VFX_HOLD_NOTE,
+		VFX_HOLD_NOTE_BODY,
 
 		TRIGGER_BOX,
 		INVISIBLE_WALL,
@@ -97,13 +106,15 @@ private:
 
 	std::map<std::string, std::weak_ptr<RenderObject>> uiPointsOfInterest;
 	std::map<std::string, std::weak_ptr<RenderObject>> inGamePointsOfInterest;
+	std::vector<std::weak_ptr<RenderObject>> VFXList;
 	std::map<std::string, std::weak_ptr<RenderObject>> triggerList;
 
 	PhysicsRaycast physicsRaycast;
 
 	// game info
-	int difficulty = 0;
+	int difficulty = 1;
 	glm::vec3 globalSurroundingColor;
+	float atmosphereTargetingDensestRange;
 
 	// input info
 	bool lmb_pressed;

@@ -17,6 +17,14 @@ Event<void, RhythmNote*> RhythmNote::hitEvent;
 
 RhythmNote::~RhythmNote() {}
 
+void RhythmLane::SetLane(glm::vec3 position, glm::vec3 direction, float length, float startFraction, float endFraction) {
+	this->position = position;
+	this->direction = direction;
+	this->length = length;
+	this->startFraction = startFraction;
+	this->endFraction = endFraction;
+}
+
 void RhythmGameManager::SetDirectory(const std::string& directoryPath) {
 	directory = directoryPath;
 
@@ -29,18 +37,24 @@ void RhythmGameManager::Update(double dt) {
 	if (!active)
 		return;
 
-	lastestScore = INVALID;
+	lastestScore = TOTAL_SCORE_TYPE;
 	gameElapsed += dt;
 	currentBeat = gameElapsed * BPS;
-	float maxDisplayBeat = currentBeat + chart.ScrollSpeed;
+	maxDisplayBeat = currentBeat + chart.ScrollSpeed;
 	int maxDisplayBeat_int = maxDisplayBeat;
 
+	if (static_cast<int>(currentBeat + chart.musicOffsetBeat) == 0) {
+		if (!AudioManager::GetInstance().PlayingMUS()) {
+			AudioManager::GetInstance().PlayMUS();
+		}
+	}
+
 	if (prevMaxDisplayBeat_int != maxDisplayBeat_int) {
-		prevMaxDisplayBeat_int = maxDisplayBeat_int;
 		for (auto& lane : lanes) {
 			lane.displayBeats.push_back(RhythmBeat::MakeBeat(maxDisplayBeat_int));
 		}
 	}
+	prevMaxDisplayBeat_int = maxDisplayBeat_int;
 
 	while (!notesLeft.empty() && notesLeft[0]->beat <= maxDisplayBeat) {
 		auto& note = notesLeft[0];
@@ -53,15 +67,15 @@ void RhythmGameManager::Update(double dt) {
 
 	for (int laneIndex = 0; laneIndex < lanes.size(); laneIndex++) {
 		auto& lane = lanes[laneIndex];
-		float maxFraction = 1 + lane.startFraction;
-		glm::vec3 laneLine = lane.position + lane.direction * lane.length;
+		float offStartFraction = 1 + lane.startFraction;
+		glm::vec3 laneLine = lane.direction * lane.length;
 
 		for (int beatIndex = 0; beatIndex < lane.displayBeats.size(); ) {
 			auto& beat = lane.displayBeats[beatIndex];
 			auto render = beat->render.lock();
 			
-			float fraction = LerpTime(beat->beat, currentBeat, maxDisplayBeat);
-			fraction = Clamp(fraction, lane.endFraction, maxFraction);
+			float fraction = LerpTime(static_cast<float>(beat->beat), currentBeat, maxDisplayBeat);
+			fraction = Clamp(fraction, lane.endFraction, 1);
 
 			if (fraction == lane.endFraction) {
 				render->Destroy();
@@ -69,23 +83,28 @@ void RhythmGameManager::Update(double dt) {
 				continue;
 			}
 
-			render->trl = laneLine * fraction;
+			render->trl = lane.position + laneLine * fraction;
 
-			if (fraction >= 0) {
-				render->alpha = Ease(EASE::IN_QUAD, LerpTime(fraction, maxFraction, 0.f));
+			float defaultAlpha = 0.5f;
+			if (beat->beat % 4 == 0) {
+				defaultAlpha = 1;
 			}
+			if (fraction >= 0) {
+				render->alpha = Ease(EASE::OUT_QUAD, LerpTime(fraction, 1.f, 0.f)) * defaultAlpha;
+			}
+			beatIndex++;
 		}
 
 		for (int noteIndex = 0; noteIndex < lane.activeNotes.size(); ) {
 			auto& note = lane.activeNotes[noteIndex];
 
 			float fraction = LerpTime(note->beat, currentBeat, maxDisplayBeat);
-			fraction = Clamp(fraction, lane.endFraction, maxFraction);
+			fraction = Clamp(fraction, lane.endFraction, 1);
 
 			auto getAlphaEffect = [&](float fraction) {
 				float defaultAlpha = 1;
-				if (fraction >= 1) {
-					return Ease(EASE::IN_OUT_SIN, LerpTime(fraction, maxFraction, 1.f)) * defaultAlpha;
+				if (fraction >= offStartFraction) {
+					return Ease(EASE::OUT_QUAD, LerpTime(fraction, 1.f, offStartFraction)) * defaultAlpha;
 				}
 				else if (fraction <= 0) {
 					return (1 - Ease(EASE::OUT_QUAD, LerpTime(fraction, 0.f, lane.endFraction))) * defaultAlpha;
@@ -103,17 +122,20 @@ void RhythmGameManager::Update(double dt) {
 					continue;
 				}
 
-				if (CheckHitNote(laneIndex, fraction)) {
+				if (tappedLane[laneIndex] && CheckHitNote(tapNote->beat)) {
+					tappedLane[laneIndex] = false;
 					render->Destroy();
 
-					if (lastestScore != INVALID)
+					if (lastestScore != MISS)
 						RhythmNote::hitEvent.Invoke(tapNote);
+
+					// give score
 
 					lane.activeNotes.erase(lane.activeNotes.begin() + noteIndex);
 					continue;
 				}
 
-				render->trl = laneLine * fraction;
+				render->trl = lane.position + laneLine * fraction;
 
 				render->alpha = getAlphaEffect(fraction);
 			}
@@ -124,11 +146,14 @@ void RhythmGameManager::Update(double dt) {
 				auto endRender = holdNote->endRender.lock();
 
 				float endFraction = LerpTime(holdNote->endBeat, currentBeat, maxDisplayBeat);
-				endFraction = Clamp(endFraction, lane.endFraction, maxFraction);
-				float alpha = getAlphaEffect(fraction);
+				endFraction = Clamp(endFraction, lane.endFraction, 1);
 
-				if (fraction == lane.endFraction) {
+				if (startRender && fraction == lane.endFraction) {
 					startRender->Destroy();
+					lengthRender->Destroy();
+					endRender->Destroy();
+					lane.activeNotes.erase(lane.activeNotes.begin() + noteIndex);
+					continue;
 				}
 				else if (endFraction == lane.endFraction) {
 					lengthRender->Destroy();
@@ -137,28 +162,31 @@ void RhythmGameManager::Update(double dt) {
 					continue;
 				}
 
-				if (startRender && CheckHitNote(laneIndex, fraction)) {
-					startRender->Destroy();
-
-					if (lastestScore != INVALID)
+				if (startRender && tappedLane[laneIndex] && CheckHitNote(holdNote->beat)) {
+					tappedLane[laneIndex] = false;
+					
+					if (lastestScore != MISS)
 						RhythmNote::hitEvent.Invoke(holdNote);
 
+					// give score
+
+					startRender->Destroy();
 					holdNote->holding = true;
 				}
 				else if (holdNote->holding) {
 					fraction = 0;
+					holdNote->holdTimer += dt;
 
-					if (triggeredLane[laneIndex]) {
-						holdNote->holding = true;
+					if (heldLane[laneIndex]) {
 						RhythmNote::hitEvent.Invoke(holdNote);
 					}
 					else {
 						holdNote->holding = false;
-						
-						triggeredLane[laneIndex] = true;
-						if (CheckHitNote(laneIndex, endFraction)) {
-							if (lastestScore != INVALID)
+						if (CheckHitNote(holdNote->endBeat)) {
+							if (lastestScore != MISS)
 								RhythmNote::hitEvent.Invoke(holdNote);
+
+							// give score
 						}
 
 						lengthRender->Destroy();
@@ -171,10 +199,11 @@ void RhythmGameManager::Update(double dt) {
 					holdNote->holding = false;
 
 				if (startRender)
-					startRender->trl = laneLine * fraction;
-				lengthRender->trl = laneLine * fraction;
-				endRender->trl = laneLine * endFraction;
+					startRender->trl = lane.position + laneLine * fraction;
+				lengthRender->trl = lane.position + laneLine * fraction;
+				endRender->trl = lane.position + laneLine * endFraction;
 
+				float alpha = getAlphaEffect(fraction);
 				if (startRender)
 					startRender->alpha = alpha;
 				lengthRender->alpha = alpha;
@@ -188,6 +217,11 @@ void RhythmGameManager::Update(double dt) {
 
 	}
 
+	for (int i = 0; i < tappedLane.size(); i++) {
+		tappedLane[i] = false;
+		heldLane[i] = false;
+	}
+
 	if (notesLeft.empty()) {
 		for (auto& lane : lanes) {
 			if (!lane.activeNotes.empty()) {
@@ -195,12 +229,12 @@ void RhythmGameManager::Update(double dt) {
 			}
 		}
 
-		active = false;
+		if (AudioManager::GetInstance().GetMUSPosition() > chart.endTime)
+			active = false;
 	}
 }
 
-void RhythmGameManager::StartGame(const std::string& chartFilePath) {
-	active = true;
+void RhythmGameManager::LoadGame(const std::string& chartFilePath) {
 	currentBeat = 0;
 
 	LoadChart(chartFilePath);
@@ -256,50 +290,27 @@ void RhythmGameManager::LoadChart(const std::string& filePath) {
 
 	chart.endTime = loadedChart["endTime"].get<float>();
 	chart.offsetStartBeat = loadedChart["offsetStartBeat"].get<float>();
+	chart.musicOffsetBeat = loadedChart["musicOffsetBeat"].get<float>();
 
 
 	Print("loaded chart from file at \"" + fullPath + "\"", 2);
 }
 
-bool RhythmGameManager::CheckHitNote(int laneIndex, float fraction) {
-	if (!triggeredLane[laneIndex])
-		return false;
+bool RhythmGameManager::CheckHitNote(float noteBeat) {
+	float noteBeatOffset = noteBeat - currentBeat;
 
-	int scoreType_int = 0;
-	for (auto& rangeFraction : detectRange) {
-		if (InRange(fraction, -rangeFraction, rangeFraction))
+	int scoreType_int = -1;
+	for (auto& rangeTime : detectRange) {
+		if (InRange(noteBeatOffset / BPS, -rangeTime, rangeTime))
 			scoreType_int++;
 		else
 			break;
 	}
 
-	if (scoreType_int == INVALID)
+	if (scoreType_int == -1)
 		return false;
 	else {
 		lastestScore = static_cast<SCORE_TYPE>(scoreType_int);
 		return true;
 	}
-}
-
-bool RhythmGameManager::CheckHoldNote(int laneIndex, float fraction, float endFraction) {
-	
-	if (!triggeredLane[laneIndex])
-		return false;
-
-	int scoreType_int = 0;
-	for (auto& rangeFraction : detectRange) {
-		if (InRange(fraction, -rangeFraction, rangeFraction))
-			scoreType_int++;
-		else
-			break;
-	}
-
-	if (scoreType_int == INVALID)
-		return false;
-	else {
-		lastestScore = static_cast<SCORE_TYPE>(scoreType_int);
-		return true;
-	}
-	
-	return false;
 }

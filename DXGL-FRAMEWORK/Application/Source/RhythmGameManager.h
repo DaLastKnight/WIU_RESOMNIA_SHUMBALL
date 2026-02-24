@@ -16,18 +16,18 @@ class RenderObject;
 
 class RhythmBeat {
 public:
-    float beat;
+    int beat;
     std::weak_ptr<RenderObject> render;
 
     static Event<void, RhythmBeat*> createEvent;
 
-    static RhythmBeat* MakeBeat(float beat = 0) {
+    static RhythmBeat* MakeBeat(int beat = 0) {
         RhythmBeat* rb = new RhythmBeat(beat);
         createEvent.Invoke(rb);
         return rb;
     }
 
-    RhythmBeat(float beat = 0)
+    RhythmBeat(int beat = 0)
         : beat(beat) {}
 };
 
@@ -70,6 +70,7 @@ public:
     std::weak_ptr<RenderObject> endRender;
 
     bool holding = false;
+    float holdTimer = 0;
 
     HoldNote(float endBeat = -1) {
         type = HOLD;
@@ -93,6 +94,8 @@ public:
     std::vector<RhythmNote*> activeNotes;
     std::vector<RhythmBeat*> displayBeats;
 
+    void SetLane(glm::vec3 position, glm::vec3 direction, float length, float startFraction, float endFraction);
+
     ~RhythmLane() {
         for (auto& beat : displayBeats) {
             delete beat;
@@ -111,6 +114,7 @@ public:
     std::vector<RhythmNote*> notes;
     float endTime;
     float offsetStartBeat;
+    float musicOffsetBeat;
 
     ~RhythmChart() {
         for (auto& note : notes) {
@@ -129,7 +133,6 @@ public:
     }
 
     enum SCORE_TYPE {
-        INVALID,
         MISS,
         GOOD,
         GREAT,
@@ -146,21 +149,43 @@ public:
 
     void Update(double dt);
 
-    void StartGame(const std::string& chartFilePath);
+    void LoadGame(const std::string& chartFilePath);
+    void StartGame() {
+        active = true;
+    }
     bool CheckGameActive() {
         return active;
     }
 
-    SCORE_TYPE getScoreType() {
+    SCORE_TYPE GetScoreType() {
         return lastestScore;
     }
+    std::array<RhythmLane, 4>& GetLanes() {
+        return lanes;
+    }
+
+    void TappedLane(int laneIndex) {
+        tappedLane[laneIndex] = true;
+    }
+    void HeldLane(int laneIndex) {
+        heldLane[laneIndex] = true;
+    }
+    bool GetTappedLane(int laneIndex) {
+        return tappedLane[laneIndex] = true;
+    }
+    bool GetHeldLane(int laneIndex) {
+        return heldLane[laneIndex] = true;
+    }
+
+    float maxDisplayBeat;
+    int prevMaxDisplayBeat_int;
+    float currentBeat;
 
 private:
 
     void LoadChart(const std::string& filePath);
 
-    bool CheckHitNote(int laneIndex, float fraction);
-    bool CheckHoldNote(int laneIndex, float fraction, float endFraction);
+    bool CheckHitNote(float noteBeat);
 
     std::string directory;
 
@@ -168,14 +193,14 @@ private:
     RhythmChart chart;
     std::array<float, TOTAL_SCORE_TYPE> detectRange;
     std::array<RhythmLane, 4> lanes;
-    std::array<bool, 4> triggeredLane;
+    std::array<bool, 4> tappedLane;
+    std::array<bool, 4> heldLane;
 
     std::vector<RhythmNote*> notesLeft;
-    float currentBeat;
+   
     float BPS;
     float gameElapsed;
     SCORE_TYPE lastestScore;
-    int prevMaxDisplayBeat_int;
 
     RhythmGameManager() = default;
     ~RhythmGameManager() = default;

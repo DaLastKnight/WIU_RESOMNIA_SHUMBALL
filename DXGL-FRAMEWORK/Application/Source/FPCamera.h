@@ -79,6 +79,7 @@ public:
         FIRST_PERSON,
         PAUSE,
         LOCK_ON,
+        LOCKED,
 
         TOTAL_CAMERA_MODE,
     };

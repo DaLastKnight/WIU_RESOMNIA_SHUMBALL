@@ -148,7 +148,7 @@ void AudioManager::SetMUSPosition(double postionInSeconds) {
     Mix_SetMusicPosition(postionInSeconds);
 }
 
-double AudioManager::GetMUSDUration() {
+double AudioManager::GetMUSDuration() {
     return musicDuration;
 }
 

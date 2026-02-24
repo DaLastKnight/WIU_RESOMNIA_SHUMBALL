@@ -1,0 +1,58 @@
+{
+    "musicFilePath": "A_CYBERS_WORLD_DELTARUNE_Chapter_2_Soundtrack_Toby_Fox.ogg",
+    "musicDuration": 166.5,
+    "BPM": 117,
+    "ScrollSpeed": 5,
+    "notes": [
+        {
+            "type": 1,
+            "lane": 0,
+            "beat": 0.0,
+            "endBeat": 1.0
+        },
+        {
+            "type": 0,
+            "lane": 1,
+            "beat": 1.0
+        },
+        {
+            "type": 1,
+            "lane": 3,
+            "beat": 2.0,
+            "endBeat": 4.0
+        },
+        {
+            "type": 0,
+            "lane": 1,
+            "beat": 3.0
+        },
+        {
+            "type": 0,
+            "lane": 1,
+            "beat": 2.5
+        },
+        {
+            "type": 0,
+            "lane": 0,
+            "beat": 3.0
+        },
+        {
+            "type": 0,
+            "lane": 2,
+            "beat": 4.0
+        },
+        {
+            "type": 0,
+            "lane": 3,
+            "beat": 4.25
+        },
+        {
+            "type": 0,
+            "lane": 3,
+            "beat": 6.0
+        }
+    ],
+    "endTime": 166,
+    "offsetStartBeat": -8,
+    "musicOffsetBeat": -0.75
+}

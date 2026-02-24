@@ -23,6 +23,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "RhythmGameManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -53,6 +54,8 @@ void SceneRhythm::Init() {
 
 	BaseScene::Init();
 
+	glClearColor(1, 1, 1, 0.0f);
+
 	// physics debug init
 	{
 		if (ALLOW_PHYSICS_DEBUG) {
@@ -69,13 +72,11 @@ void SceneRhythm::Init() {
 		TextureLoader::SetDirectory("SceneRhythm/Image");
 		ModelLoader::SetDirectory("SceneRhythm/Model");
 		DialogueManager::GetInstance().SetDirectory("SceneRhythm/Dialogue");
+		RhythmGameManager::GetInstance().SetDirectory("SceneRhythm/Chart");
 	}
 
 	// audio init
 	{
-		// music init
-		AudioManager::GetInstance().LoadMUS("A_CYBERS_WORLD_DELTARUNE_Chapter_2_Soundtrack_Toby_Fox.ogg", 166);
-
 		// sfx init
 		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
 
@@ -110,7 +111,16 @@ void SceneRhythm::Init() {
 		meshList[RT_COMPRESSED_BTN] = MeshBuilder::GenerateQuad("rt compressed", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn.png"), true);
 		meshList[RT_COMPRESSED_BTN_BG] = MeshBuilder::GenerateQuad("rt compressed bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn_bg.png"), true);
 
-		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base texture", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
+		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
+		meshList[RHYTHM_BEAT] = MeshBuilder::GenerateQuad("beat", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_beat.png"));
+		meshList[RHYTHM_HIT_POINT] = MeshBuilder::GenerateQuad("hit point", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_hit_point.png"));
+		meshList[RHYTHM_TAP_NOTE] = MeshBuilder::GenerateQuad("tap note", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_tap_note.png"));
+		meshList[RHYTHM_HOLD_NOTE] = MeshBuilder::GenerateQuad("hold note", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_hold_note.png"));
+		meshList[RHYTHM_HOLD_NOTE_BODY] = MeshBuilder::GenerateCube("hold note body", vec3(1), 1);
+
+		meshList[VFX_TAP_NOTE] = MeshBuilder::GenerateQuad("tap note", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_tap_note.png"));
+		meshList[VFX_HOLD_NOTE] = MeshBuilder::GenerateQuad("hold note", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_hold_note.png"));
+		meshList[VFX_HOLD_NOTE_BODY] = MeshBuilder::GenerateCube("hold note body", vec3(1), 1);
 
 		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1), 1);
 		meshList[INVISIBLE_WALL] = MeshBuilder::GenerateCube("invisible wall", vec3(1), 1);
@@ -160,7 +170,7 @@ void SceneRhythm::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
-			obj->offsetScl = vec3(0.15f);
+			obj->hasTransparency = true;
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
@@ -217,17 +227,76 @@ void SceneRhythm::Init() {
 			});
 
 		RObj::setDefaultStat.Subscribe(RHYTHM_BASE, [](const std::shared_ptr<RObj>& obj) {
-			obj->material.Set(Material::NEON);
-			int height = 10;
+			obj->material.Set(Material::BRIGHT);
+			int height = 15;
 			int width = 4;
 			obj->offsetScl = vec3(width, height, 1);
 			obj->offsetTrl = vec3(0, height * 0.5f, 0);
 
 			obj->hasTransparency = true;
 			});
+		RObj::setDefaultStat.Subscribe(RHYTHM_BEAT, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->rot = vec3(-90, 0, 0);
+			obj->offsetTrl = vec3(0, 0, -0.5f);
+
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RHYTHM_HIT_POINT, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.65f);
+
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RHYTHM_TAP_NOTE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.65f);
+
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RHYTHM_HOLD_NOTE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.65f);
+
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RHYTHM_HOLD_NOTE_BODY, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetTrl = vec3(0, 0, -0.5f);
+			obj->offsetScl = vec3(0.075f, 0.075f, 1);
+
+			obj->hasTransparency = true;
+			});
+
+		RObj::setDefaultStat.Subscribe(VFX_TAP_NOTE, [&](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.65f);
+
+			obj->hasTransparency = true;
+			VFXList.push_back(obj);
+			});
+		RObj::setDefaultStat.Subscribe(VFX_HOLD_NOTE, [&](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.65f);
+
+			obj->hasTransparency = true;
+			VFXList.push_back(obj);
+			});
+		RObj::setDefaultStat.Subscribe(VFX_HOLD_NOTE_BODY, [&](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetTrl = vec3(0, 0, -0.5f);
+			obj->offsetScl = vec3(0.075f, 0.075f, 1);
+			obj->scl = vec3(1, 1, 0.01f);
+
+			obj->hasTransparency = true;
+			VFXList.push_back(obj);
+			});
 
 		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->allowRender = false;
+			});
+		RObj::setDestroyedEvent.Subscribe(TRIGGER_BOX, [&](const std::shared_ptr<RObj>& obj) {
+			dirtyWorldList = true;
 			});
 		RObj::setDefaultStat.Subscribe(INVISIBLE_WALL, [](const std::shared_ptr<RObj>& obj) {
 			obj->allowRender = false;
@@ -237,6 +306,9 @@ void SceneRhythm::Init() {
 			physics->AddCollider(PhysicsObject::BOX, vec3(250, 0.5f, 0.5f), vec3(0, 0.5f, 0));
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(1.f);
+			});
+		RObj::setDestroyedEvent.Subscribe(INVISIBLE_WALL, [&](const std::shared_ptr<RObj>& obj) {
+			dirtyWorldList = true;
 			});
 	}
 
@@ -335,10 +407,26 @@ void SceneRhythm::Init() {
 		physics = newObj->GetPhysics();
 		physics->SetTransform(vec3(-5, 0, 0), vec3(0, 90, 0));
 
-		worldRoot->NewChild(MeshObject::Create(RHYTHM_BASE));
+		worldRoot->NewChild(MeshObject::Create(GROUP));
 		newObj->name = "rhythm base";
-		newObj->trl = vec3(0, 0.2f, 0);
+		newObj->trl = vec3(0, 0.4999f, 1);
 		newObj->rot = vec3(-90, 0, 0);
+		auto rhythmBase = newObj;
+		inGamePointsOfInterest[newObj->name] = newObj;
+
+		rhythmBase->NewChild(MeshObject::Create(RHYTHM_BASE));
+
+		worldRoot->NewChild(MeshObject::Create(RHYTHM_HIT_POINT));
+		newObj->name = "lane 0 point";
+		inGamePointsOfInterest[newObj->name] = newObj;
+		worldRoot->NewChild(MeshObject::Create(RHYTHM_HIT_POINT));
+		newObj->name = "lane 1 point";
+		inGamePointsOfInterest[newObj->name] = newObj;
+		worldRoot->NewChild(MeshObject::Create(RHYTHM_HIT_POINT));
+		newObj->name = "lane 2 point";
+		inGamePointsOfInterest[newObj->name] = newObj;
+		worldRoot->NewChild(MeshObject::Create(RHYTHM_HIT_POINT));
+		newObj->name = "lane 3 point";
 		inGamePointsOfInterest[newObj->name] = newObj;
 
 		// light init
@@ -369,6 +457,37 @@ void SceneRhythm::Init() {
 				lp.kC = 0.5f;
 				lp.kL = 0.01f;
 				lp.kQ = 0.1f;
+
+				UpdateLightUniform(newLightObj);
+			}
+
+			rhythmBase->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				auto& lp = newLightObj->lightProperties;
+				newLightObj->trl = vec3(0, 1.5f, 1);
+				newLightObj->hasTransparency = true;
+				lp.type = Light::LIGHT_POINT;
+				lp.color = vec3(0.92f, 0.95f, 1);
+				lp.power = 1;
+				lp.kC = 1;
+				lp.kL = 0.005f;
+				lp.kQ = 0.001f;
+
+				UpdateLightUniform(newLightObj);
+			}
+			rhythmBase->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				auto& lp = newLightObj->lightProperties;
+				newLightObj->trl = vec3(0, 10, 1);
+				newLightObj->hasTransparency = true;
+				lp.type = Light::LIGHT_POINT;
+				lp.color = vec3(0.92f, 0.95f, 1);
+				lp.power = 1;
+				lp.kC = 1;
+				lp.kL = 0.005f;
+				lp.kQ = 0.001f;
 
 				UpdateLightUniform(newLightObj);
 			}
@@ -420,13 +539,134 @@ void SceneRhythm::Init() {
 
 	// atmosphere init
 	{
-		atmosphere.Set(vec3(0.09f, 0.12f, 0.2f), 0, 0.01f, 1, 10);
+		atmosphere.Set(vec3(0.09f, 0.12f, 0.2f), 1, 0.01f, 1, 20);
+		atmosphereTargetingDensestRange = 10;
 		UpdateAtmosphereUniform();
 	}
 
 	// game info init
 	{
 		globalSurroundingColor = vec3(0.09f, 0.12f, 0.2f);
+		RhythmGameManager::GetInstance().SetDetectRange(std::array<float, RhythmGameManager::TOTAL_SCORE_TYPE>({ 0.15f, 0.1f, 0.625f, 0.025f}));
+		RhythmBeat::createEvent.Subscribe([&](RhythmBeat* beat) {
+			worldRoot->NewChild(MeshObject::Create(RHYTHM_BEAT));
+			auto& newObj = RObj::newObject;
+			beat->render = newObj;
+
+			newObj.reset();
+			});
+		auto ColorByLane = [](int laneIndex) {
+			switch (laneIndex) {
+			case 0: return vec3(1.f, 0.3f, 0.3f);
+			case 1: return vec3(1.f, 1.f, 0.3f);
+			case 2: return vec3(0.3f, 1.f, 1.f);
+			case 3: return vec3(0.3f, 1.f, 0.3f);
+			default: return vec3(1);
+			}
+			};
+		for (auto& pair : inGamePointsOfInterest) {
+			auto obj = pair.second.lock();
+
+			if (pair.first.find("lane") != std::string::npos) {
+				int index = std::stoi(pair.first.substr(5, 1));
+				obj->colorFilter = ColorByLane(index);
+			}
+		}
+		RhythmNote::activeEvent.Subscribe([&](RhythmNote* note) {
+
+			if (note->type == RhythmNote::TAP) {
+				auto tapNote = static_cast<TapNote*>(note);
+				auto& newObj = RObj::newObject;
+				worldRoot->NewChild(MeshObject::Create(RHYTHM_TAP_NOTE));
+				tapNote->render = newObj;
+				newObj->colorFilter = ColorByLane(tapNote->lane);
+
+				newObj.reset();
+			}
+			else if (note->type == RhythmNote::HOLD) {
+				auto holdNote = static_cast<HoldNote*>(note);
+				auto& newObj = RObj::newObject;
+				worldRoot->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE));
+				holdNote->startRender = newObj;
+				newObj->colorFilter = ColorByLane(holdNote->lane);
+
+				worldRoot->NewChild(MeshObject::Create(GROUP));
+				holdNote->lengthRender = newObj;
+				newObj->colorFilter = ColorByLane(holdNote->lane);
+				auto holdNoteGroup = newObj;
+
+				holdNoteGroup->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE_BODY));
+				newObj->offsetTrl += vec3(0, 0.075f, 0);
+				holdNoteGroup->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE_BODY));
+				newObj->offsetTrl += vec3(0.075f, 0, 0);
+				holdNoteGroup->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE_BODY));
+				newObj->offsetTrl += vec3(0, -0.075f, 0);
+				holdNoteGroup->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE_BODY));
+				newObj->offsetTrl += vec3(-0.075f, 0, 0);
+
+				worldRoot->NewChild(MeshObject::Create(RHYTHM_HOLD_NOTE));
+				holdNote->endRender = newObj;
+				newObj->colorFilter = ColorByLane(holdNote->lane);
+
+				newObj.reset();
+			}
+
+			});
+		RhythmNote::hitEvent.Subscribe([&](RhythmNote* note) {
+
+			if (note->type == RhythmNote::TAP) {
+				auto tapNote = static_cast<TapNote*>(note);
+				auto& newObj = RObj::newObject;
+				worldRoot->NewChild(MeshObject::Create(VFX_TAP_NOTE));
+				newObj->trl = tapNote->render.lock()->trl;
+				newObj->colorFilter = ColorByLane(tapNote->lane);
+
+				newObj.reset();
+			}
+			else if (note->type == RhythmNote::HOLD) {
+				auto holdNote = static_cast<HoldNote*>(note);
+				auto& newObj = RObj::newObject;
+				const float HOLD_VFX_CD = 0.1f;
+
+				if (!holdNote->startRender.expired()) {
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE));
+					newObj->trl = holdNote->startRender.lock()->trl;
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+				}
+				else if (holdNote->holding) {
+					if (holdNote->holdTimer < 0.1f)
+						return;
+					holdNote->holdTimer -= 0.1f;
+
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
+					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[0]->model);
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
+					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[1]->model);
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
+					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[2]->model);
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
+					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[3]->model);
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+				}
+				else {
+					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE));
+					newObj->trl = holdNote->endRender.lock()->trl;
+					newObj->colorFilter = ColorByLane(holdNote->lane);
+				}
+
+				newObj.reset();
+			}
+
+			});
+		auto& lanes = RhythmGameManager::GetInstance().GetLanes();
+		float xPos = -1.5f;
+		for (auto& lane : lanes) {
+			lane.SetLane(vec3(xPos, 1, 0), vec3(0, 0, -1), 10, -0.5f, -0.1f);
+			xPos += 1;
+		}
 	}
 }
 
@@ -475,29 +715,83 @@ void SceneRhythm::Update(double dt) {
 	// atmosphere
 	atmosphere.color = Smooth(atmosphere.color, globalSurroundingColor, 20, dt);
 	UpdateAtmosphereUniform(U_ATMOSPHERE_COLOR);
+	atmosphere.densestRange = Smooth(atmosphere.densestRange, atmosphereTargetingDensestRange, 40, dt);
+	UpdateAtmosphereUniform(U_ATMOSPHERE_DENSEST_RANGE);
 
+	// state switch
+	dynamicStateTimer += dt;
 	switch (currentState) {
 	case LOAD_IN:
-		loadInTimer += dt;
 		camera.SetDirection(vec3(0, 0, -1));
 
-		if (loadInTimer > 0.2f) {
+		if (dynamicStateTimer > 0.2f) {
+			dynamicStateTimer = 0;
 			camera.Set(FPCamera::MODE::FIRST_PERSON);
 			currentState = START_INTERMISSION;
 		}
 		break;
+
 	case START_INTERMISSION:
-		dynamicIntermissionTimer += dt;
-		if (dynamicIntermissionTimer > 3) {
-			dynamicIntermissionTimer = 0;
+		if (dynamicStateTimer > 3) {
+			dynamicStateTimer = 0;
 			currentState = INTERMISSION;
 		}
 		break;
+
+	case INTERMISSION:
+		dynamicStateTimer = 0;
+		break;
+
 	case END_INTERMISSION:
-		dynamicIntermissionTimer += dt;
-		if (dynamicIntermissionTimer > 3) {
-			dynamicIntermissionTimer = 0;
+		if (dynamicStateTimer > 3) {
+			dynamicStateTimer = 0;
 			currentState = START_GAME;
+			if (difficulty == 0)
+				RhythmGameManager::GetInstance().LoadGame("A_Cybers_World_Compressed.json");
+			else 
+				RhythmGameManager::GetInstance().LoadGame("A_Cybers_World_Lossless.json");
+		}
+		break;
+
+	case START_GAME:
+		atmosphereTargetingDensestRange = 10;
+		
+		player.allowControl = false;
+		camera.Set(Cam::MODE::LOCKED);
+		camera.SetDirection(vec3(0, -1, -3));
+		camera.basePosition = vec3(0, 2.5f, 2);
+
+		if (dynamicStateTimer > 1.5f) {
+			dynamicStateTimer = 0;
+			currentState = GAME;
+			RhythmGameManager::GetInstance().StartGame();
+		}
+		break;
+
+	case GAME:
+		player.allowControl = false;
+		camera.Set(Cam::MODE::LOCKED);
+		camera.SetDirection(vec3(0, -1, -3));
+		camera.basePosition = vec3(0, 2.5f, 2);
+
+		dynamicStateTimer = 0;
+		break;
+
+	case START_RESULT:
+		if (dynamicStateTimer > 3) {
+			dynamicStateTimer = 0;
+			currentState = RESULT;
+		}
+		break;
+
+	case RESULT:
+		dynamicStateTimer = 0;
+		break;
+
+	case END_RESULT:
+		if (dynamicStateTimer > 3) {
+			dynamicStateTimer = 0;
+			currentState = START_INTERMISSION;
 		}
 		break;
 
@@ -513,10 +807,13 @@ void SceneRhythm::Update(double dt) {
 	
 	HandleKeyPress();
 
+	// rhythm game update
+	RhythmGameManager::GetInstance().Update(dt);
+
 	// player updates
 	{
 		// update position and camera bobbing
-		if (camera.GetCurrentMode() != Cam::MODE::FREE)
+		if (camera.GetCurrentMode() != Cam::MODE::FREE && camera.GetCurrentMode() != Cam::MODE::LOCKED)
 			player.UpdatePhysicsWithCamera(dt, camera);
 		else
 			player.UpdatePhysics(dt);
@@ -525,6 +822,11 @@ void SceneRhythm::Update(double dt) {
 	// in game poi
 	for (auto& pair : inGamePointsOfInterest) {
 		auto obj = pair.second.lock();
+
+		if (pair.first.find("lane") != std::string::npos) {
+			int index = std::stoi(pair.first.substr(5, 1));
+			obj->trl = RhythmGameManager::GetInstance().GetLanes()[index].position;
+		}
 
 		if (currentState == START_GAME) {
 			obj->allowRender = true;
@@ -539,6 +841,32 @@ void SceneRhythm::Update(double dt) {
 		else {
 			obj->alpha = 0.f;
 		}
+	}
+
+	// vfx list
+	for (unsigned i = 0; i < VFXList.size(); ) {
+		if (VFXList[i].expired()) {
+			VFXList.erase(VFXList.begin() + i);
+			continue;
+		}
+		auto obj = VFXList[i].lock();
+
+		switch (static_cast<GEOMETRY_TYPE>(obj->geometryType)) {
+		case VFX_TAP_NOTE:
+		case VFX_HOLD_NOTE:
+		case VFX_HOLD_NOTE_BODY:
+			obj->scl = Smooth(obj->scl, vec3(2, 2, 0.01f), 10, dt);
+			obj->alpha = Smooth(obj->alpha, 0.f, 10, dt);
+
+			if (obj->alpha <= 0.001f) {
+				obj->Destroy();
+			}
+			break;
+
+		default: break;
+		}
+
+		i++;
 	}
 
 	// world render objects
@@ -681,7 +1009,6 @@ void SceneRhythm::Update(double dt) {
 		Light& properties = obj->lightProperties;
 
 
-
 		if (debug) {
 
 		}
@@ -705,7 +1032,12 @@ void SceneRhythm::Update(double dt) {
 			properties.power = 0;
 		}
 
+		float savedPower = properties.power;
+		properties.power *= obj->alpha;
+
 		UpdateLightUniform(obj);
+		properties.power = savedPower;
+
 		i++;
 	}
 
@@ -860,8 +1192,10 @@ void SceneRhythm::Update(double dt) {
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPosition()));
-	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+	AddDebugText("RhythmGameManager.maxDisplayBeat: " + std::to_string(RhythmGameManager::GetInstance().maxDisplayBeat));
+	AddDebugText("RhythmGameManager.prevMaxDisplayBeat_int: " + std::to_string(RhythmGameManager::GetInstance().prevMaxDisplayBeat_int));
+	AddDebugText("RhythmGameManager.currentBeat: " + std::to_string(RhythmGameManager::GetInstance().currentBeat));
+	AddDebugText("RhythmGameManager.lastestScoreType: " + std::to_string(RhythmGameManager::GetInstance().GetScoreType()));
 
 	// clean world list if dirty
 	if (dirtyWorldList) {
@@ -1114,6 +1448,28 @@ void SceneRhythm::HandleKeyPress() {
 			}
 		}
 	}
+
+	if (currentState == GAME) {
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_F))
+			RhythmGameManager::GetInstance().TappedLane(0);
+		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_F))
+			RhythmGameManager::GetInstance().HeldLane(0);
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_G))
+			RhythmGameManager::GetInstance().TappedLane(1);
+		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_G))
+			RhythmGameManager::GetInstance().HeldLane(1);
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H))
+			RhythmGameManager::GetInstance().TappedLane(2);
+		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_H))
+			RhythmGameManager::GetInstance().HeldLane(2);
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J))
+			RhythmGameManager::GetInstance().TappedLane(3);
+		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_J))
+			RhythmGameManager::GetInstance().HeldLane(3);
+	}
 }
 
 
@@ -1138,6 +1494,10 @@ void SceneRhythm::RenderObj(const std::shared_ptr<RObj> obj) {
 
 	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
 	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
+
+	if (obj->geometryType == GROUP) {
+		glUniform1f(m_parameters[U_COLOR_ALPHA], 0.1f);
+	}
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();
