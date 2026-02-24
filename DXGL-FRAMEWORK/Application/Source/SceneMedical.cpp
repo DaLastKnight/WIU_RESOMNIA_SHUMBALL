@@ -120,9 +120,9 @@ void SceneMedical::Init() {
 		meshList[ENV_SPHERE_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
 		meshList[ENV_BLOCK_MODEL] = MeshBuilder::GenerateCube("Map Block Environment", vec3(1), 1);
 		meshList[ENV_BLOCK_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
-		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("Map String Environment", vec3(1), 360, 0.5f, 100);
+		meshList[ENV_STRING_MODEL] = MeshBuilder::GenerateCylinder("Map String Environment", vec3(1), 360, 0.5f, 1);
 		meshList[ENV_STRING_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
-		meshList[ENV_LIQUID_MODEL] = MeshBuilder::GenerateCylinder("Map Liquid Environment", vec3(1), 360, 0.5f, 100);
+		meshList[ENV_LIQUID_MODEL] = MeshBuilder::GenerateCylinder("Map Liquid Environment", vec3(1), 360, 0.5f, 1);
 		meshList[ENV_LIQUID_MODEL]->textureID = TextureLoader::LoadTexture("red_liquid.png");
 		meshList[ENV_LIQUID_FLAT_MODEL] = MeshBuilder::GenerateQuad("Map Liquid Flat Environment", vec3(1), 1, 1, TextureLoader::LoadTexture("red_liquid.png"));
 		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
@@ -343,12 +343,12 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
 			newObj->name = "Environment Curve Wall";
 			newObj->trl = glm::vec3(45, 0, 45);
-			newObj->offsetScl = glm::vec3(20, 50, 20);
+			newObj->offsetScl = glm::vec3(20, 100, 20);
 
 			newObj->AddPhysics(PhysicsObject::STATIC);
 			auto physics = newObj->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::BOX, vec3(10, 25, 10), vec3(0, 0, 0));
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 50, 10), vec3(0, 0, 0));
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 			physics->SetPosition(newObj->trl);
@@ -366,12 +366,12 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
 			newObj->name = "Environment Curve Wall 2";
 			newObj->trl = glm::vec3(-50, 0, 10);
-			newObj->offsetScl = glm::vec3(20, 1, 20);
+			newObj->offsetScl = glm::vec3(20, 100, 20);
 
 			newObj->AddPhysics(PhysicsObject::STATIC);
 			auto physics = newObj->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::BOX, vec3(10, 0.5f, 10), vec3(0, 0, 0));
+			physics->AddCollider(PhysicsObject::BOX, vec3(10, 50, 10), vec3(0, 0, 0));
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 			physics->SetPosition(newObj->trl);
@@ -396,10 +396,10 @@ void SceneMedical::Init() {
 		}
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(10, 0, -5);
-		newObj->scl = glm::vec3(5, 50, 5);
+		newObj->scl = glm::vec3(5, 100, 5);
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(-30, 0, -20);
-		newObj->scl = glm::vec3(5, 50, 5);
+		newObj->scl = glm::vec3(5, 100, 5);
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_FLAT_MODEL));
 		newObj->trl = glm::vec3(0, -49, 0);
 		newObj->rot = glm::vec3(-90, 0, 0);
@@ -421,7 +421,7 @@ void SceneMedical::Init() {
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL));
 			newObj->trl = glm::vec3(envStringRandTrlX[i], 0, envStringRandTrlZ[i]);
 			newObj->rot = glm::vec3(envStringRandRotX[i], 0, envStringRandRotZ[i]);
-			newObj->scl = glm::vec3(0.8f, 1.0f, 0.8f);
+			newObj->scl = glm::vec3(0.8f, 100.f, 0.8f);
 		}
 	}
 
@@ -500,6 +500,10 @@ void SceneMedical::Update(double dt) {
 	for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
 	{
 		nanobots[i].lifetime -= dt;
+	}
+	for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+	{
+		bacterias[i].bacteriaDivertTimer -= dt;
 	}
 
 	// Manage Wave Data
@@ -649,7 +653,7 @@ void SceneMedical::Update(double dt) {
 
 			nanobot->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = nanobot->GetPhysics();
-			physics->SetPosition(camera.GetPlainPosition() + travelDir);
+			physics->SetPosition(camera.GetPlainPosition() + travelDir * 1.5f);
 
 			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f), vec3(0));
 
@@ -706,6 +710,8 @@ void SceneMedical::Update(double dt) {
 
 			Bacteria b;
 			b.object = bacteria;
+			b.bacteriaDivertTimer = 0.0f;
+			b.bacteriaHP = 2;
 			bacterias.push_back(b);
 
 			currentSpawningP++;
@@ -713,7 +719,7 @@ void SceneMedical::Update(double dt) {
 
 		for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
 		{
-			auto& bacteria = bacterias[i];
+			auto& bacteria = bacterias[i]; // re-refer to inside the container
 
 			if (!bacteria.object || !bacteria.object->GetPhysics())
 			{
@@ -721,30 +727,45 @@ void SceneMedical::Update(double dt) {
 			}
 
 			auto physics = bacteria.object->GetPhysics();
-			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
 
-			float distance = glm::length(AIDir);
+			if (bacteria.bacteriaDivertTimer <= 0.0f)
+			{
+				bacteria.patPoint.x = static_cast<float>(rand() % 81 - 40);
+				bacteria.patPoint.z = static_cast<float>(rand() % 81 - 40);
+
+				bacteria.bacteriaDivertTimer = 3.0f; // Reset timer so that it moves 3 seconds later
+			}
+
+			glm::vec3 phyPos = physics->GetPosition();
+			glm::vec3 patDir = glm::vec3(bacteria.patPoint.x, phyPos.y, bacteria.patPoint.z) - phyPos;
+
+			bool bacteriaDestroyed = false;
+
+			float distance = glm::length(patDir);
 
 			if (distance > 0.1f)
 			{
-				AIDir = glm::normalize(AIDir);
+				patDir = glm::normalize(patDir);
 
-				// Notes for Bacteria AI patrol movement
-				// Since the bacteria already have colliders with the walls of the map
-				// Maintain total randomisation of spawning location as done with virus models
-				// "Patrol" movement will refer to the idea of just moving but never truly targetting the player
-				// After n time, set the bacteria's velocity to a certain value for it to move in a different direction
-				// Do this by randomising a reference location (patrol point) and get the direction vector
-				// Repeatedly run this patrol movement so that the bacteria will continuously target different patrol points
-				// As a result, they will appear to move mindlessly but in actuality follow a randomised patrol pattern
-				// Try to keep patrol points at the fixed y value of the bacteria, only randomising x and z values
-
-				float bacteriaMovementSpeed = 2.0f;
-				glm::vec3 finalVel = AIDir * bacteriaMovementSpeed;
+				float bacteriaMovementSpeed = 4.0f;
+				glm::vec3 finalVel = patDir * bacteriaMovementSpeed;
 				physics->SetVelocity(finalVel);
 			}
 
-			if (distance <= 1.0f + 1.0f)
+			// Notes for Bacteria AI patrol movement
+			// Since the bacteria already have colliders with the walls of the map (consider adding floor and top collidors)
+			// Maintain total randomisation of spawning location as done with virus models
+			// "Patrol" movement will refer to the idea of just moving but never truly targetting the player
+			// After n time, set the bacteria's velocity to a certain value for it to move in a different direction
+			// Do this by randomising a reference location (patrol point) and get the direction vector
+			// Repeatedly run this patrol movement so that the bacteria will continuously target different patrol points
+			// As a result, they will appear to move mindlessly but in actuality follow a randomised patrol pattern
+			// Try to keep patrol points at the fixed y value of the bacteria, only randomising x and z values
+
+			glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
+			float distanceToPlayer = glm::length(dToPDir);
+
+			if (distanceToPlayer <= 1.5f + 1.5f) // Ignore collider with player by expanding fake hitbox check
 			{
 				bacteria.object->Destroy();
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
@@ -752,6 +773,36 @@ void SceneMedical::Update(double dt) {
 				overloadingStack++;
 				remainingEntitiesP--;
 			}
+
+			for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !bacteriaDestroyed; --j)
+			{
+				if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+				{
+					continue;
+				}
+
+				auto nanoPhy = nanobots[j].object->GetPhysics();
+				glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
+
+				float distanceToNano = glm::length(dToNanoDir);
+
+				if (distanceToNano <= 1.0f + 1.0f)
+				{
+					if (bacteria.bacteriaHP > 0)
+					{
+						bacteria.bacteriaHP--;
+					}
+					else
+					{
+						bacteria.object->Destroy();
+						bacterias.erase(bacterias.begin() + i); // Remove the exact element
+
+						remainingEntitiesP--;
+
+						bacteriaDestroyed = true;
+					}
+				}
+			}	
 		}
 
 		if (virusSpawnTimer >= virusSpawnInterval && currentSpawningAI < maxEntitiesAI)
@@ -782,6 +833,7 @@ void SceneMedical::Update(double dt) {
 
 			Virus v;
 			v.object = virus;
+			v.virusHP = 3;
 			viruses.push_back(v); // Send to container
 
 			currentSpawningAI++;
@@ -797,7 +849,10 @@ void SceneMedical::Update(double dt) {
 			}
 
 			auto physics = virus.object->GetPhysics();
-			glm::vec3 AIDir = camera.GetPlainPosition() - physics->GetPosition();
+			glm::vec3 phyPos = physics->GetPosition();
+			glm::vec3 AIDir = camera.GetPlainPosition() - phyPos;
+
+			bool virusDestroyed = false;
 
 			float distance = glm::length(AIDir);
 
@@ -805,18 +860,48 @@ void SceneMedical::Update(double dt) {
 			{
 				AIDir = glm::normalize(AIDir);
 
-				float virusMovementSpeed = 2.0f;
+				float virusMovementSpeed = 3.0f;
 				glm::vec3 finalVel = AIDir * virusMovementSpeed;
 				physics->SetVelocity(finalVel);
 			}
 
-			if (distance <= 1.0f + 1.0f)
+			if (distance <= 2.0f + 2.0f)
 			{
 				virus.object->Destroy();
 				viruses.erase(viruses.begin() + i); // Remove the exact element
 
 				overloadingStack++;
 				remainingEntitiesAI--;
+			}
+
+			for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !virusDestroyed; --j)
+			{
+				if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+				{
+					continue;
+				}
+
+				auto nanoPhy = nanobots[j].object->GetPhysics();
+				glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
+
+				float distanceToNano = glm::length(dToNanoDir);
+
+				if (distanceToNano <= 1.0f + 1.0f)
+				{
+					if (virus.virusHP > 0)
+					{
+						virus.virusHP--;
+					}
+					else
+					{
+						virus.object->Destroy();
+						viruses.erase(viruses.begin() + i); // Remove the exact element
+
+						remainingEntitiesAI--;
+
+						virusDestroyed = true;
+					}
+				}
 			}
 		}
 
@@ -1194,7 +1279,7 @@ void SceneMedical::HandleKeyPress() {
 			}
 		}
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
-			AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
+
 		}
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
 			if (AudioManager::GetInstance().PlayingMUS())

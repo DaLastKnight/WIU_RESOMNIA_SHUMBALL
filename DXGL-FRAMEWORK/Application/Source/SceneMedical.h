@@ -113,6 +113,8 @@ private:
 	{
 		std::shared_ptr<RenderObject> object;
 		int bacteriaHP = 2;
+		float bacteriaDivertTimer = 0.0f;
+		glm::vec3 patPoint;
 	};
 
 	std::vector<Bacteria> bacterias;
