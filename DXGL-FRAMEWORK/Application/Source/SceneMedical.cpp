@@ -494,7 +494,7 @@ void SceneMedical::Init() {
 	{
 		// camera init
 		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
-		camera.Set(FPCamera::MODE::FREE);
+		camera.Set(Cam::MODE::FIRST_PERSON);
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
@@ -511,9 +511,23 @@ void SceneMedical::Update(double dt) {
 	auto& cameraMode = camera.GetCurrentMode();
 
 	// Win/Lose Condition Checking
-	if (overloadingStack >= 6)
+	// Win
+	if (currentState == MedicalGameState::WON && !isInResults)
 	{
-		ChangeWave(GetWave()); // Reset Wave Data
+		isInResults = true;
+		isGameReset = true;
+		currentState = MedicalGameState::RESULTS;
+		HandleWinCondition();
+	}
+	if (currentState == MedicalGameState::RESULTS)
+	{
+		player.allowControl = false;
+		camera.Set(Cam::MODE::PAUSE);
+	}
+	// Lose
+	if (overloadingStack >= 6 || waveTimeLeft <= 0.0f)
+	{
+		ChangeWave(waveNumber); // Reset Wave Data
 		// Delete all previous entities
 		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
 		{
@@ -551,8 +565,61 @@ void SceneMedical::Update(double dt) {
 			delVir.object->Destroy();
 			viruses.erase(viruses.begin() + i);
 		}
+
+		currentActiveNanobotAmmo = 0;
 		changeInOverloadStack = true;
 		overloadingStack = 0;
+	}
+	// Reset
+	if (isGameReset)
+	{
+		ChangeWave(1); // Reset Wave Data
+
+		// Delete all previous entities
+		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+		{
+			auto& delNano = nanobots[i];
+
+			if (!delNano.object || !delNano.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delNano.object->Destroy();
+			nanobots.erase(nanobots.begin() + i);
+		}
+		for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+		{
+			auto& delBact = bacterias[i];
+
+			if (!delBact.object || !delBact.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delBact.object->Destroy();
+			bacterias.erase(bacterias.begin() + i);
+		}
+		for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
+		{
+			auto& delVir = viruses[i];
+
+			if (!delVir.object || !delVir.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delVir.object->Destroy();
+			viruses.erase(viruses.begin() + i);
+		}
+		
+		currentActiveNanobotAmmo = 0;
+		changeInOverloadStack = true;
+		overloadingStack = 0;
+
+		totalTimeTaken = 0;
+
+		isGameReset = false;
 	}
 
 	// fps calculation
@@ -582,10 +649,12 @@ void SceneMedical::Update(double dt) {
 			if (cameraMode == Cam::MODE::PAUSE)
 			{
 				waveTimeLeft = waveTimeLeft;
+				totalTimeTaken = totalTimeTaken;
 			}
 			else
 			{
 				waveTimeLeft--;
+				totalTimeTaken++;
 			}
 
 			if (waveTimeLeft <= 0.0f)
@@ -638,27 +707,25 @@ void SceneMedical::Update(double dt) {
 	}
 
 	// Manage Wave Data
-	if (waveNumber == 1 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	if (waveNumber == 1 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0)
 	{
 		ChangeWave(2);
 	}
-	else if (waveNumber == 2 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	else if (waveNumber == 2 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0)
 	{
 		ChangeWave(3);
 	}
-	else if (waveNumber == 3 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameWon == false)
+	else if (waveNumber == 3 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0 && isGameReset == false)
 	{
-		isGameWon = true;
+		currentState = MedicalGameState::WON;
 	}
 
-	AddSceneMedicalText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
 	AddSceneMedicalText("Wave: " + std::to_string(waveNumber) + "/3");
+	AddSceneMedicalText("Time: " + std::to_string(waveTimeLeft) + "s");
 	AddSceneMedicalText("Bacteria Alive: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
 	AddSceneMedicalText("Viruses Alive: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
-	AddSceneMedicalText("Seen Bacteria: " + std::to_string(currentSpawningP) + "/" + std::to_string(maxEntitiesP));
-	AddSceneMedicalText("Seen Viruses: " + std::to_string(currentSpawningAI) + "/" + std::to_string(maxEntitiesAI));
-	AddSceneMedicalText("Current Overload Stack: " + std::to_string(overloadingStack * 100 / 5) + "%");
 	AddSceneMedicalText("Nanobot Ammo: " + std::to_string(maxNanobotAmmo - currentActiveNanobotAmmo) + "/" + std::to_string(maxNanobotAmmo));
+	AddSceneMedicalText("Total Time: " + std::to_string(totalTimeTaken) + "s");
 
 	// Manage Overload Cooling
 	if (overloadingStack > 3)
@@ -1076,10 +1143,6 @@ void SceneMedical::Update(double dt) {
 			}
 		}
 
-		if (debug) {
-
-		}
-
 		if (!obj->GetPhysics())
 			obj->UpdateModel(); // detects changes in trl, rot and scl automatically to update its hierarchy's model
 		i++;
@@ -1122,13 +1185,13 @@ void SceneMedical::Update(double dt) {
 			changeInOverloadStack = false;
 		}
 
-		if (isHelpOpen && menuChange)
+		if (isHelpOpen && menuChange && currentState == MedicalGameState::PLAYING)
 		{
 			ShowHelpMenu();
 			menuChange = false;
 		}
 
-		if (!isHelpOpen && menuChange)
+		if (!isHelpOpen && menuChange && currentState == MedicalGameState::PLAYING)
 		{
 			ClearHelpMenu();
 			menuChange = false;
@@ -1169,12 +1232,6 @@ void SceneMedical::Update(double dt) {
 		auto obj = lightList[i].lock();
 		obj->allowRender = debug;
 		Light& properties = obj->lightProperties;
-
-
-
-		if (debug) {
-
-		}
 
 		obj->UpdateModel();
 
@@ -1225,16 +1282,7 @@ void SceneMedical::Update(double dt) {
 			auto physics = obj->GetPhysics();
 			physics->InterpolateTransform();
 			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
-			if (obj->name == "Environment Wall")
-			{
-				physics->contactEvent.Subscribe(
-					[&](const rp3d::Body* other)
-					{
-						std::cout << "Wall contacted something!\n";
-					});
-				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
-				physics->contactEvent.lock = true;
-			}
+			
 			i++;
 		}
 	}
@@ -1372,7 +1420,8 @@ void SceneMedical::HandleKeyPress() {
 		}
 	}
 
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) 
+	{
 		debug = !debug;
 
 		if (debug) {
@@ -1472,6 +1521,16 @@ void SceneMedical::HandleKeyPress() {
 				menuChange = true;
 			}
 		}
+	}
+
+	if (currentState == MedicalGameState::RESULTS && KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_BACKSPACE))
+	{
+		std::cout << "Backspace detected";
+		ClearResultsMenu();
+		currentState = MedicalGameState::PLAYING;
+		camera.Set(Cam::MODE::FIRST_PERSON);
+		player.allowControl = true;
+		isInResults = false;
 	}
 }
 
@@ -1628,12 +1687,25 @@ void SceneMedical::ClearDebugText() {
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }
 
+void SceneMedical::HandleWinCondition()
+{
+	if (bestTimeTaken == 0 || totalTimeTaken < bestTimeTaken)
+	{
+		bestTimeTaken = totalTimeTaken;
+	}
+
+	ShowResultsMenu();
+}
+
 void SceneMedical::ChangeWave(int waveNumber)
 {
 	currentSpawningP = 0;
 	currentSpawningAI = 0;
 
 	waveTimeLeft = 180;
+
+	bacteriaSpawnTimer = 0.0f;
+	virusSpawnTimer = 0.0f;
 
 	if (waveNumber == 1)
 	{
@@ -1670,11 +1742,6 @@ void SceneMedical::ChangeWave(int waveNumber)
 		waveNumber = 1; // Set to default if somehow fails and is not between 1 to 3
 		std::cout << "Wave input may be incorrect, please check and retry again" << std::endl;
 	}
-}
-
-int SceneMedical::GetWave()
-{
-	return waveNumber;
 }
 
 void SceneMedical::ShowOverloadStack()
@@ -1738,12 +1805,39 @@ void SceneMedical::ShowHelpMenu()
 		std::shared_ptr<RenderObject> help = RenderObject::newObject;
 
 		help->relativeTrl = true;
-		help->scl = glm::vec3(400.f - i * 10.f, 200.f - i * 10.f, 1);
+		help->scl = glm::vec3(800.f - i * 10.f, 200.f - i * 10.f, 1);
 
 		GameMenu gm;
 		gm.object = help;
 
 		menus.push_back(gm);
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		std::string intendedText;
+
+		if (i == 0)
+		{
+			intendedText = "LMB to shoot nanobots";
+		}
+		if (i == 1)
+		{
+			intendedText = "ALT to Pause";
+		}
+		if (i == 2)
+		{
+			intendedText = "(/) to re-open Help";
+		}
+		if (i == 4)
+		{
+			intendedText = "Objective: Defeat all waves of bacteria and viruses within the time";
+		}
+		if (i == 5)
+		{
+			intendedText = "Taking hits may cause you to overload and fail to save the body";
+		}
+		auto helpText = AddFlexText("Instruct", intendedText, glm::vec3(-0.4625f, 0.125f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
+		textObjects.push_back(helpText);
 	}
 }
 
@@ -1755,6 +1849,95 @@ void SceneMedical::ClearHelpMenu()
 		helpUI.object->Destroy();
 		menus.erase(menus.begin() + i);
 	}
+	for (auto& obj : textObjects)
+    {
+		if (obj)
+		{
+		   obj->Destroy();   // or RemoveFromParent()
+		}
+    }
+    textObjects.clear();
+}
+
+void SceneMedical::ShowResultsMenu()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		GEOMETRY_TYPE mesh;
+		int layerIndex;
+
+		if (i == 0)
+		{
+			mesh = GAME_UI_BASE;
+			layerIndex = 0;
+		}
+		else
+		{
+			mesh = GAME_UI_PLATE;
+			layerIndex = 1;
+		}
+
+		screenRoot->NewChild(MeshObject::Create(mesh, layerIndex));
+		std::shared_ptr<RenderObject> help = RenderObject::newObject;
+
+		help->relativeTrl = true;
+		help->scl = glm::vec3(400.f - i * 10.f, 200.f - i * 10.f, 1);
+
+		GameMenu gm;
+		gm.object = help;
+
+		menus.push_back(gm);
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		std::string intendedText;
+
+		if (i == 0)
+		{
+			intendedText = "Best Time: " + std::to_string(bestTimeTaken) + "s";
+		}
+		if (i == 2)
+		{
+			intendedText = "This Time: " + std::to_string(totalTimeTaken) + "s";
+		}
+		if (i == 4)
+		{
+			intendedText = "(<--) to retry";
+		}
+
+		auto helpText = AddFlexText("Results", intendedText, glm::vec3(-0.2f, 0.1f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
+		textObjects.push_back(helpText);
+	}
+}
+
+void SceneMedical::ClearResultsMenu()
+{
+	for (int i = static_cast<int>(menus.size()) - 1; i >= 0; --i)
+	{
+		auto& resultsUI = menus[i];
+		resultsUI.object->Destroy();
+		menus.erase(menus.begin() + i);
+	}
+	for (auto& obj : textObjects)
+	{
+		if (obj)
+		{
+			obj->Destroy();   // or RemoveFromParent()
+		}
+	}
+	textObjects.clear();
+}
+
+std::shared_ptr<TextObject> SceneMedical::AddFlexText(const std::string& name, const std::string& text, vec3 pos, vec3 scl, GEOMETRY_TYPE font)
+{
+	screenRoot->NewChild(TextObject::Create(name, text, vec3(1, 1, 1), font, false, 99));
+
+	auto obj = RObj::newObject;
+	obj->relativeTrl = true;
+	obj->trl = pos;
+	obj->scl = scl;
+
+	return std::dynamic_pointer_cast<TextObject>(obj);
 }
 
 void SceneMedical::InitSceneMedicalText(GEOMETRY_TYPE font) {

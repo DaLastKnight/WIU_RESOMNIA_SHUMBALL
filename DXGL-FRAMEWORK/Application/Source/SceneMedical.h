@@ -86,9 +86,21 @@ private:
 	double debugPhysicsTimer = 0;
 	
 	// Medical Gun Game Scene Specifics
+	enum class MedicalGameState
+	{
+		PLAYING,
+		WON,
+		RESULTS
+	};
+
+	MedicalGameState currentState = MedicalGameState::PLAYING;
+	bool isInResults = false;
+
 	int waveNumber = 1; // default wave at 1
 	int waveTimeLeft = 180; // 3 minutes per wave
 	float waveTimeAccumulator = 0.0f;
+	int totalTimeTaken = 0;
+	int bestTimeTaken = 0;
 
 	struct Overload
 	{
@@ -105,6 +117,7 @@ private:
 		std::shared_ptr<RenderObject> object;
 	};
 	std::vector<GameMenu> menus;
+	std::vector<std::shared_ptr<TextObject>> textObjects;
 	bool isHelpOpen = true;
 	bool menuChange = true;
 
@@ -128,7 +141,7 @@ private:
 		float bacteriaInvulnerabilityTimer = 0.0f;
 
 		float bacteriaDivertTimer = 0.0f;
-		glm::vec3 patPoint;
+		glm::vec3 patPoint = glm::vec3(0);
 	};
 
 	std::vector<Bacteria> bacterias;
@@ -146,7 +159,7 @@ private:
 	struct Nanobot
 	{
 		std::shared_ptr<RenderObject> object;
-		float lifetime;
+		float lifetime = 5.0f;
 	};
 
 	bool isNanobotFired = false;
@@ -154,14 +167,19 @@ private:
 	int currentActiveNanobotAmmo = 0;
 	std::vector<Nanobot> nanobots;
 
-	bool isGameWon = false;
+	bool isGameReset = false;
+
+	void HandleWinCondition();
 
 	void ChangeWave(int waveNumber);
-	int GetWave();
 
 	void ShowOverloadStack();
 	void ShowHelpMenu();
 	void ClearHelpMenu();
+	void ShowResultsMenu();
+	void ClearResultsMenu();
+
+	std::shared_ptr<TextObject> AddFlexText(const std::string& name, const std::string& text, glm::vec3 pos, glm::vec3 scl, GEOMETRY_TYPE font);
 
 	std::vector<std::weak_ptr<RenderObject>> sceneMedicalTextList;
 	void InitSceneMedicalText(GEOMETRY_TYPE font);
