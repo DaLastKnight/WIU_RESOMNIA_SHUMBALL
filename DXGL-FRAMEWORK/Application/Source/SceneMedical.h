@@ -104,6 +104,11 @@ private:
 	int remainingEntitiesP = 10;
 	int remainingEntitiesAI = 5;
 
+	struct Overload
+	{
+		std::shared_ptr<RenderObject> object;
+	};
+	std::vector<Overload> overloadStackUI;
 	int overloadingStack = 0;
 	int maxOverload = 5;
 	float overloadCoolTimer = 0.0f; // Use only if overloading stack is above 3

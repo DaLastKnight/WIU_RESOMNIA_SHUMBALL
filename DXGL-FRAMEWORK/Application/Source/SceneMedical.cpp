@@ -504,12 +504,49 @@ void SceneMedical::Update(double dt) {
 	ClearDebugText();
 	ClearSceneMedicalText();
 
+	auto& cameraMode = camera.GetCurrentMode();
+
 	// Win/Lose Condition Checking
 	if (overloadingStack >= 5)
 	{
 		ChangeWave(GetWave()); // Reset Wave Data
 		// Delete all previous entities
-		// ...
+		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+		{
+			auto& delNano = nanobots[i];
+
+			if (!delNano.object || !delNano.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delNano.object->Destroy();
+			nanobots.erase(nanobots.begin() + i);
+		}
+		for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+		{
+			auto& delBact = bacterias[i];
+
+			if (!delBact.object || !delBact.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delBact.object->Destroy();
+			bacterias.erase(bacterias.begin() + i);
+		}
+		for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
+		{
+			auto& delVir = viruses[i];
+
+			if (!delVir.object || !delVir.object->GetPhysics())
+			{
+				continue;
+			}
+
+			delVir.object->Destroy();
+			viruses.erase(viruses.begin() + i);
+		}
 		changeInOverloadStack = true;
 		overloadingStack = 0;
 	}
@@ -538,44 +575,60 @@ void SceneMedical::Update(double dt) {
 		if (waveTimeAccumulator >= 1.0f)
 		{
 			waveTimeAccumulator -= 1.0f;
-			waveTimeLeft--;
+			if (cameraMode == Cam::MODE::PAUSE)
+			{
+				waveTimeLeft = waveTimeLeft;
+			}
+			else
+			{
+				waveTimeLeft--;
+			}
 
 			if (waveTimeLeft <= 0.0f)
 			{
 				waveTimeLeft = 180;
 			}
 		}
-		AddSceneMedicalText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
 	}
-	AddSceneMedicalText("Wave: " + std::to_string(waveNumber) + "/3");
 
 	// Calculate Game Timers
-	bacteriaSpawnTimer += dt;
-	virusSpawnTimer += dt;
-	for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+	if (cameraMode != Cam::MODE::PAUSE)
 	{
-		nanobots[i].lifetime -= dt;
-	}
-	for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
-	{
-		bacterias[i].bacteriaDivertTimer -= dt;
-		if (bacterias[i].bacteriaInvulnerabilityTimer > 0.0f)
+		bacteriaSpawnTimer += dt;
+		virusSpawnTimer += dt;
+		if (overloadingStack > 3)
 		{
-			bacterias[i].bacteriaInvulnerabilityTimer -= dt;
-			if (bacterias[i].bacteriaInvulnerabilityTimer < 0.0f)
+			overloadCoolTimer += dt;
+			if (overloadCoolTimer >= 5.0f)
 			{
-				bacterias[i].bacteriaInvulnerabilityTimer = 0.0f;
+				overloadCoolTimer = 5.0f;
 			}
 		}
-	}
-	for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
-	{
-		if (viruses[i].virusInvulnerabilityTimer > 0.0f)
+		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
 		{
-			viruses[i].virusInvulnerabilityTimer -= dt;
-			if (viruses[i].virusInvulnerabilityTimer < 0.0f)
+			nanobots[i].lifetime -= dt;
+		}
+		for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+		{
+			bacterias[i].bacteriaDivertTimer -= dt;
+			if (bacterias[i].bacteriaInvulnerabilityTimer > 0.0f)
 			{
-				viruses[i].virusInvulnerabilityTimer = 0.0f;
+				bacterias[i].bacteriaInvulnerabilityTimer -= dt;
+				if (bacterias[i].bacteriaInvulnerabilityTimer < 0.0f)
+				{
+					bacterias[i].bacteriaInvulnerabilityTimer = 0.0f;
+				}
+			}
+		}
+		for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
+		{
+			if (viruses[i].virusInvulnerabilityTimer > 0.0f)
+			{
+				viruses[i].virusInvulnerabilityTimer -= dt;
+				if (viruses[i].virusInvulnerabilityTimer < 0.0f)
+				{
+					viruses[i].virusInvulnerabilityTimer = 0.0f;
+				}
 			}
 		}
 	}
@@ -594,12 +647,25 @@ void SceneMedical::Update(double dt) {
 		isGameWon = true;
 	}
 
+	AddSceneMedicalText("Remaining Time For Wave: " + std::to_string(waveTimeLeft));
+	AddSceneMedicalText("Wave: " + std::to_string(waveNumber) + "/3");
 	AddSceneMedicalText("Bacteria Alive: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
 	AddSceneMedicalText("Viruses Alive: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
 	AddSceneMedicalText("Seen Bacteria: " + std::to_string(currentSpawningP) + "/" + std::to_string(maxEntitiesP));
 	AddSceneMedicalText("Seen Viruses: " + std::to_string(currentSpawningAI) + "/" + std::to_string(maxEntitiesAI));
 	AddSceneMedicalText("Current Overload Stack: " + std::to_string(overloadingStack * 100 / 5) + "%");
 	AddSceneMedicalText("Nanobot Ammo: " + std::to_string(maxNanobotAmmo - currentActiveNanobotAmmo) + "/" + std::to_string(maxNanobotAmmo));
+
+	// Manage Overload Cooling
+	if (overloadingStack > 3)
+	{
+		if (overloadCoolTimer >= 5.0f)
+		{
+			overloadingStack--;
+			changeInOverloadStack = true;
+			overloadCoolTimer = 0.0f;
+		}
+	}
 
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
@@ -796,7 +862,11 @@ void SceneMedical::Update(double dt) {
 
 				float bacteriaMovementSpeed = 4.0f;
 				glm::vec3 finalVel = patDir * bacteriaMovementSpeed;
-				physics->SetVelocity(finalVel);
+
+				if (cameraMode != Cam::MODE::PAUSE)
+				{
+					physics->SetVelocity(finalVel);
+				}
 			}
 
 			// Notes for Bacteria AI patrol movement
@@ -812,7 +882,7 @@ void SceneMedical::Update(double dt) {
 			glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
 			float distanceToPlayer = glm::length(dToPDir);
 
-			if (distanceToPlayer <= 1.5f + 1.5f) // Ignore collider with player by expanding fake hitbox check
+			if (distanceToPlayer <= 2.0f + 2.0f) // Ignore collider with player by expanding fake hitbox check
 			{
 				bacteria.object->Destroy();
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
@@ -914,7 +984,11 @@ void SceneMedical::Update(double dt) {
 
 				float virusMovementSpeed = 3.0f;
 				glm::vec3 finalVel = AIDir * virusMovementSpeed;
-				physics->SetVelocity(finalVel);
+
+				if (cameraMode != Cam::MODE::PAUSE)
+				{
+					physics->SetVelocity(finalVel);
+				}
 			}
 
 			if (distance <= 2.0f + 2.0f)
@@ -1286,6 +1360,7 @@ void SceneMedical::HandleKeyPress() {
 		if (cameraMode != Cam::MODE::PAUSE) {
 			prevMode = cameraMode;
 			camera.Set(Cam::MODE::PAUSE);
+			player.allowControl = false;
 		}
 		else {
 			camera.Set(prevMode);
@@ -1294,6 +1369,8 @@ void SceneMedical::HandleKeyPress() {
 
 	// player controls
 	if (player.allowControl) {
+
+		auto& cameraMode = camera.GetCurrentMode();
 
 		// movement
 		{
@@ -1331,7 +1408,7 @@ void SceneMedical::HandleKeyPress() {
 
 		// action
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-			if (currentActiveNanobotAmmo < maxNanobotAmmo)
+			if (currentActiveNanobotAmmo < maxNanobotAmmo && cameraMode != Cam::MODE::PAUSE)
 			{
 				isNanobotFired = true;
 			}
@@ -1558,30 +1635,40 @@ int SceneMedical::GetWave()
 
 void SceneMedical::ShowOverloadStack()
 {
-	auto& overloadObj = RObj::newObject;
+	for (int i = static_cast<int>(overloadStackUI.size()) - 1; i >= 0; --i)
+	{
+		auto& overloadUI = overloadStackUI[i];
+		overloadUI.object->Destroy();
+		overloadStackUI.erase(overloadStackUI.begin() + i);
+	}
+
+	if (overloadingStack <= 0)
+	{
+		return;
+	}
+
 	for (int i = 0; i < overloadingStack; i++)
 	{
+		GEOMETRY_TYPE mesh;
+
 		if (i < 2)
-		{
-			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_G, 2));
-			overloadObj->relativeTrl = true;
-			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
-			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
-		}
-		if (i >= 2 && i < 4)
-		{
-			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_Y, 2));
-			overloadObj->relativeTrl = true;
-			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
-			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
-		}
-		if (i == 4)
-		{
-			screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_R, 2));
-			overloadObj->relativeTrl = true;
-			overloadObj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
-			overloadObj->scl = glm::vec3(63.f, 30.f, 1);
-		}
+			mesh = GAME_OVERLOADSTACK_G;
+		else if (i < 4)
+			mesh = GAME_OVERLOADSTACK_Y;
+		else
+			mesh = GAME_OVERLOADSTACK_R;
+
+		screenRoot->NewChild(MeshObject::Create(mesh, 2));
+		std::shared_ptr<RenderObject> obj = RenderObject::newObject;
+
+		obj->relativeTrl = true;
+		obj->trl = glm::vec3(0.5825f + i * 0.08375f, -0.9f, 0);
+		obj->scl = glm::vec3(63.f, 30.f, 1);
+
+		Overload ov;
+		ov.object = obj;
+
+		overloadStackUI.push_back(ov);
 	}
 }
 
