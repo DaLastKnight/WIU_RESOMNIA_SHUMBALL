@@ -87,6 +87,7 @@ public:
 	void UsePhysicsModel();
 
 	void Destroy();
+	void ClearChildren();
 	void NewChild(std::shared_ptr<RenderObject> child);
 
 	void SwapParentTo(const std::shared_ptr<RenderObject>& newParent);

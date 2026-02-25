@@ -39,15 +39,21 @@ void AudioManager::OpenMixer() {
 }
 
 void AudioManager::LoadSFX(unsigned key, const char* filename) {
-    sfxList[key] = Mix_LoadWAV((directorySFX + filename).c_str());
-    if (!sfxList[key])
+    auto& SFX = sfxList[key];
+
+    if (SFX)
+        UnloadSFX(key);
+
+    SFX = Mix_LoadWAV((directorySFX + filename).c_str());
+    if (!SFX)
         SDL_Log("loadSFX: Mix_LoadWAV Error: %s", Mix_GetError());
 }
 
 void AudioManager::LoadMUS(const char* filename, double durationInSeconds) {
+    if (music)
+        UnloadMUS();
+
     music = Mix_LoadMUS((directoryMusic + filename).c_str());
-    if (music == NULL)
-        music = nullptr;
     if (!music)
         SDL_Log("loadMUS: Mix_LoadMUS Error: %s", Mix_GetError());
     else

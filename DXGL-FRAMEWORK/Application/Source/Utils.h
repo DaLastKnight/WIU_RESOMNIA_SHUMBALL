@@ -103,6 +103,10 @@ inline float LerpTime(T currentValue, T startValue, T endValue) {
 	return (currentValue - startValue) / (endValue - startValue);
 }
 
-
+// type must support + with its own type, and * with float
+template<typename T>
+inline T Average(T value1, T value2) {
+	return (value1 + value2) * 0.5f;
+}
 
 #endif

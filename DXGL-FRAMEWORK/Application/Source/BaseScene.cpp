@@ -23,6 +23,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "PhysicsManager.h"
+#include "DialogueManager.h"
 
 #include "Utils.h"
 
@@ -213,6 +214,8 @@ void BaseScene::Exit()
 
 	AudioManager::GetInstance().PauseMUS();
 	AudioManager::GetInstance().UnloadAll();
+
+	DialogueManager::GetInstance().ClearDialogueManager();
 
 	worldRoot.reset();
 	viewRoot.reset();

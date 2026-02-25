@@ -3,6 +3,7 @@
 
 #include "BaseScene.h"
 
+#include <GL/glew.h>
 #include "SRhythmRaycast.h"
 
 #include "Console.h"
@@ -66,7 +67,13 @@ private:
 		RT_LOSSLESS_BTN_BG,
 		RT_COMPRESSED_BTN,
 		RT_COMPRESSED_BTN_BG,
-
+		RT_NEXT_BTN,
+		RT_NEXT_BTN_BG,
+		RT_RETRY_BTN,
+		RT_RETRY_BTN_BG,
+		RT_PROGRESSION,
+		RT_PROGRESS,
+		RT_PROGRESS_INDICATOR,
 		
 		RHYTHM_BASE,
 		RHYTHM_BEAT,
@@ -86,7 +93,6 @@ private:
 	};
 
 	enum SFX_TYPE {
-		GOOFY_AHH_ASRIEL_STAR_SOUND,
 
 		TOTAL_SFX
 	};
@@ -111,10 +117,18 @@ private:
 
 	PhysicsRaycast physicsRaycast;
 
+	// texture
+	std::array<GLuint, 2> baseUITexture;
+
 	// game info
 	int difficulty = 1;
 	glm::vec3 globalSurroundingColor;
 	float atmosphereTargetingDensestRange;
+
+	// text
+	bool allowActivatePacketLoss = false;
+	bool allowActivateUploadSuccessful = false;
+	glm::vec3 situationTextColor = glm::vec3(1);
 
 	// input info
 	bool lmb_pressed;

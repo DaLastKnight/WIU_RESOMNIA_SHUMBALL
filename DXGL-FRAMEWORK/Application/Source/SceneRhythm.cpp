@@ -78,8 +78,16 @@ void SceneRhythm::Init() {
 	// audio init
 	{
 		// sfx init
-		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
 
+
+	}
+
+	// dialogue init
+	{
+		DialogueManager::GetInstance().LoadDialoguePack("Uploading.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Resending_Packet.json");
+		DialogueManager::GetInstance().LoadDialoguePack("System_Timeout.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Upload_Succesful.json");
 	}
 
 	// Init VBO here
@@ -92,14 +100,16 @@ void SceneRhythm::Init() {
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
 		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5);
 		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox");
-		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
-		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
+		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1), 0.05f);
+		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1), 0.05f);
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
 		meshList[BLACK] = MeshBuilder::GenerateQuad("black", vec3(), 1, 1, TextureLoader::LoadTexture("black.png"));
 
-		meshList[RT_BASE_UI] = MeshBuilder::GenerateQuad("rt base ui", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_base_ui.png"), true);
+		baseUITexture[0] = TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_base_ui.png");
+		baseUITexture[1] = TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_result.png");
+		meshList[RT_BASE_UI] = MeshBuilder::GenerateQuad("rt base ui", vec3(), 1, 1, baseUITexture[0], true);
 		meshList[RT_PANEL_BASE] = MeshBuilder::GenerateQuad("rt panel base", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_panel_base.png"), true);
 		meshList[RT_DISC] = MeshBuilder::GenerateQuad("rt disc", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_disc.png"), true);
 		meshList[RT_OPU] = MeshBuilder::GenerateQuad("rt OPU", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_OPU.png"), true);
@@ -110,6 +120,13 @@ void SceneRhythm::Init() {
 		meshList[RT_LOSSLESS_BTN_BG] = MeshBuilder::GenerateQuad("rt lossless bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_lossless_btn_bg.png"), true);
 		meshList[RT_COMPRESSED_BTN] = MeshBuilder::GenerateQuad("rt compressed", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn.png"), true);
 		meshList[RT_COMPRESSED_BTN_BG] = MeshBuilder::GenerateQuad("rt compressed bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_compressed_btn_bg.png"), true);
+		meshList[RT_NEXT_BTN] = MeshBuilder::GenerateQuad("rt next", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_next_btn.png"), true);
+		meshList[RT_NEXT_BTN_BG] = MeshBuilder::GenerateQuad("rt next bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_next_btn_bg.png"), true);
+		meshList[RT_RETRY_BTN] = MeshBuilder::GenerateQuad("rt retry", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_retry_btn.png"), true);
+		meshList[RT_RETRY_BTN_BG] = MeshBuilder::GenerateQuad("rt retry bg", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_retry_btn_bg.png"), true);
+		meshList[RT_PROGRESSION] = MeshBuilder::GenerateQuad("rt progression", vec3(), 1, 1, TextureLoader::LoadTexture("RHYTHM_TRANSFER_EXE_progression_.png"));
+		meshList[RT_PROGRESS] = MeshBuilder::GenerateQuad("rt progress", vec3(1), 1, 1);
+		meshList[RT_PROGRESS_INDICATOR] = MeshBuilder::GenerateQuad("rt progress indicator", vec3(1), 1, 1);
 
 		meshList[RHYTHM_BASE] = MeshBuilder::GenerateQuad("game base", vec3(), 1, 1, TextureLoader::LoadTexture("base_gradient.tga"));
 		meshList[RHYTHM_BEAT] = MeshBuilder::GenerateQuad("beat", vec3(), 1, 1, TextureLoader::LoadTexture("GAME_beat.png"));
@@ -166,7 +183,6 @@ void SceneRhythm::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(LIGHT, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::NEON); 
-			obj->offsetScl = vec3(0.05f);
 			});
 		RObj::setDefaultStat.Subscribe(GROUP, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
@@ -223,6 +239,37 @@ void SceneRhythm::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(RT_COMPRESSED_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_NEXT_BTN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_NEXT_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_RETRY_BTN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_RETRY_BTN_BG, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_PROGRESSION, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_PROGRESS, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(1, 0.05f, 1);
+			obj->offsetTrl.x = 0.5f;
+			obj->hasTransparency = true;
+			});
+		RObj::setDefaultStat.Subscribe(RT_PROGRESS_INDICATOR, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::BRIGHT);
+			obj->offsetScl = vec3(0.01f, 0.05f, 1);
 			obj->hasTransparency = true;
 			});
 
@@ -329,6 +376,40 @@ void SceneRhythm::Init() {
 		auto rtUI = newObj;
 		uiPointsOfInterest[rtUI->name] = rtUI;
 
+		rtUI->NewChild(MeshObject::Create(RT_NEXT_BTN));
+		newObj->name = "next btn";
+		newObj->trl = vec3(0.23f, -0.19f, layerOffset * 2);
+		uiPointsOfInterest[newObj->name] = newObj;
+		newObj->NewChild(MeshObject::Create(RT_NEXT_BTN_BG));
+		newObj->name = "next bg";
+		newObj->trl = vec3(0, 0, layerOffset * -0.25f);
+		uiPointsOfInterest[newObj->name] = newObj;
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "next trigger";
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.2f, 0.05f, 0.001f));
+		physics->SetTrigger(true);
+		triggerList[newObj->name] = newObj;
+
+		rtUI->NewChild(MeshObject::Create(RT_RETRY_BTN));
+		newObj->name = "retry btn";
+		newObj->trl = vec3(-0.23f, -0.19f, layerOffset * 2);
+		uiPointsOfInterest[newObj->name] = newObj;
+		newObj->NewChild(MeshObject::Create(RT_RETRY_BTN_BG));
+		newObj->name = "retry bg";
+		newObj->trl = vec3(0, 0, layerOffset * -0.25f);
+		uiPointsOfInterest[newObj->name] = newObj;
+
+		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+		newObj->name = "retry trigger";
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		physics = newObj->GetPhysics();
+		physics->AddCollider(PhysicsObject::BOX, vec3(0.2f, 0.05f, 0.001f));
+		physics->SetTrigger(true);
+		triggerList[newObj->name] = newObj;
+
 		rtUI->NewChild(MeshObject::Create(RT_UPLOAD_BTN));
 		newObj->name = "upload btn";
 		newObj->trl = vec3(0.225f, -0.165f, layerOffset * 2);
@@ -389,10 +470,43 @@ void SceneRhythm::Init() {
 		panelUI->NewChild(MeshObject::Create(RT_OPU_BASE));
 		newObj->trl = vec3(-0.225f, 0, layerOffset);
 		auto opuBase = newObj;
+
 		opuBase->NewChild(MeshObject::Create(RT_DISC));
+		newObj->name = "disc";
 		newObj->trl = vec3(0, 0, layerOffset);
+		uiPointsOfInterest[newObj->name] = newObj;
 		opuBase->NewChild(MeshObject::Create(RT_OPU));
 		newObj->trl = vec3(-0.0675f, 0.0675f, layerOffset * 2);
+
+		worldRoot->NewChild(MeshObject::Create(RT_PROGRESSION));
+		newObj->name = "progression";
+		newObj->trl = vec3(0, 0, layerOffset);
+		auto progression = newObj;
+		inGamePointsOfInterest[progression->name] = progression;
+
+		progression->NewChild(MeshObject::Create(GROUP));
+		newObj->name = "progress bar";
+		newObj->trl = vec3(0, -0.1f, 0);
+		auto progressBar = newObj;
+		inGamePointsOfInterest[progressBar->name] = progressBar;
+		progressBar->NewChild(MeshObject::Create(RT_PROGRESS_INDICATOR));
+		newObj->trl = vec3(-0.505f, 0, 0.005f);
+		progressBar->NewChild(MeshObject::Create(RT_PROGRESS_INDICATOR));
+		newObj->trl = vec3(0.505f, 0, 0.005f);
+
+		progression->NewChild(TextObject::Create("dial_text", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.2f, 0);
+		newObj->offsetScl = vec3(0.1f, 0.1f, 1);
+		newObj->colorFilter = vec3(0.004f, 0.337f, 1);
+		newObj->alpha = 0.5f;
+
+		progression->NewChild(TextObject::Create("scores", "score: ", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.3f, 0);
+		newObj->offsetScl = vec3(0.075f, 0.075f, 1);
+		newObj->colorFilter = vec3(0.004f, 0.337f, 1);
+		newObj->alpha = 0.5f;
 
 		worldRoot->NewChild(MeshObject::Create(INVISIBLE_WALL));
 		physics = newObj->GetPhysics();
@@ -506,10 +620,6 @@ void SceneRhythm::Init() {
 		newObj->relativeTrl = true;
 		newObj->trl = vec3(0, -0.5f, 0);
 		newObj->scl = vec3(30, 30, 1);
-		screenRoot->NewChild(TextObject::Create("dial_text", "test test", vec3(1), FONT_CASCADIA_MONO, true));
-		newObj->relativeTrl = true;
-		newObj->trl = vec3(0, -0.575f, 0);
-		newObj->scl = vec3(30, 30, 1);
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); 
@@ -557,10 +667,10 @@ void SceneRhythm::Init() {
 			});
 		auto ColorByLane = [](int laneIndex) {
 			switch (laneIndex) {
-			case 0: return vec3(1.f, 0.3f, 0.3f);
-			case 1: return vec3(1.f, 1.f, 0.3f);
-			case 2: return vec3(0.3f, 1.f, 1.f);
-			case 3: return vec3(0.3f, 1.f, 0.3f);
+			case 0: return vec3(1.f, 0.5f, 0.5f);
+			case 1: return vec3(1.f, 1.f, 0.5f);
+			case 2: return vec3(0.5f, 1.f, 1.f);
+			case 3: return vec3(0.5f, 1.f, 0.5f);
 			default: return vec3(1);
 			}
 			};
@@ -639,16 +749,20 @@ void SceneRhythm::Init() {
 					holdNote->holdTimer -= 0.1f;
 
 					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
-					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[0]->model);
+					newObj->trl = holdNote->lengthRender.lock()->trl;
+					newObj->offsetTrl += vec3(0, 0.075f, 0);
 					newObj->colorFilter = ColorByLane(holdNote->lane);
 					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
-					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[1]->model);
+					newObj->trl = holdNote->lengthRender.lock()->trl;
+					newObj->offsetTrl += vec3(0.075f, 0, 0);
 					newObj->colorFilter = ColorByLane(holdNote->lane);
 					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
-					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[2]->model);
+					newObj->trl = holdNote->lengthRender.lock()->trl;
+					newObj->offsetTrl += vec3(0, -0.075f, 0);
 					newObj->colorFilter = ColorByLane(holdNote->lane);
 					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE_BODY));
-					newObj->trl = getPosFromModel(holdNote->lengthRender.lock()->children[3]->model);
+					newObj->trl = holdNote->lengthRender.lock()->trl;
+					newObj->offsetTrl += vec3(-0.075f, 0, 0);
 					newObj->colorFilter = ColorByLane(holdNote->lane);
 				}
 				else {
@@ -664,9 +778,10 @@ void SceneRhythm::Init() {
 		auto& lanes = RhythmGameManager::GetInstance().GetLanes();
 		float xPos = -1.5f;
 		for (auto& lane : lanes) {
-			lane.SetLane(vec3(xPos, 1, 0), vec3(0, 0, -1), 10, -0.5f, -0.1f);
+			lane.SetLane(vec3(xPos, 1, 0), vec3(0, 0, -1), 12.5, -0.5f, -0.1f);
 			xPos += 1;
 		}
+		RhythmGameManager::GetInstance().SetAutoPlay(false);
 	}
 }
 
@@ -718,6 +833,8 @@ void SceneRhythm::Update(double dt) {
 	atmosphere.densestRange = Smooth(atmosphere.densestRange, atmosphereTargetingDensestRange, 40, dt);
 	UpdateAtmosphereUniform(U_ATMOSPHERE_DENSEST_RANGE);
 
+	AddDebugText("currentState: " + std::to_string(currentState));
+
 	// state switch
 	dynamicStateTimer += dt;
 	switch (currentState) {
@@ -732,7 +849,7 @@ void SceneRhythm::Update(double dt) {
 		break;
 
 	case START_INTERMISSION:
-		if (dynamicStateTimer > 3) {
+		if (dynamicStateTimer > 2) {
 			dynamicStateTimer = 0;
 			currentState = INTERMISSION;
 		}
@@ -740,6 +857,7 @@ void SceneRhythm::Update(double dt) {
 
 	case INTERMISSION:
 		dynamicStateTimer = 0;
+		situationTextColor = vec3(0.004f, 0.337f, 1);
 		break;
 
 	case END_INTERMISSION:
@@ -757,6 +875,7 @@ void SceneRhythm::Update(double dt) {
 		atmosphereTargetingDensestRange = 10;
 		
 		player.allowControl = false;
+		player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0, 0, 2));
 		camera.Set(Cam::MODE::LOCKED);
 		camera.SetDirection(vec3(0, -1, -3));
 		camera.basePosition = vec3(0, 2.5f, 2);
@@ -765,6 +884,9 @@ void SceneRhythm::Update(double dt) {
 			dynamicStateTimer = 0;
 			currentState = GAME;
 			RhythmGameManager::GetInstance().StartGame();
+
+			allowActivatePacketLoss = allowActivateUploadSuccessful = true;
+			DialogueManager::GetInstance().StartDialogue("Uploading");
 		}
 		break;
 
@@ -774,12 +896,47 @@ void SceneRhythm::Update(double dt) {
 		camera.SetDirection(vec3(0, -1, -3));
 		camera.basePosition = vec3(0, 2.5f, 2);
 
+		if (RhythmGameManager::GetInstance().GetProgressionMaxed()) {
+			if (allowActivatePacketLoss) {
+				DialogueManager::GetInstance().EndDialogue();
+				DialogueManager::GetInstance().StartDialogue("Resending_Packet");
+				allowActivatePacketLoss = false;
+			}
+			else if (allowActivateUploadSuccessful && RhythmGameManager::GetInstance().GetProgressionFixed()) {
+				DialogueManager::GetInstance().EndDialogue();
+				DialogueManager::GetInstance().StartDialogue("Upload_Succesful");
+				situationTextColor = vec3(0.004f, 1, 0.337f);
+				allowActivateUploadSuccessful = false;
+			}
+		}
+
+		if (!RhythmGameManager::GetInstance().CheckMusicPlaying()) {
+			AudioManager::GetInstance().FadeOutMUS(2750);
+			currentState = START_RESULT;
+			camera.basePosition = player.position + player.cameraOffset;
+			camera.SetDirection(vec3(0, 0, -1));
+		}
+
 		dynamicStateTimer = 0;
 		break;
 
 	case START_RESULT:
 		if (dynamicStateTimer > 3) {
 			dynamicStateTimer = 0;
+			
+			
+			if (!RhythmGameManager::GetInstance().GetProgressionFixed()) {
+				DialogueManager::GetInstance().EndDialogue();
+				DialogueManager::GetInstance().StartDialogue("System_Timeout");
+				situationTextColor = vec3(1, 0.004f, 0.337f);
+			}
+			
+			AudioManager::GetInstance().PauseMUS();
+			RhythmGameManager::GetInstance().EndGame();
+
+			player.allowControl = true;
+			camera.Set(Cam::MODE::FIRST_PERSON);
+
 			currentState = RESULT;
 		}
 		break;
@@ -791,8 +948,15 @@ void SceneRhythm::Update(double dt) {
 	case END_RESULT:
 		if (dynamicStateTimer > 3) {
 			dynamicStateTimer = 0;
+
+			DialogueManager::GetInstance().EndDialogue();
+
 			currentState = START_INTERMISSION;
 		}
+		break;
+
+	case EXIT:
+		App::EndPrograme();
 		break;
 
 	default: break;
@@ -807,8 +971,10 @@ void SceneRhythm::Update(double dt) {
 	
 	HandleKeyPress();
 
+
 	// rhythm game update
 	RhythmGameManager::GetInstance().Update(dt);
+
 
 	// player updates
 	{
@@ -823,23 +989,198 @@ void SceneRhythm::Update(double dt) {
 	for (auto& pair : inGamePointsOfInterest) {
 		auto obj = pair.second.lock();
 
-		if (pair.first.find("lane") != std::string::npos) {
-			int index = std::stoi(pair.first.substr(5, 1));
-			obj->trl = RhythmGameManager::GetInstance().GetLanes()[index].position;
-		}
-
-		if (currentState == START_GAME) {
+		switch (currentState) {
+		case START_GAME:
 			obj->allowRender = true;
 			obj->alpha = Smooth(obj->alpha, 1.f, 30, dt);
-		}
-		else if (currentState == GAME) {
-
-		}
-		else if (currentState == START_RESULT) {
+			break;
+		case GAME:
+			obj->alpha = 1;
+			break;
+		case START_RESULT:
 			obj->alpha = Smooth(obj->alpha, 0.f, 20, dt);
-		}
-		else {
+			break;
+		default:
 			obj->alpha = 0.f;
+			break;
+		}
+
+		if (obj->geometryType == RHYTHM_HIT_POINT) {
+			int index = std::stoi(pair.first.substr(5, 1));
+			auto ColorByLane = [](int laneIndex) {
+				switch (laneIndex) {
+				case 0: return vec3(1.f, 0.5f, 0.5f);
+				case 1: return vec3(1.f, 1.f, 0.5f);
+				case 2: return vec3(0.5f, 1.f, 1.f);
+				case 3: return vec3(0.5f, 1.f, 0.5f);
+				default: return vec3(1);
+				}
+				};
+
+			obj->trl = RhythmGameManager::GetInstance().GetLanes()[index].position;
+
+			if (RhythmGameManager::GetInstance().GetHeldLane(index)) {
+				obj->scl = Smooth(obj->scl, vec3(0.9f), 2.5, dt);
+				obj->colorFilter = Average(ColorByLane(index), vec3(1));
+			}
+			else {
+				obj->scl = Smooth(obj->scl, vec3(1), 20, dt);
+				obj->colorFilter = Smooth(obj->colorFilter, ColorByLane(index), 20, dt);
+			}
+		}
+
+		if (obj->geometryType == RT_PROGRESSION) {
+			static float accel = 0;
+			switch (currentState) {
+			case START_GAME:
+				obj->trl = Smooth(obj->trl, vec3(1.25f, 2.525f, -0.55f), 15, dt);
+				obj->rot = Smooth(obj->rot, vec3(40, -60, 40), 15, dt);
+				break;
+			case START_INTERMISSION:
+			case START_RESULT:
+				obj->rot = Smooth(obj->rot, vec3(0), 25, dt);
+				obj->trl = Smooth(obj->trl, vec3(3, 1.6f, 0.035f), 15, dt);
+				break;
+			case RESULT:
+				obj->alpha = 1.f;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.6f, 0.035f), 25, dt);
+				break;
+			case END_RESULT:
+				obj->alpha = 1.f;
+				accel += 5 * dt;
+				obj->trl.x += accel * dt;
+			default: break;
+			}
+		}
+
+		if (obj->name == "progress bar") {
+			const auto& progression = RhythmGameManager::GetInstance().GetProgression();
+			
+			obj->ClearChildren();
+
+			auto& newObj = RenderObject::newObject;
+
+			obj->NewChild(MeshObject::Create(RT_PROGRESS_INDICATOR));
+			newObj->trl = vec3(-0.505f, 0, 0.005f);
+			obj->NewChild(MeshObject::Create(RT_PROGRESS_INDICATOR));
+			newObj->trl = vec3(0.505f, 0, 0.005f);
+
+			float accumulatedOffsetPosition = 0 - 0.5f;
+			for (auto& progress : progression) {
+				obj->NewChild(MeshObject::Create(RT_PROGRESS));
+				if (progress.type == RhythmGameManager::Progress::SUCCESS)
+					newObj->colorFilter = vec3(0.5f, 1, 0.5f);
+				else 
+					newObj->colorFilter = vec3(1, 0.5f, 0.5f);
+				newObj->trl.x = accumulatedOffsetPosition;
+				newObj->scl.x = progress.amount / RhythmGameManager::GetInstance().GetMaxProgression();
+				accumulatedOffsetPosition += newObj->scl.x;
+			}
+			newObj.reset();
+
+			switch (currentState) {
+			case RESULT:
+			case END_RESULT:
+				obj->alpha = 1.f;
+			default: break;
+			}
+		}
+	}
+
+	// ui poi
+	for (auto& pair : uiPointsOfInterest) {
+		auto obj = pair.second.lock();
+
+		if (obj->name.find("compressed") != string::npos || obj->name.find("lossless") != string::npos || obj->name.find("upload") != string::npos) {
+			switch (currentState) {
+			case START_INTERMISSION:
+			case INTERMISSION:
+			case END_INTERMISSION:
+				obj->alpha = 1;
+				break;
+			default: obj->alpha = 0; break;
+			}
+		}
+		else if (obj->name.find("next") != string::npos || obj->name.find("retry") != string::npos) {
+			switch (currentState) {
+			case RESULT:
+				obj->alpha = Smooth(obj->alpha, 1.f, 60, dt);
+				break;
+			case END_RESULT:
+				obj->alpha = 1;
+				break;
+			default: obj->alpha = 0; break;
+			}
+		}
+
+		if (obj->name == "rt base ui") {
+			static float accel = 0;
+			switch (currentState) {
+			case START_INTERMISSION:
+				meshList[obj->geometryType]->textureID = baseUITexture[0];
+				accel = 0;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.5f, 0), 25, dt);
+				break;
+			case INTERMISSION:
+				break;
+			case END_INTERMISSION:
+				accel += 5 * dt;
+				obj->trl.x += accel * dt;
+				break;
+			case START_RESULT:
+				meshList[obj->geometryType]->textureID = baseUITexture[1];
+				accel = 0;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.5f, 0), 25, dt);
+				break;
+			case RESULT:
+				break;
+			case END_RESULT:
+				accel += 5 * dt;
+				obj->trl.x -= accel * dt;
+				break;
+			default: break;
+			}
+		}
+		else if (obj->name == "panel ui") {
+			static float accel = 0;
+			switch (currentState) {
+			case START_INTERMISSION:
+				accel = 0;
+				obj->trl = Smooth(obj->trl, vec3(0, 1.6f, 0.035f), 25, dt);
+				obj->rot = Smooth(obj->rot, vec3(0, 0, 0.035f), 25, dt);
+				break;
+			case INTERMISSION:
+				break;
+			case END_INTERMISSION:
+				accel += 5 * dt;
+				obj->trl.x -= accel * dt;
+				break;
+			case START_GAME:
+				obj->trl = Smooth(obj->trl, vec3(-1.25f, 2.525f, -0.55f), 15, dt);
+				obj->rot = Smooth(obj->rot, vec3(40, 60, -40), 15, dt);
+				break;
+			case START_RESULT:
+				obj->rot = Smooth(obj->rot, vec3(0, 0, 0.035f), 25, dt);
+				accel += 5 * dt;
+				obj->trl.x -= accel * dt;
+				break;
+			case RESULT:
+				break;
+			case END_RESULT:
+				break;
+			default: break;
+			}
+		}
+		else if (obj->name == "disc") {
+			switch (currentState) {
+			case START_INTERMISSION:
+				obj->rot.z = 0;
+				break;
+			case GAME:
+				obj->rot.z -= 30 * dt;
+				break;
+			default: break;
+			}
 		}
 	}
 
@@ -898,37 +1239,28 @@ void SceneRhythm::Update(double dt) {
 			break;
 		}
 
-		if (obj->name == "rt base ui") {
-			static float accel = 0;
-			switch (currentState) {
-			case START_INTERMISSION:
-				accel = 0;
-				obj->trl = Smooth(obj->trl, vec3(0, 1.5f, 0), 25, dt);
-				break;
-			case INTERMISSION:
-				break;
-			case END_INTERMISSION:
-				accel += 5 * dt;
-				obj->trl.x += accel * dt;
-				break;
-			default: break;
-			}
-		}
+		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+			if (textObj->name.find("dial_t") != std::string::npos) {
 
-		if (obj->name == "panel ui") {
-			static float accel = 0;
-			switch (currentState) {
-			case START_INTERMISSION:
-				accel = 0;
-				obj->trl = Smooth(obj->trl, vec3(0, 1.6f, 0.035f), 25, dt);
-				break;
-			case INTERMISSION:
-				break;
-			case END_INTERMISSION:
-				accel += 5 * dt;
-				obj->trl.x -= accel * dt;
-				break;
-			default: break;
+				textObj->colorFilter = situationTextColor;
+
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("scores") != std::string::npos) {
+				if (RhythmGameManager::GetInstance().GetProgressionMaxed() && RhythmGameManager::GetInstance().GetProgressionFixed() || currentState == START_RESULT || currentState == RESULT) {
+					textObj->text = std::to_string(RhythmGameManager::GetInstance().GetScore());
+					textObj->text = "score: " + textObj->text.substr(0, textObj->text.find("."));
+
+					textObj->alpha = Smooth(textObj->alpha, 0.5f, 60, dt);
+				}
+
+				if (currentState == START_GAME) {
+					textObj->alpha = 0;
+				}
 			}
 		}
 
@@ -976,13 +1308,6 @@ void SceneRhythm::Update(double dt) {
 			if (textObj->name.find("dial_s") != std::string::npos) {
 				if (DialogueManager::GetInstance().CheckActivePack()) {
 					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
-				}
-				else
-					textObj->text = "";
-			}
-			if (textObj->name.find("dial_t") != std::string::npos) {
-				if (DialogueManager::GetInstance().CheckActivePack()) {
-					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
 				}
 				else
 					textObj->text = "";
@@ -1054,10 +1379,18 @@ void SceneRhythm::Update(double dt) {
 	}
 
 	// raycast
-	if (currentState == INTERMISSION || currentState == RESULT) {
+	switch (currentState) {
+	case START_INTERMISSION:
+	case INTERMISSION:
+	case END_INTERMISSION:
+	case START_RESULT:
+	case RESULT:
+	case END_RESULT: {
 		physicsRaycast.ClearInfo();
 		rp3d::Ray ray = MakeRay(camera.GetFinalPosition(), camera.GetFinalPosition() + camera.GetFinalDirection(), 2);
 		PhysicsManager::GetInstance().GetWorld()->raycast(ray, &physicsRaycast);
+	}
+	default: break;
 	}
 
 	{
@@ -1090,75 +1423,85 @@ void SceneRhythm::Update(double dt) {
 						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
 
 						if (lmb_down) {
-							uploadBg->scl = Smooth(uploadBg->scl, vec3(0.9f), 5, dt);
+							uploadBg->scl.y = Smooth(uploadBg->scl.y, 1.f, 5, dt);
 							uploadBtn->scl = Smooth(uploadBtn->scl, vec3(0.9f), 5, dt);
 						}
 						else {
-							uploadBg->scl = Smooth(uploadBg->scl, vec3(1), 10.f, dt);
+							uploadBg->scl.y = Smooth(uploadBg->scl.y, 1.f, 10.f, dt);
 							uploadBtn->scl = Smooth(uploadBtn->scl, vec3(1), 10.f, dt);
 						}
 
-						if (lmb_released) {
+						if (lmb_released && currentState == INTERMISSION) {
 							currentState = END_INTERMISSION;
 						}
 					}
 					else {
-						uploadBg->scl = Smooth(uploadBg->scl, vec3(1, 0, 1), 10.f, dt);
+						uploadBg->scl.y = Smooth(uploadBg->scl.y, 0.f, 10.f, dt);
 						uploadBtn->scl = Smooth(uploadBtn->scl, vec3(1), 10.f, dt);
 					}
 				}
-				if (obj->name == "lossless trigger") {
+				else if (obj->name == "lossless trigger") {
 					auto losslessBg = uiPointsOfInterest["lossless bg"].lock();
 					physics->SetPosition(getPosFromModel(losslessBg->model));
 					auto losslessBtn = uiPointsOfInterest["lossless btn"].lock();
+					
+					float mult = 1;
+					if (difficulty == 1) {
+						mult = 1.5f;
+					}
 
 					auto index = physicsRaycast.FindHit(physics->Getbody());
 					if (index != -1) {
 						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
 
 						if (lmb_down) {
-							losslessBg->scl = Smooth(losslessBg->scl, vec3(0.9f), 5, dt);
+							losslessBg->scl.y = Smooth(losslessBg->scl.y, 1.f, 10.f, dt);
 							losslessBtn->scl = Smooth(losslessBtn->scl, vec3(0.9f), 5, dt);
 						}
 						else {
-							losslessBg->scl = Smooth(losslessBg->scl, vec3(1), 10.f, dt);
-							losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1), 10.f, dt);
+							losslessBg->scl.y = Smooth(losslessBg->scl.y, 1.f, 10.f, dt);
+							losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1) * mult, 10.f, dt);
 						}
 
-						if (lmb_released) {
+						if (lmb_released && currentState == INTERMISSION) {
 							difficulty = 1;
 						}
 					}
 					else {
-						losslessBg->scl = Smooth(losslessBg->scl, vec3(1, 0, 1), 10.f, dt);
-						losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1), 10.f, dt);
+						losslessBg->scl.y = Smooth(losslessBg->scl.y, 0.f, 10.f, dt);
+						losslessBtn->scl = Smooth(losslessBtn->scl, vec3(1) * mult, 10.f, dt);
 					}
 				}
-				if (obj->name == "compressed trigger") {
-					auto compresseddBg = uiPointsOfInterest["compressed bg"].lock();
-					physics->SetPosition(getPosFromModel(compresseddBg->model));
+				else if (obj->name == "compressed trigger") {
+					auto compressedBg = uiPointsOfInterest["compressed bg"].lock();
+					physics->SetPosition(getPosFromModel(compressedBg->model));
 					auto compressedBtn = uiPointsOfInterest["compressed btn"].lock();
+
+					float mult = 1;
+					if (difficulty == 0) {
+						mult = 1.5f;
+					}
 
 					auto index = physicsRaycast.FindHit(physics->Getbody());
 					if (index != -1) {
 						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
 
 						if (lmb_down) {
-							compresseddBg->scl = Smooth(compresseddBg->scl, vec3(0.9f), 5, dt);
+							compressedBg->scl = Smooth(compressedBg->scl, vec3(1), 10.f, dt);
 							compressedBtn->scl = Smooth(compressedBtn->scl, vec3(0.9f), 5, dt);
 						}
 						else {
-							compresseddBg->scl = Smooth(compresseddBg->scl, vec3(1), 10.f, dt);
-							compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1), 10.f, dt);
+							compressedBg->scl = Smooth(compressedBg->scl, vec3(1), 10.f, dt);
+							compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1) * mult, 10.f, dt);
 						}
 
-						if (lmb_released) {
+						if (lmb_released && currentState == INTERMISSION) {
 							difficulty = 0;
 						}
 					}
 					else {
-						compresseddBg->scl = Smooth(compresseddBg->scl, vec3(1, 0, 1), 10.f, dt);
-						compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1), 10.f, dt);
+						compressedBg->scl = Smooth(compressedBg->scl, vec3(1, 0, 1), 10.f, dt);
+						compressedBtn->scl = Smooth(compressedBtn->scl, vec3(1) * mult, 10.f, dt);
 					}
 				}
 				break;
@@ -1170,7 +1513,64 @@ void SceneRhythm::Update(double dt) {
 			case START_RESULT:
 			case RESULT:
 			case END_RESULT: {
+				if (obj->name == "next trigger") {
+					auto nextBg = uiPointsOfInterest["next bg"].lock();
+					physics->SetPosition(getPosFromModel(nextBg->model));
+					auto nextBtn = uiPointsOfInterest["next btn"].lock();
 
+					float mult = 1;
+
+					auto index = physicsRaycast.FindHit(physics->Getbody());
+					if (index != -1) {
+						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
+
+						if (lmb_down) {
+							nextBg->scl = Smooth(nextBg->scl, vec3(1), 10.f, dt);
+							nextBtn->scl = Smooth(nextBtn->scl, vec3(0.9f), 5, dt);
+						}
+						else {
+							nextBg->scl = Smooth(nextBg->scl, vec3(1), 10.f, dt);
+							nextBtn->scl = Smooth(nextBtn->scl, vec3(1) * mult, 10.f, dt);
+						}
+
+						if (lmb_released && currentState == RESULT) {
+							currentState = EXIT;
+						}
+					}
+					else {
+						nextBg->scl = Smooth(nextBg->scl, vec3(1, 0, 1), 10.f, dt);
+						nextBtn->scl = Smooth(nextBtn->scl, vec3(1) * mult, 10.f, dt);
+					}
+				}
+				else if (obj->name == "retry trigger") {
+					auto retryBg = uiPointsOfInterest["retry bg"].lock();
+					physics->SetPosition(getPosFromModel(retryBg->model));
+					auto retryBtn = uiPointsOfInterest["retry btn"].lock();
+
+					float mult = 1;
+
+					auto index = physicsRaycast.FindHit(physics->Getbody());
+					if (index != -1) {
+						const auto& raycastInfo = physicsRaycast.GetRaycastInfos()[index];
+
+						if (lmb_down) {
+							retryBg->scl = Smooth(retryBg->scl, vec3(1), 10.f, dt);
+							retryBtn->scl = Smooth(retryBtn->scl, vec3(0.9f), 5, dt);
+						}
+						else {
+							retryBg->scl = Smooth(retryBg->scl, vec3(1), 10.f, dt);
+							retryBtn->scl = Smooth(retryBtn->scl, vec3(1) * mult, 10.f, dt);
+						}
+
+						if (lmb_released && currentState == RESULT) {
+							currentState = END_RESULT;
+						}
+					}
+					else {
+						retryBg->scl = Smooth(retryBg->scl, vec3(1, 0, 1), 10.f, dt);
+						retryBtn->scl = Smooth(retryBtn->scl, vec3(1) * mult, 10.f, dt);
+					}
+				}
 				break;
 			}
 			default: break;
@@ -1186,16 +1586,21 @@ void SceneRhythm::Update(double dt) {
 	}
 
 	// camera
-	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
+	camera.Update(dt);
 
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
-	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
-	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("RhythmGameManager.maxDisplayBeat: " + std::to_string(RhythmGameManager::GetInstance().maxDisplayBeat));
-	AddDebugText("RhythmGameManager.prevMaxDisplayBeat_int: " + std::to_string(RhythmGameManager::GetInstance().prevMaxDisplayBeat_int));
-	AddDebugText("RhythmGameManager.currentBeat: " + std::to_string(RhythmGameManager::GetInstance().currentBeat));
-	AddDebugText("RhythmGameManager.lastestScoreType: " + std::to_string(RhythmGameManager::GetInstance().GetScoreType()));
+	AddDebugText("RhythmGameManager.currentBeat: " + std::to_string(RhythmGameManager::GetInstance().GetCurrentBeat()));
+	string progression_s = "";
+	for (auto& progress : RhythmGameManager::GetInstance().GetProgression()) {
+		if (progress.type == RhythmGameManager::Progress::SUCCESS) {
+			progression_s += "S:" + std::to_string(progress.amount) + " ";
+		}
+		else {
+			progression_s += "L:" + std::to_string(progress.amount) + " ";
+		}
+	}
+	AddDebugText("RGM.progress: " + progression_s);
+	AddDebugText("AudioManager::MUSVolume: " + std::to_string(AudioManager::GetInstance().VolumeMUS(-1)));
 
 	// clean world list if dirty
 	if (dirtyWorldList) {
@@ -1351,6 +1756,7 @@ void SceneRhythm::HandleKeyPress() {
 		renderDebugPhysics = false;
 		camera.Set(Cam::MODE::FIRST_PERSON);
 		player.allowControl = true;
+		RhythmGameManager::GetInstance().SetAutoPlay(debug);
 	}
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_C)) {
@@ -1385,11 +1791,14 @@ void SceneRhythm::HandleKeyPress() {
 	}
 
 	// dialogue controls
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+	/*if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
+
+		DialogueManager::GetInstance().StartDialogue("file_path");
+
 		if (DialogueManager::GetInstance().CheckActivePack()) {
 			DialogueManager::GetInstance().ControlCurrentDialogue();
 		}
-	}
+	}*/
 
 	// player controls
 	if (player.allowControl) {
@@ -1449,26 +1858,30 @@ void SceneRhythm::HandleKeyPress() {
 		}
 	}
 
+	for (int i = 0; i < RhythmGameManager::GetInstance().GetLanes().size(); i++) {
+		RhythmGameManager::GetInstance().SetTappedLane(i, false);
+		RhythmGameManager::GetInstance().SetHeldLane(i, false);
+	}
 	if (currentState == GAME) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_F))
-			RhythmGameManager::GetInstance().TappedLane(0);
+			RhythmGameManager::GetInstance().SetTappedLane(0, true);
 		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_F))
-			RhythmGameManager::GetInstance().HeldLane(0);
+			RhythmGameManager::GetInstance().SetHeldLane(0, true);
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_G))
-			RhythmGameManager::GetInstance().TappedLane(1);
+			RhythmGameManager::GetInstance().SetTappedLane(1, true);
 		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_G))
-			RhythmGameManager::GetInstance().HeldLane(1);
+			RhythmGameManager::GetInstance().SetHeldLane(1, true);
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_H))
-			RhythmGameManager::GetInstance().TappedLane(2);
+			RhythmGameManager::GetInstance().SetTappedLane(2, true);
 		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_H))
-			RhythmGameManager::GetInstance().HeldLane(2);
+			RhythmGameManager::GetInstance().SetHeldLane(2, true);
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J))
-			RhythmGameManager::GetInstance().TappedLane(3);
+			RhythmGameManager::GetInstance().SetTappedLane(3, true);
 		if (KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_J))
-			RhythmGameManager::GetInstance().HeldLane(3);
+			RhythmGameManager::GetInstance().SetHeldLane(3, true);
 	}
 }
 
