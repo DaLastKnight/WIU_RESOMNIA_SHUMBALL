@@ -90,13 +90,6 @@ private:
 	int waveTimeLeft = 180; // 3 minutes per wave
 	float waveTimeAccumulator = 0.0f;
 
-	int maxEntitiesP = 10;
-	int maxEntitiesAI = 5;
-	int currentSpawningP = 0;
-	int currentSpawningAI = 0;
-	int remainingEntitiesP = 10;
-	int remainingEntitiesAI = 5;
-
 	struct Overload
 	{
 		std::shared_ptr<RenderObject> object;
@@ -106,6 +99,21 @@ private:
 	int maxOverload = 5;
 	float overloadCoolTimer = 0.0f; // Use only if overloading stack is above 3
 	bool changeInOverloadStack = false;
+
+	struct GameMenu
+	{
+		std::shared_ptr<RenderObject> object;
+	};
+	std::vector<GameMenu> menus;
+	bool isHelpOpen = true;
+	bool menuChange = true;
+
+	int maxEntitiesP = 10;
+	int maxEntitiesAI = 5;
+	int currentSpawningP = 0;
+	int currentSpawningAI = 0;
+	int remainingEntitiesP = 10;
+	int remainingEntitiesAI = 5;
 
 	float bacteriaSpawnTimer = 0.0f;
 	float bacteriaSpawnInterval = 3.0f;
@@ -152,6 +160,8 @@ private:
 	int GetWave();
 
 	void ShowOverloadStack();
+	void ShowHelpMenu();
+	void ClearHelpMenu();
 
 	std::vector<std::weak_ptr<RenderObject>> sceneMedicalTextList;
 	void InitSceneMedicalText(GEOMETRY_TYPE font);

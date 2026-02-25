@@ -471,6 +471,20 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(0.94f, 0.875f, 0);
 		newObj->scl = glm::vec3(10.f, 40.f, 1);
 
+		// Help Button UI
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
+		newObj->trl = glm::vec3(0.825f, 0.875f, 0);
+		newObj->scl = glm::vec3(70.f, 70.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_PLATE, 1));
+		newObj->trl = glm::vec3(0.825f, 0.875f, 0);
+		newObj->scl = glm::vec3(60.f, 60.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE, 2));
+		newObj->trl = glm::vec3(0.825f, 0.89f, 0);
+		newObj->scl = glm::vec3(10.f, 25.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE, 2));
+		newObj->trl = glm::vec3(0.825f, 0.84f, 0);
+		newObj->scl = glm::vec3(10.f, 10.f, 1);
+
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 		InitSceneMedicalText(FONT_CASCADIA_MONO);
@@ -1108,6 +1122,18 @@ void SceneMedical::Update(double dt) {
 			changeInOverloadStack = false;
 		}
 
+		if (isHelpOpen && menuChange)
+		{
+			ShowHelpMenu();
+			menuChange = false;
+		}
+
+		if (!isHelpOpen && menuChange)
+		{
+			ClearHelpMenu();
+			menuChange = false;
+		}
+
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 			if (textObj->name.find("dial_s") != std::string::npos) {
 				if (DialogueManager::GetInstance().CheckActivePack()) {
@@ -1209,26 +1235,6 @@ void SceneMedical::Update(double dt) {
 				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
 				physics->contactEvent.lock = true;
 			}
-			else if (obj->name == "player")
-			{
-				physics->contactEvent.Subscribe(
-					[&](const rp3d::Body* other)
-				    {
-					std::cout << "Wall contacted something!\n";
-					});
-				eventListener.AddToContactEvents(PEvent(physics, physics->contactEvent, CONTACT_EVENT::ContactStart));
-				physics->contactEvent.lock = true;
-			}
-			/*else if (obj->geometryType == VIRUS_MODEL)
-			{
-				physics->triggerEvent.Subscribe(
-					[&](const rp3d::Body* other)
-					{
-						std::cout << "Virus collided\n";
-					});
-				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart));
-				physics->triggerEvent.lock = true;
-			}*/
 			i++;
 		}
 	}
@@ -1452,6 +1458,19 @@ void SceneMedical::HandleKeyPress() {
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
+		}
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SLASH))
+		{
+			if (isHelpOpen)
+			{
+				isHelpOpen = false;
+				menuChange = true;
+			}
+			else
+			{
+				isHelpOpen = true;
+				menuChange = true;
+			}
 		}
 	}
 }
@@ -1694,6 +1713,47 @@ void SceneMedical::ShowOverloadStack()
 		ov.object = obj;
 
 		overloadStackUI.push_back(ov);
+	}
+}
+
+void SceneMedical::ShowHelpMenu()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		GEOMETRY_TYPE mesh;
+		int layerIndex;
+
+		if (i == 0)
+		{
+			mesh = GAME_UI_BASE;
+			layerIndex = 0;
+		}
+		else
+		{
+			mesh = GAME_UI_PLATE;
+			layerIndex = 1;
+		}
+
+		screenRoot->NewChild(MeshObject::Create(mesh, layerIndex));
+		std::shared_ptr<RenderObject> help = RenderObject::newObject;
+
+		help->relativeTrl = true;
+		help->scl = glm::vec3(400.f - i * 10.f, 200.f - i * 10.f, 1);
+
+		GameMenu gm;
+		gm.object = help;
+
+		menus.push_back(gm);
+	}
+}
+
+void SceneMedical::ClearHelpMenu()
+{
+	for (int i = static_cast<int>(menus.size()) - 1; i >= 0; --i)
+	{
+		auto& helpUI = menus[i];
+		helpUI.object->Destroy();
+		menus.erase(menus.begin() + i);
 	}
 }
 
