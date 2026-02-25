@@ -108,13 +108,6 @@ void SceneMedical::Init() {
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
-		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTexture("flashlight_texture.tga"));
-
-		meshList[UI_TEST] = MeshBuilder::GenerateQuad("ui test", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
-		meshList[UI_TEST_2] = MeshBuilder::GenerateQuad("ui test 2", vec3(1), 1, 1, TextureLoader::LoadTexture("color.tga"));
-
-		meshList[PNG_TEST] = MeshBuilder::GenerateQuad("png test", vec3(1), 1, 1, TextureLoader::LoadTexture("NYP.png"));
-
 		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("Map Boundary", TextureLoader::LoadTexture("internal_body.png"));
 		meshList[ENV_SPHERE_MODEL] = MeshBuilder::GenerateSphere("Map Sphered Environment", vec3(1));
 		meshList[ENV_SPHERE_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
@@ -126,13 +119,13 @@ void SceneMedical::Init() {
 		meshList[ENV_LIQUID_MODEL]->textureID = TextureLoader::LoadTexture("red_liquid.png");
 		meshList[ENV_LIQUID_FLAT_MODEL] = MeshBuilder::GenerateQuad("Map Liquid Flat Environment", vec3(1), 1, 1, TextureLoader::LoadTexture("red_liquid.png"));
 		
-		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
-		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
+		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("Bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("Virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
+		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("Nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
 		
 		meshList[GAME_CROSSHAIR] = MeshBuilder::GenerateQuad("Crosshair", vec3(1, 1, 0), 1, 1);
-		meshList[GAME_OVERLOADSTACK_BASE] = MeshBuilder::GenerateQuad("Overload UI Base", vec3(0.7f, 0.7f, 0.7f), 1, 1);
-		meshList[GAME_OVERLOADSTACK_PLATE] = MeshBuilder::GenerateQuad("Overload UI Plating", vec3(0), 1, 1);
+		meshList[GAME_UI_BASE] = MeshBuilder::GenerateQuad("UI Base", vec3(0.7f, 0.7f, 0.7f), 1, 1);
+		meshList[GAME_UI_PLATE] = MeshBuilder::GenerateQuad("UI Plating", vec3(0), 1, 1);
 		meshList[GAME_OVERLOADSTACK_G] = MeshBuilder::GenerateQuad("Overload UI Safe", vec3(0, 1, 0), 1, 1);
 		meshList[GAME_OVERLOADSTACK_Y] = MeshBuilder::GenerateQuad("Overload UI Warning", vec3(1, 1, 0), 1, 1);
 		meshList[GAME_OVERLOADSTACK_R] = MeshBuilder::GenerateQuad("Overload UI Danger", vec3(1, 0, 0), 1, 1);
@@ -185,20 +178,6 @@ void SceneMedical::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
-		RObj::setDefaultStat.Subscribe(FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
-			});
-		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
-		RObj::setDefaultStat.Subscribe(UI_TEST_2, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
-		RObj::setDefaultStat.Subscribe(PNG_TEST, [](const std::shared_ptr<RObj>& obj) {
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
-			});
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); 
 			});
@@ -229,11 +208,11 @@ void SceneMedical::Init() {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_BASE, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GAME_UI_BASE, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		RObj::setDefaultStat.Subscribe(GAME_OVERLOADSTACK_PLATE, [](const std::shared_ptr<RObj>& obj) {
+		RObj::setDefaultStat.Subscribe(GAME_UI_PLATE, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
@@ -465,21 +444,32 @@ void SceneMedical::Init() {
 
 	// screen space init
 	{
-		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-
 		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Vertical
 		newObj->scl = glm::vec3(5.f, 20.f, 1);
 		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Horizontal
 		newObj->scl = glm::vec3(20.f, 5.f, 1);
 
-		screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_BASE));
+		// Overload UI
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
 		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
 		newObj->scl = glm::vec3(350.f, 50.f, 1);
-		screenRoot->NewChild(MeshObject::Create(GAME_OVERLOADSTACK_PLATE, 1));
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_PLATE, 1));
 		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
 		newObj->scl = glm::vec3(340.f, 40.f, 1);
+
+		// Pause Button UI
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
+		newObj->trl = glm::vec3(0.925f, 0.875f, 0);
+		newObj->scl = glm::vec3(80.f, 80.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_PLATE, 1));
+		newObj->trl = glm::vec3(0.925f, 0.875f, 0);
+		newObj->scl = glm::vec3(70.f, 70.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE, 2));
+		newObj->trl = glm::vec3(0.91f, 0.875f, 0);
+		newObj->scl = glm::vec3(10.f, 40.f, 1);
+		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE, 2));
+		newObj->trl = glm::vec3(0.94f, 0.875f, 0);
+		newObj->scl = glm::vec3(10.f, 40.f, 1);
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
@@ -507,7 +497,7 @@ void SceneMedical::Update(double dt) {
 	auto& cameraMode = camera.GetCurrentMode();
 
 	// Win/Lose Condition Checking
-	if (overloadingStack >= 5)
+	if (overloadingStack >= 6)
 	{
 		ChangeWave(GetWave()); // Reset Wave Data
 		// Delete all previous entities
@@ -599,9 +589,9 @@ void SceneMedical::Update(double dt) {
 		if (overloadingStack > 3)
 		{
 			overloadCoolTimer += dt;
-			if (overloadCoolTimer >= 5.0f)
+			if (overloadCoolTimer >= 10.0f)
 			{
-				overloadCoolTimer = 5.0f;
+				overloadCoolTimer = 10.0f;
 			}
 		}
 		for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
@@ -659,7 +649,7 @@ void SceneMedical::Update(double dt) {
 	// Manage Overload Cooling
 	if (overloadingStack > 3)
 	{
-		if (overloadCoolTimer >= 5.0f)
+		if (overloadCoolTimer >= 10.0f)
 		{
 			overloadingStack--;
 			changeInOverloadStack = true;
@@ -758,7 +748,7 @@ void SceneMedical::Update(double dt) {
 			std::shared_ptr<RenderObject> nanobot = RenderObject::newObject;
 
 			glm::vec3 travelDir = camera.GetPlainDirection();
-			float projectileSpeed = 100000.0f;
+			float projectileSpeed = 200000.0f;
 
 			nanobot->offsetRot = glm::vec3(0.f, 90.f, 0.f);
 			nanobot->offsetScl = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -771,7 +761,10 @@ void SceneMedical::Update(double dt) {
 
 			glm::vec3 finalForce = travelDir * projectileSpeed;
 
-			physics->AddImpulse(finalForce);
+			if (cameraMode != Cam::MODE::PAUSE)
+			{
+				physics->AddImpulse(finalForce);
+			}
 
 			Nanobot nb;
 			nb.object = nanobot;
@@ -846,7 +839,14 @@ void SceneMedical::Update(double dt) {
 				bacteria.patPoint.x = static_cast<float>(rand() % 81 - 40);
 				bacteria.patPoint.z = static_cast<float>(rand() % 81 - 40);
 
-				bacteria.bacteriaDivertTimer = 3.0f; // Reset timer so that it moves 3 seconds later
+				if (waveNumber == 1)
+				{
+					bacteria.bacteriaDivertTimer = 3.0f; // Reset timer so that it moves 3 seconds later
+				}
+				else
+				{
+					bacteria.bacteriaDivertTimer = 2.0f;
+				}
 			}
 
 			glm::vec3 phyPos = physics->GetPosition();
@@ -859,8 +859,21 @@ void SceneMedical::Update(double dt) {
 			if (distance > 0.1f)
 			{
 				patDir = glm::normalize(patDir);
+				float bacteriaMovementSpeed = 0.0f;
 
-				float bacteriaMovementSpeed = 4.0f;
+				if (waveNumber == 1)
+				{
+					bacteriaMovementSpeed = 4.0f;
+				}
+				else if (waveNumber == 2)
+				{
+					bacteriaMovementSpeed = 5.0f;
+				}
+				else
+				{
+					bacteriaMovementSpeed = 6.0f;
+				}
+
 				glm::vec3 finalVel = patDir * bacteriaMovementSpeed;
 
 				if (cameraMode != Cam::MODE::PAUSE)
@@ -882,7 +895,7 @@ void SceneMedical::Update(double dt) {
 			glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
 			float distanceToPlayer = glm::length(dToPDir);
 
-			if (distanceToPlayer <= 2.0f + 2.0f) // Ignore collider with player by expanding fake hitbox check
+			if (distanceToPlayer <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE) // Ignore collider with player by expanding fake hitbox check
 			{
 				bacteria.object->Destroy();
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
@@ -981,8 +994,21 @@ void SceneMedical::Update(double dt) {
 			if (distance > 0.1f)
 			{
 				AIDir = glm::normalize(AIDir);
+				float virusMovementSpeed = 0.0f;
 
-				float virusMovementSpeed = 3.0f;
+				if (waveNumber == 1)
+				{
+					virusMovementSpeed = 3.0f;
+				}
+				else if (waveNumber == 2)
+				{
+					virusMovementSpeed = 4.0f;
+				}
+				else
+				{
+					virusMovementSpeed = 5.0f;
+				}
+
 				glm::vec3 finalVel = AIDir * virusMovementSpeed;
 
 				if (cameraMode != Cam::MODE::PAUSE)
@@ -991,7 +1017,7 @@ void SceneMedical::Update(double dt) {
 				}
 			}
 
-			if (distance <= 2.0f + 2.0f)
+			if (distance <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE)
 			{
 				virus.object->Destroy();
 				viruses.erase(viruses.begin() + i); // Remove the exact element
@@ -1364,13 +1390,12 @@ void SceneMedical::HandleKeyPress() {
 		}
 		else {
 			camera.Set(prevMode);
+			player.allowControl = true;
 		}
 	}
 
 	// player controls
 	if (player.allowControl) {
-
-		auto& cameraMode = camera.GetCurrentMode();
 
 		// movement
 		{
@@ -1408,7 +1433,7 @@ void SceneMedical::HandleKeyPress() {
 
 		// action
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-			if (currentActiveNanobotAmmo < maxNanobotAmmo && cameraMode != Cam::MODE::PAUSE)
+			if (currentActiveNanobotAmmo < maxNanobotAmmo)
 			{
 				isNanobotFired = true;
 			}
@@ -1615,10 +1640,10 @@ void SceneMedical::ChangeWave(int waveNumber)
 	{
 		this->waveNumber = waveNumber;
 
-		maxEntitiesP = 20;
+		maxEntitiesP = 15;
 		maxEntitiesAI = 15;
 
-		remainingEntitiesP = 20;
+		remainingEntitiesP = 15;
 		remainingEntitiesAI = 15;
 	}
 	else

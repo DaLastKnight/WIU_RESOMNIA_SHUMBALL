@@ -19,13 +19,6 @@ public:
 		FONT_CASCADIA_MONO,
 
 		// add more variables here
-		FLASHLIGHT,
-
-		UI_TEST,
-		UI_TEST_2,
-
-		PNG_TEST,
-
 		NANOBOT_MODEL,
 		BACTERIA_MODEL,
 		VIRUS_MODEL,
@@ -37,8 +30,8 @@ public:
 		ENV_LIQUID_MODEL,
 		ENV_LIQUID_FLAT_MODEL,
 		GAME_CROSSHAIR,
-		GAME_OVERLOADSTACK_BASE,
-		GAME_OVERLOADSTACK_PLATE,
+		GAME_UI_BASE,
+		GAME_UI_PLATE,
 		GAME_OVERLOADSTACK_G,
 		GAME_OVERLOADSTACK_Y,
 		GAME_OVERLOADSTACK_R,
@@ -113,7 +106,6 @@ private:
 	int maxOverload = 5;
 	float overloadCoolTimer = 0.0f; // Use only if overloading stack is above 3
 	bool changeInOverloadStack = false;
-	int timesOverloaded = 0; // only use if not enough time to implement losing and resetting to at least base wave
 
 	float bacteriaSpawnTimer = 0.0f;
 	float bacteriaSpawnInterval = 3.0f;
@@ -156,7 +148,7 @@ private:
 
 	bool isGameWon = false;
 
-	void ChangeWave(int waveNumber); // Use when doing wave system to change wave and accurately update displayed data, to call only once
+	void ChangeWave(int waveNumber);
 	int GetWave();
 
 	void ShowOverloadStack();
