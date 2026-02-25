@@ -108,6 +108,13 @@ void SceneMedical::Init() {
 
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
+
+
+
+
+		// ***************************************************************
+		// SceneMedical GEOMETRY List
+		// ***************************************************************
 		meshList[ENV_SKYBOX] = MeshBuilder::GenerateSkybox("Map Boundary", TextureLoader::LoadTexture("internal_body.png"));
 		meshList[ENV_SPHERE_MODEL] = MeshBuilder::GenerateSphere("Map Sphered Environment", vec3(1));
 		meshList[ENV_SPHERE_MODEL]->textureID = TextureLoader::LoadTexture("internal_body.png");
@@ -151,7 +158,7 @@ void SceneMedical::Init() {
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
 
-		RObj::worldList.reserve(200);
+		RObj::worldList.reserve(200); // Save 200 spaces in the world space to render 200 objects?
 		RObj::viewList.reserve(10);
 		RObj::screenList.reserve(10);
 	}
@@ -178,6 +185,14 @@ void SceneMedical::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
+
+
+
+
+
+		// ***************************************************************
+		// SceneMedical Specific DefaultStat Settings
+		// ***************************************************************
 		RObj::setDefaultStat.Subscribe(ENV_SKYBOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT); 
 			});
@@ -195,15 +210,15 @@ void SceneMedical::Init() {
 			});
 		RObj::setDefaultStat.Subscribe(ENV_LIQUID_FLAT_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::BRIGHT);
-			obj->relativeTrl = true;
-			obj->hasTransparency = true;
 			});
+
 		RObj::setDefaultStat.Subscribe(BACTERIA_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(VIRUS_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(NANOBOT_MODEL, [](const std::shared_ptr<RObj>& obj) {
 			});
+
 		RObj::setDefaultStat.Subscribe(GAME_CROSSHAIR, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
@@ -231,14 +246,26 @@ void SceneMedical::Init() {
 	}
 
 	auto& newObj = RObj::newObject;
+
 	// world space init
 	{
 		worldRoot->NewChild(MeshObject::Create(AXES));
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
+
+
+
+
 		
+		// ***************************************************************
+		// SceneMedical Specific Playing Skybox (Fallback)
+		// ***************************************************************
 		worldRoot->NewChild(MeshObject::Create(ENV_SKYBOX));
 		newObj->scl = vec3(0.1f, 0.1f, 0.1f);
+
+
+
+
 
 		// light init
 		{
@@ -259,29 +286,15 @@ void SceneMedical::Init() {
 				lightProperties.kQ = 0.001f;
 				UpdateLightUniform(newLightObj);
 			}
-
-			worldRoot->NewChild(LightObject::Create(LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(20, 5, 0);
-				newLightObj->name = "demo light spot";
-				newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
-				newLightObj->rot = vec3(45, 45, 0);
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_SPOT;
-				lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.005f;
-				lightProperties.kQ = 0.01f;
-				// spot light variables (yes, these are the only 2 you need to change manually)
-				lightProperties.cosCutoff = 31.f;
-				lightProperties.cosInner = 29.f;
-				UpdateLightUniform(newLightObj);
-			}
 		}
 
+
+
+
+
+		// ***************************************************************
+		// Map Boundaries
+		// ***************************************************************
 		{
 			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Left
 			newObj->trl = glm::vec3(-99.9f, 0, 0);
@@ -327,6 +340,13 @@ void SceneMedical::Init() {
 			physics->SetPosition(newObj->trl);
 		}
 
+
+
+
+
+		// ***************************************************************
+		// Sphere Map Designs (unlikely interactable)
+		// ***************************************************************
 		worldRoot->NewChild(MeshObject::Create(ENV_SPHERE_MODEL));
 		newObj->trl = glm::vec3(-50, -50, 50);
 		newObj->scl = glm::vec3(20, 20, 20);
@@ -343,6 +363,13 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(-50, -50, -50);
 		newObj->scl = glm::vec3(30, 30, 30);
 
+
+
+
+
+		// ***************************************************************
+		// Top-Down Map Designs (More likely interactable)
+		// ***************************************************************
 		worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL));
 		newObj->trl = glm::vec3(0, -30, 50);
 		newObj->scl = glm::vec3(30, 30, 10);
@@ -351,7 +378,7 @@ void SceneMedical::Init() {
 		newObj->scl = glm::vec3(40, 10, 40);
 		{
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-			newObj->name = "Environment Curve Wall";
+			
 			newObj->trl = glm::vec3(45, 0, 45);
 			newObj->offsetScl = glm::vec3(20, 100, 20);
 
@@ -374,7 +401,7 @@ void SceneMedical::Init() {
 		newObj->scl = glm::vec3(50, 10, 30);
 		{
 			worldRoot->NewChild(MeshObject::Create(ENV_STRING_MODEL)); // Needs collisions
-			newObj->name = "Environment Curve Wall 2";
+			
 			newObj->trl = glm::vec3(-50, 0, 10);
 			newObj->offsetScl = glm::vec3(20, 100, 20);
 
@@ -391,7 +418,7 @@ void SceneMedical::Init() {
 		newObj->scl = glm::vec3(30, 30, 40);
 		{
 			worldRoot->NewChild(MeshObject::Create(ENV_BLOCK_MODEL)); // Probably needs collision
-			newObj->name = "Environment Wall";
+			
 			newObj->trl = glm::vec3(0, 0, -50);
 			newObj->offsetScl = glm::vec3(30, 100, 10);
 
@@ -404,6 +431,14 @@ void SceneMedical::Init() {
 			physics->SetPosition(newObj->trl);
 			physics->SetCollisionActive(true);
 		}
+
+
+
+
+
+		// ***************************************************************
+		// Fluid Designs
+		// ***************************************************************
 		worldRoot->NewChild(MeshObject::Create(ENV_LIQUID_MODEL));
 		newObj->trl = glm::vec3(10, 0, -5);
 		newObj->scl = glm::vec3(5, 100, 5);
@@ -414,7 +449,14 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(0, -49, 0);
 		newObj->rot = glm::vec3(-90, 0, 0);
 		newObj->scl = glm::vec3(100, 100, 1);
+
+
+
+
 		
+		// ***************************************************************
+		// Strings Map Design
+		// ***************************************************************
 		float envStringRandTrlX[40] = { 0 };
 		float envStringRandTrlZ[40] = { 0 };
 		float envStringRandRotX[40] = { 0 };
@@ -437,6 +479,9 @@ void SceneMedical::Init() {
 
 	// view space init
 	{
+		// ***************************************************************
+		// Player Nanobot Representation
+		// ***************************************************************
 		viewRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(0.0f, -0.2f, -0.5f);
 		newObj->scl = glm::vec3(0.1f, 0.1f, 0.1f);
@@ -444,12 +489,21 @@ void SceneMedical::Init() {
 
 	// screen space init
 	{
+		// ***************************************************************
+		// Crosshair UI
+		// ***************************************************************
 		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Vertical
 		newObj->scl = glm::vec3(5.f, 20.f, 1);
 		screenRoot->NewChild(MeshObject::Create(GAME_CROSSHAIR)); // Horizontal
 		newObj->scl = glm::vec3(20.f, 5.f, 1);
 
-		// Overload UI
+
+
+
+
+		// ***************************************************************
+		// Overload Mechanic UI
+		// ***************************************************************
 		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
 		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
 		newObj->scl = glm::vec3(350.f, 50.f, 1);
@@ -457,7 +511,13 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(0.75f, -0.9f, 0);
 		newObj->scl = glm::vec3(340.f, 40.f, 1);
 
+
+
+
+
+		// ***************************************************************
 		// Pause Button UI
+		// ***************************************************************
 		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
 		newObj->trl = glm::vec3(0.925f, 0.875f, 0);
 		newObj->scl = glm::vec3(80.f, 80.f, 1);
@@ -471,7 +531,13 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(0.94f, 0.875f, 0);
 		newObj->scl = glm::vec3(10.f, 40.f, 1);
 
+
+
+
+
+		// ***************************************************************
 		// Help Button UI
+		// ***************************************************************
 		screenRoot->NewChild(MeshObject::Create(GAME_UI_BASE));
 		newObj->trl = glm::vec3(0.825f, 0.875f, 0);
 		newObj->scl = glm::vec3(70.f, 70.f, 1);
@@ -490,7 +556,7 @@ void SceneMedical::Init() {
 		InitSceneMedicalText(FONT_CASCADIA_MONO);
 	}
 
-	/************************ bellow for external class inits ************************/
+	/************************ below for external class inits ************************/
 	{
 		// camera init
 		camera.Init(glm::vec3(1, 2, -1), glm::vec3(-1, -1, 1));
@@ -503,15 +569,22 @@ void SceneMedical::Init() {
 	RObj::newObject.reset();
 }
 
-void SceneMedical::Update(double dt) {
+void SceneMedical::Update(double dt) 
+{
 	BaseScene::Update(dt);
+
 	ClearDebugText();
 	ClearSceneMedicalText();
 
 	auto& cameraMode = camera.GetCurrentMode();
 
-	// Win/Lose Condition Checking
-	// Win
+	
+
+
+
+	// ***********************************************************
+	// Win Condition Management for SceneMedical
+	// ***********************************************************
 	if (currentState == MedicalGameState::WON && !isInResults)
 	{
 		isInResults = true;
@@ -524,7 +597,14 @@ void SceneMedical::Update(double dt) {
 		player.allowControl = false;
 		camera.Set(Cam::MODE::PAUSE);
 	}
-	// Lose
+
+
+
+
+
+	// ********************************************************************
+	// Lose Condition Management for SceneMedical (Checkpoint Reset)
+	// ********************************************************************
 	if (overloadingStack >= 6 || waveTimeLeft <= 0.0f)
 	{
 		ChangeWave(waveNumber); // Reset Wave Data
@@ -570,7 +650,14 @@ void SceneMedical::Update(double dt) {
 		changeInOverloadStack = true;
 		overloadingStack = 0;
 	}
-	// Reset
+
+
+
+
+
+	// *********************************************************************
+	// Reset/Retry Game After Victory Management for SceneMedical
+	// *********************************************************************
 	if (isGameReset)
 	{
 		ChangeWave(1); // Reset Wave Data
@@ -640,31 +727,35 @@ void SceneMedical::Update(double dt) {
 		AddDebugText("avg fps / 0.5s: " + std::to_string(avgFps));
 	}
 
-	{ // Placeholder for Timer Display
-		waveTimeAccumulator += dt;
 
-		if (waveTimeAccumulator >= 1.0f)
+
+
+
+	// ****************************************************************
+	// Game Timer Management for SceneMedical
+	// ****************************************************************
+	waveTimeAccumulator += dt;
+
+	if (waveTimeAccumulator >= 1.0f)
+	{
+		waveTimeAccumulator -= 1.0f;
+		if (cameraMode == Cam::MODE::PAUSE)
 		{
-			waveTimeAccumulator -= 1.0f;
-			if (cameraMode == Cam::MODE::PAUSE)
-			{
-				waveTimeLeft = waveTimeLeft;
-				totalTimeTaken = totalTimeTaken;
-			}
-			else
-			{
-				waveTimeLeft--;
-				totalTimeTaken++;
-			}
+			waveTimeLeft = waveTimeLeft;
+			totalTimeTaken = totalTimeTaken;
+		}
+		else
+		{
+			waveTimeLeft--;
+			totalTimeTaken++;
+		}
 
-			if (waveTimeLeft <= 0.0f)
-			{
-				waveTimeLeft = 180;
-			}
+		if (waveTimeLeft <= 0.0f)
+		{
+			waveTimeLeft = 180;
 		}
 	}
 
-	// Calculate Game Timers
 	if (cameraMode != Cam::MODE::PAUSE)
 	{
 		bacteriaSpawnTimer += dt;
@@ -706,7 +797,13 @@ void SceneMedical::Update(double dt) {
 		}
 	}
 
-	// Manage Wave Data
+
+
+
+
+	// ***************************************************************************
+	// Wave Data Display and In-Scene Management
+	// ***************************************************************************
 	if (waveNumber == 1 && remainingEntitiesP <= 0 && remainingEntitiesAI <= 0)
 	{
 		ChangeWave(2);
@@ -721,13 +818,21 @@ void SceneMedical::Update(double dt) {
 	}
 
 	AddSceneMedicalText("Wave: " + std::to_string(waveNumber) + "/3");
-	AddSceneMedicalText("Time: " + std::to_string(waveTimeLeft) + "s");
+	AddSceneMedicalText("Time Left: " + std::to_string(waveTimeLeft) + "s");
+	AddSceneMedicalText("--------------------");
 	AddSceneMedicalText("Bacteria Alive: " + std::to_string(remainingEntitiesP) + "/" + std::to_string(maxEntitiesP));
 	AddSceneMedicalText("Viruses Alive: " + std::to_string(remainingEntitiesAI) + "/" + std::to_string(maxEntitiesAI));
 	AddSceneMedicalText("Nanobot Ammo: " + std::to_string(maxNanobotAmmo - currentActiveNanobotAmmo) + "/" + std::to_string(maxNanobotAmmo));
+	AddSceneMedicalText("--------------------");
 	AddSceneMedicalText("Total Time: " + std::to_string(totalTimeTaken) + "s");
 
-	// Manage Overload Cooling
+
+
+
+
+	// *****************************************************************
+	// Overload Cooling Mechanic Management for SceneMedical
+	// *****************************************************************
 	if (overloadingStack > 3)
 	{
 		if (overloadCoolTimer >= 10.0f)
@@ -738,8 +843,11 @@ void SceneMedical::Update(double dt) {
 		}
 	}
 
+
+
+
+
 	// Temporary for now
-	// When the Game State handler, the code snippet below will be stored properly
 	DialogueManager::GetInstance().UpdateDialogue(dt);
 
 	if (dt > 0.1f) {
@@ -768,7 +876,6 @@ void SceneMedical::Update(double dt) {
 	auto& screenList = RObj::screenList;
 	auto& physicsList = RObj::physicsList;
 
-	// if you ever felt that you need dt inside HandleKeyPress(), that means you are doing smt wro- i mean, you need to use a variable to pass the info and commit changes in Update instead, HandleKeyPress() should not have those kinda logic inside it
 	HandleKeyPress();
 
 	// player updates
@@ -780,10 +887,6 @@ void SceneMedical::Update(double dt) {
 			player.UpdatePhysics(dt);
 	}
 
-	// camera
-	/*camera.Update(dt);*/ // this must be right after player's block of code to make sure it is sync
-
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	if (debug) {
 		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
@@ -815,11 +918,18 @@ void SceneMedical::Update(double dt) {
 		}
 
 		// btw. this code here visual does nothing, if you turn un debug and get close to to spot light and see it, youll realise its rotating perpendicularly to the light direction
-		if (obj->name == "demo light spot") {
-			obj->offsetRot.y += 45 * dt;
-			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
-		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
+		//if (obj->name == "demo light spot") {
+		//	obj->offsetRot.y += 45 * dt;
+		//	obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
+		//} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
 
+
+
+
+
+		// ***************************************************************************
+		// Nanobot Projectile Spawning and Movement Updates | Straight Line Shot Type
+		// ***************************************************************************
 		if (isNanobotFired)
 		{
 			currentActiveNanobotAmmo++;
@@ -868,6 +978,13 @@ void SceneMedical::Update(double dt) {
 			}
 		}
 
+
+
+
+
+		// ****************************************************************************************************
+		// Enemy: Bacteria | Spawning, Movement and Collision Updates for SceneMedical | Waypoint Patrol Type
+		// ****************************************************************************************************
 		if (bacteriaSpawnTimer >= bacteriaSpawnInterval && currentSpawningP < maxEntitiesP)
 		{
 			bacteriaSpawnTimer = 0.0f;
@@ -963,16 +1080,6 @@ void SceneMedical::Update(double dt) {
 				}
 			}
 
-			// Notes for Bacteria AI patrol movement
-			// Since the bacteria already have colliders with the walls of the map (consider adding floor and top collidors)
-			// Maintain total randomisation of spawning location as done with virus models
-			// "Patrol" movement will refer to the idea of just moving but never truly targetting the player
-			// After n time, set the bacteria's velocity to a certain value for it to move in a different direction
-			// Do this by randomising a reference location (patrol point) and get the direction vector
-			// Repeatedly run this patrol movement so that the bacteria will continuously target different patrol points
-			// As a result, they will appear to move mindlessly but in actuality follow a randomised patrol pattern
-			// Try to keep patrol points at the fixed y value of the bacteria, only randomising x and z values
-
 			glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
 			float distanceToPlayer = glm::length(dToPDir);
 
@@ -1020,6 +1127,13 @@ void SceneMedical::Update(double dt) {
 			}	
 		}
 
+
+
+
+
+		// ****************************************************************************************************
+		// Enemy: Virus | Spawning, Movement and Collision Updates for SceneMedical | AI Move To Player Type
+		// ****************************************************************************************************
 		if (virusSpawnTimer >= virusSpawnInterval && currentSpawningAI < maxEntitiesAI)
 		{
 			virusSpawnTimer = 0.0f;
@@ -1160,12 +1274,6 @@ void SceneMedical::Update(double dt) {
 			obj->allowRender = debug;
 		}
 
-
-
-		if (debug) {
-
-		}
-
 		if (!obj->GetPhysics())
 			obj->UpdateModel();
 		i++;
@@ -1179,12 +1287,26 @@ void SceneMedical::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
+
+
+
+
+		// ***************************************************************************
+		// Overload Mechanic Visual Updates for SceneMedical
+		// ***************************************************************************
 		if (changeInOverloadStack)
 		{
 			ShowOverloadStack();
 			changeInOverloadStack = false;
 		}
 
+
+
+
+
+		// *****************************************************************************
+		// Menu Object Visual Updates for SceneMedical
+		// *****************************************************************************
 		if (isHelpOpen && menuChange && currentState == MedicalGameState::PLAYING)
 		{
 			ShowHelpMenu();
@@ -1196,6 +1318,10 @@ void SceneMedical::Update(double dt) {
 			ClearHelpMenu();
 			menuChange = false;
 		}
+
+
+
+
 
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 			if (textObj->name.find("dial_s") != std::string::npos) {
@@ -1449,10 +1575,10 @@ void SceneMedical::HandleKeyPress() {
 		}
 	}
 
-	// player controls
+	// Player controls
 	if (player.allowControl) {
 
-		// movement
+		// Movements
 		{
 			auto playerGroup = player.renderGroup.lock();
 			vec3 rightDire = glm::normalize(glm::cross(player.direction, vec3(0, 1, 0)));
@@ -1486,7 +1612,7 @@ void SceneMedical::HandleKeyPress() {
 			player.velocity = finalTrlChange;
 		}
 
-		// action
+		// Actions
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
 			if (currentActiveNanobotAmmo < maxNanobotAmmo)
 			{
@@ -1508,6 +1634,10 @@ void SceneMedical::HandleKeyPress() {
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
+
+		// ******************************************************************************************
+		// ADDITIONAL Controls for SceneMedical
+		// ******************************************************************************************
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SLASH))
 		{
 			if (isHelpOpen)
@@ -1687,6 +1817,13 @@ void SceneMedical::ClearDebugText() {
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }
 
+
+
+
+
+// ******************************************************************
+// Win/Lose Condition Related Management for SceneMedical
+// ******************************************************************
 void SceneMedical::HandleWinCondition()
 {
 	if (bestTimeTaken == 0 || totalTimeTaken < bestTimeTaken)
@@ -1694,9 +1831,34 @@ void SceneMedical::HandleWinCondition()
 		bestTimeTaken = totalTimeTaken;
 	}
 
+	// Use if needed for Aizzul's suggestion on average game across all integrated scenes
+	if (bestTimeTaken <= 210.f)
+	{
+		gameGrade = "A";
+	}
+	else if (bestTimeTaken <= 270.f && bestTimeTaken > 210.f)
+	{
+		gameGrade = "B";
+	}
+	else if (bestTimeTaken <= 330.f && bestTimeTaken > 270.f)
+	{
+		gameGrade = "C";
+	}
+	else if (bestTimeTaken > 330.f)
+	{
+		gameGrade = "D";
+	}
+
 	ShowResultsMenu();
 }
 
+
+
+
+
+// ********************************************************************
+// Gameplay Related Management For SceneMedical
+// ********************************************************************
 void SceneMedical::ChangeWave(int waveNumber)
 {
 	currentSpawningP = 0;
@@ -1783,6 +1945,13 @@ void SceneMedical::ShowOverloadStack()
 	}
 }
 
+
+
+
+
+// ****************************************************************
+// Menu Management For SceneMedical
+// ****************************************************************
 void SceneMedical::ShowHelpMenu()
 {
 	for (int i = 0; i < 2; i++)
@@ -1834,7 +2003,7 @@ void SceneMedical::ShowHelpMenu()
 		}
 		if (i == 5)
 		{
-			intendedText = "Taking hits may cause you to overload and fail to save the body";
+			intendedText = "Taking hits may cause you to overload and be set back a little...";
 		}
 		auto helpText = AddFlexText("Instruct", intendedText, glm::vec3(-0.4625f, 0.125f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
 		textObjects.push_back(helpText);
@@ -1888,7 +2057,7 @@ void SceneMedical::ShowResultsMenu()
 
 		menus.push_back(gm);
 	}
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		std::string intendedText;
 
@@ -1896,16 +2065,20 @@ void SceneMedical::ShowResultsMenu()
 		{
 			intendedText = "Best Time: " + std::to_string(bestTimeTaken) + "s";
 		}
-		if (i == 2)
+		if (i == 1) // Use if needed for Aizzul's suggestion on average grade across all integrated scenes
+		{
+			intendedText = "Current Grade: " + gameGrade;
+		}
+		if (i == 3)
 		{
 			intendedText = "This Time: " + std::to_string(totalTimeTaken) + "s";
 		}
-		if (i == 4)
+		if (i == 5)
 		{
 			intendedText = "(<--) to retry";
 		}
 
-		auto helpText = AddFlexText("Results", intendedText, glm::vec3(-0.2f, 0.1f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
+		auto helpText = AddFlexText("Results", intendedText, glm::vec3(-0.2f, 0.125f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
 		textObjects.push_back(helpText);
 	}
 }
@@ -1928,6 +2101,13 @@ void SceneMedical::ClearResultsMenu()
 	textObjects.clear();
 }
 
+
+
+
+
+// **************************************************************
+// Text Management For SceneMedical
+// **************************************************************
 std::shared_ptr<TextObject> SceneMedical::AddFlexText(const std::string& name, const std::string& text, vec3 pos, vec3 scl, GEOMETRY_TYPE font)
 {
 	screenRoot->NewChild(TextObject::Create(name, text, vec3(1, 1, 1), font, false, 99));

@@ -18,10 +18,11 @@ public:
 
 		FONT_CASCADIA_MONO,
 
-		// add more variables here
+		// SceneMedical Variables
 		NANOBOT_MODEL,
 		BACTERIA_MODEL,
 		VIRUS_MODEL,
+
 		ENV_SKYBOX,
 		ENV_WALL,
 		ENV_SPHERE_MODEL,
@@ -29,6 +30,7 @@ public:
 		ENV_STRING_MODEL,
 		ENV_LIQUID_MODEL,
 		ENV_LIQUID_FLAT_MODEL,
+
 		GAME_CROSSHAIR,
 		GAME_UI_BASE,
 		GAME_UI_PLATE,
@@ -85,23 +87,26 @@ private:
 	Mesh* debugPhysicsWorld;
 	double debugPhysicsTimer = 0;
 	
+
+	// ***************************************************************
 	// Medical Gun Game Scene Specifics
+	// ***************************************************************
+	// Game State Related
+	// ***************************************************************
 	enum class MedicalGameState
 	{
 		PLAYING,
 		WON,
 		RESULTS
 	};
-
 	MedicalGameState currentState = MedicalGameState::PLAYING;
 	bool isInResults = false;
 
-	int waveNumber = 1; // default wave at 1
-	int waveTimeLeft = 180; // 3 minutes per wave
-	float waveTimeAccumulator = 0.0f;
-	int totalTimeTaken = 0;
-	int bestTimeTaken = 0;
 
+
+	// ***************************************************************
+	// Overload Mechanic Related
+	// ***************************************************************
 	struct Overload
 	{
 		std::shared_ptr<RenderObject> object;
@@ -112,6 +117,11 @@ private:
 	float overloadCoolTimer = 0.0f; // Use only if overloading stack is above 3
 	bool changeInOverloadStack = false;
 
+
+
+	// ***************************************************************
+	// Menus Related
+	// ***************************************************************
 	struct GameMenu
 	{
 		std::shared_ptr<RenderObject> object;
@@ -121,18 +131,28 @@ private:
 	bool isHelpOpen = true;
 	bool menuChange = true;
 
+
+
+	// ***************************************************************
+	// Enemy Entities Related
+	// ***************************************************************
 	int maxEntitiesP = 10;
 	int maxEntitiesAI = 5;
 	int currentSpawningP = 0;
 	int currentSpawningAI = 0;
-	int remainingEntitiesP = 10;
-	int remainingEntitiesAI = 5;
+	int remainingEntitiesP = 0;
+	int remainingEntitiesAI = 0;
 
 	float bacteriaSpawnTimer = 0.0f;
 	float bacteriaSpawnInterval = 3.0f;
 	float virusSpawnTimer = 0.0f;
 	float virusSpawnInterval = 6.0f;
 
+
+
+	// ***************************************************************
+	// Enemy: Bacteria Related
+	// ***************************************************************
 	struct Bacteria
 	{
 		std::shared_ptr<RenderObject> object;
@@ -146,6 +166,11 @@ private:
 
 	std::vector<Bacteria> bacterias;
 
+
+
+	// ***************************************************************
+	// Enemy: Virus Related
+	// ***************************************************************
 	struct Virus
 	{
 		std::shared_ptr<RenderObject> object;
@@ -156,6 +181,11 @@ private:
 
 	std::vector<Virus> viruses;
 
+
+
+	// ***************************************************************
+	// Nanobot Related
+	// ***************************************************************
 	struct Nanobot
 	{
 		std::shared_ptr<RenderObject> object;
@@ -167,20 +197,40 @@ private:
 	int currentActiveNanobotAmmo = 0;
 	std::vector<Nanobot> nanobots;
 
+
+
+	// ***************************************************************
+	// Wave and Win Condition Related
+	// ***************************************************************
+	int waveNumber = 1; // default wave at 1
+	int waveTimeLeft = 180; // 3 minutes per wave
+	float waveTimeAccumulator = 0.0f;
+	int totalTimeTaken = 0;
+	int bestTimeTaken = 0;
+
+	std::string gameGrade = "D"; // Use if necessary for integration based on Aizzul's suggestion of average grade
+
 	bool isGameReset = false;
-
 	void HandleWinCondition();
-
 	void ChangeWave(int waveNumber);
 
+
+
+	// ***************************************************************
+	// Render Helpers for On-Screen UI
+	// ***************************************************************
 	void ShowOverloadStack();
 	void ShowHelpMenu();
 	void ClearHelpMenu();
 	void ShowResultsMenu();
 	void ClearResultsMenu();
 
-	std::shared_ptr<TextObject> AddFlexText(const std::string& name, const std::string& text, glm::vec3 pos, glm::vec3 scl, GEOMETRY_TYPE font);
 
+
+	// ***************************************************************
+	// Text Related
+	// ***************************************************************
+	std::shared_ptr<TextObject> AddFlexText(const std::string& name, const std::string& text, glm::vec3 pos, glm::vec3 scl, GEOMETRY_TYPE font);
 	std::vector<std::weak_ptr<RenderObject>> sceneMedicalTextList;
 	void InitSceneMedicalText(GEOMETRY_TYPE font);
 	bool AddSceneMedicalText(const std::string& text, int index = -1);
