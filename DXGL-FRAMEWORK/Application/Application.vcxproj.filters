@@ -1,53 +1,165 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Source\PhysicsManager.cpp" />
-    <ClCompile Include="Source\DialogueManager.cpp" />
-    <ClCompile Include="Source\Player.cpp" />
-    <ClCompile Include="Source\Application.cpp" />
-    <ClCompile Include="Source\AudioManager.cpp" />
-    <ClCompile Include="Source\BaseScene.cpp" />
-    <ClCompile Include="Source\DataManager.cpp" />
-    <ClCompile Include="Source\FPCamera.cpp" />
-    <ClCompile Include="Source\main.cpp" />
-    <ClCompile Include="Source\MatrixStack.cpp" />
-    <ClCompile Include="Source\Mesh.cpp" />
-    <ClCompile Include="Source\MeshBuilder.cpp" />
-    <ClCompile Include="Source\SceneDemo.cpp" />
-    <ClCompile Include="Source\ModelLoader.cpp" />
-    <ClCompile Include="Source\RenderObject.cpp" />
-    <ClCompile Include="Source\shader.cpp" />
-    <ClCompile Include="Source\TextureLoader.cpp" />
-    <ClCompile Include="Source\SceneTesting.cpp" />
-    <ClCompile Include="Source\SceneManager.cpp" />
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{70b1cd80-7253-47fd-97a8-ebc2bc908c3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main Application">
+      <UniqueIdentifier>{eb33967f-29b8-4e89-a2d9-2e4dac51581f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{1a266388-cc41-4994-a729-7d618f60c62b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene Resource">
+      <UniqueIdentifier>{c5607348-b136-46fa-9c9c-1b5684aa2f60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\PhysicsManager.h" />
-    <ClInclude Include="Source\DataManager.h" />
-    <ClInclude Include="Source\DialogueManager.h" />
-    <ClInclude Include="Source\Player.h" />
-    <ClInclude Include="Source\Application.h" />
-    <ClInclude Include="Source\Atmosphere.h" />
-    <ClInclude Include="Source\AudioManager.h" />
-    <ClInclude Include="Source\BaseScene.h" />
-    <ClInclude Include="Source\Console.h" />
-    <ClInclude Include="Source\EnumArray.h" />
-    <ClInclude Include="Source\Event.h" />
-    <ClInclude Include="Source\FPCamera.h" />
-    <ClInclude Include="Source\Light.h" />
-    <ClInclude Include="Source\Material.h" />
-    <ClInclude Include="Source\MatrixStack.h" />
-    <ClInclude Include="Source\Mesh.h" />
-    <ClInclude Include="Source\MeshBuilder.h" />
-    <ClInclude Include="Source\ModelLoader.h" />
-    <ClInclude Include="Source\RenderObject.h" />
-    <ClInclude Include="Source\Scene.h" />
-    <ClInclude Include="Source\SceneDemo.h" />
-    <ClInclude Include="Source\shader.hpp" />
-    <ClInclude Include="Source\TextureLoader.h" />
-    <ClInclude Include="Source\Utils.h" />
-    <ClInclude Include="Source\Vertex.h" />
-    <ClInclude Include="Source\SceneTesting.h" />
-    <ClInclude Include="Source\SceneManager.h" />
+    <ClCompile Include="Source\SceneDemo.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Main Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application.cpp">
+      <Filter>Main Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\BaseScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\AudioManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DataManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\FPCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MatrixStack.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MeshBuilder.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ModelLoader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderObject.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TextureLoader.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Player.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PhysicsManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DialogueManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SceneManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\SceneDemo.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application.h">
+      <Filter>Main Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BaseScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Console.h">
+      <Filter>Main Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Atmosphere.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AudioManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EnumArray.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Event.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FPCamera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Light.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Material.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MatrixStack.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MeshBuilder.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ModelLoader.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RenderObject.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TextureLoader.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utils.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Vertex.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shader.hpp">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Player.h">
+      <Filter>Scene Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DataManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PhysicsManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DialogueManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

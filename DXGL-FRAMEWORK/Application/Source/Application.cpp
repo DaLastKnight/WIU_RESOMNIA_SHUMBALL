@@ -13,7 +13,6 @@
 #include "Scene.h"
 #include "SceneDemo.h"
 #include "SceneManager.h"
-#include "SceneTesting.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
@@ -138,7 +137,7 @@ void Application::Init()
 void Application::Run()
 {
 	//Main Loop
-	SceneManager::GetInstance().ChangeState(new SceneBowling());
+	SceneManager::GetInstance().ChangeState(new SceneDemo());
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
 	while (!glfwWindowShouldClose(m_window) && !KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ESCAPE))
@@ -174,6 +173,8 @@ void Application::Exit()
 
 	AudioManager::GetInstance().CloseMixer();
 	AudioManager::GetInstance().ExitSystem();
+
+	SceneManager::GetInstance().CleanUp();
 	
 	//Close OpenGL window and terminate GLFW
 	glfwDestroyWindow(m_window);

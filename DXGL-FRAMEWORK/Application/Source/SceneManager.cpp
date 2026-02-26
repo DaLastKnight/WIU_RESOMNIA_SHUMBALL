@@ -2,8 +2,7 @@
 
 SceneManager::~SceneManager()
 {
-	for (Scene* pScene : m_scenes)
-		delete pScene;
+	CleanUp();
 }
 
 void SceneManager::PushState(Scene* pScene)
@@ -50,4 +49,10 @@ void SceneManager::RequestChangeState(Scene* pScene)
 {
 	m_pendingScene = pScene;
 	m_doChange = true;
+}
+
+void SceneManager::CleanUp() {
+	for (Scene* pScene : m_scenes) {
+		PopState();
+	}
 }

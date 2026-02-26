@@ -24,6 +24,8 @@ public:
 
 	void RequestChangeState(Scene* pScene);
 
+	void CleanUp();
+
 	Scene* m_pendingScene = nullptr;
 	bool m_doChange = false;
 
