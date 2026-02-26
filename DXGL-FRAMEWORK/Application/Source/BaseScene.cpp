@@ -130,7 +130,7 @@ void BaseScene::Init()
 	}
 }
 
-void BaseScene::Update(float dt) {
+void BaseScene::Update(double dt) {
 
 	// refreshes and clears per frame
 	RObj::newObject.reset();

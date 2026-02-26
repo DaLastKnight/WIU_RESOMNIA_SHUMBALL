@@ -24,6 +24,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "SceneManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -1688,6 +1689,10 @@ void SceneMedical::HandleKeyPress() {
 		// however needed to change scene
 		// ...
 		// If you need the game data to save highscores, there is GetBestTimeForMedical() and GetGameGradeForMedical taking int and std::string respectively
+
+		//SceneManager::GetInstance().RequestChangeState(new SceneWack());
+		App::EndPrograme();
+
 		canChangeScene = false; // Once scene has changed already reset to false
 	}
 }

@@ -327,7 +327,7 @@ void SceneDemo::Init() {
 	RObj::newObject.reset();
 }
 
-void SceneDemo::Update(float dt) {
+void SceneDemo::Update(double dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 

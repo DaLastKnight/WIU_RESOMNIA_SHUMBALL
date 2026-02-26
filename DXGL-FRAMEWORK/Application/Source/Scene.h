@@ -9,7 +9,7 @@ public:
 
     // Scene lifecycle
     virtual void Enter() = 0;        // replaces Init()
-    virtual void Update(float dt) = 0;
+    virtual void Update(double dt) = 0;
     virtual void Render() = 0;
     virtual void Exit() = 0;
 

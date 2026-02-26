@@ -8,46 +8,64 @@
 #include <array>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 class DataManager {
 public:
+
+    enum DATA {
+        MEDICAL_TIMETAKEN,
+        WACK_SCORE,
+        RHYTHM_SCORE_DIFF0,
+        RHYTHM_SCORE_DIFF1,
+        COLLAB_SCORE,
+
+        TOTAL_DATA
+    };
 	
     static DataManager& GetInstance() {
         static DataManager dataManager;
         return dataManager;
     }
 
-    void SaveData();
+    void SaveData(DATA dataType, int value);
+    void UpdateData(DATA dataType);
+    void SaveAllDataToFile();
     void LoadData();
+    bool HighScoreChanged(DATA dataType);
+    bool LocalHighScoreChanged(DATA dataType);
+
+    int GetPrevHghScoreData(DATA dataType);
+    int GetThisHighScoreData(DATA dataType);
+
+    std::string DataToString(DATA dataType);
 
 private:
 
-    enum GAME_TYPE {
-
-        BOWLING,
-        RHYTHM_GAME,
-        WHACK_A_MOLE,
-        MEDICAL_GUN,
-
-        TOTAL_GAME_TYPE
-    };
-
-    std::string GameTypeToString(GAME_TYPE type) {
-        switch (type) {
-        case BOWLING: return "bowling";
-        case RHYTHM_GAME: return "rhythm game";
-        case WHACK_A_MOLE: return "whack a mole";
-        case MEDICAL_GUN: return "medical gun";
-        default: return "unknown";
-        }
-    }
-
-    std::array<float, TOTAL_GAME_TYPE> highestScores;
+    nlohmann::ordered_json LoadFile(std::string filePath);
+    void SaveFile(nlohmann::ordered_json json, std::string filePath);
 
     std::string directory = "PlayerData/";
 
+    // current data / for end result of 1 program run
+    std::array<int, TOTAL_DATA> data;
+
+    // if data to be stored is better than data stored previously
+    std::array<bool, TOTAL_DATA> data_highScoreChanged;
+
+    // if data to be stored is better than data to be stored previously
+    std::array<bool, TOTAL_DATA> data_localHighScoreChanged;
+
+    // data to be (checked with) store
+    std::array<int, TOTAL_DATA> data_buffer;
+
+    // data stored previously
+    std::array<int, TOTAL_DATA> data_stored;
+
     DataManager() {
-        for (auto& score : highestScores)
-            score = 0;
+        for (int i = 0; i < TOTAL_DATA; i++) {
+            data_buffer[i] = data_stored[i] = -1;
+        }
     }
     ~DataManager() = default;
     DataManager(const DataManager&) = delete;

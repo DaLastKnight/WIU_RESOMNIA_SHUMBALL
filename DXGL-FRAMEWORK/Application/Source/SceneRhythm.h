@@ -17,7 +17,7 @@ public:
 	~SceneRhythm();
 
 	void Init() override;
-	void Update(float dt) override;
+	void Update(double dt) override;
 	void Render() override;
 	void Exit() override;
 
@@ -74,7 +74,7 @@ private:
 		RT_PROGRESSION,
 		RT_PROGRESS,
 		RT_PROGRESS_INDICATOR,
-		
+
 		RHYTHM_BASE,
 		RHYTHM_BEAT,
 		RHYTHM_HIT_POINT,
@@ -153,6 +153,7 @@ private:
 
 	// debug
 	bool debug = false;
+	bool forceEndGame = false;
 
 	std::vector<std::weak_ptr<RenderObject>> debugTextList;
 	void InitDebugText(GEOMETRY_TYPE font);

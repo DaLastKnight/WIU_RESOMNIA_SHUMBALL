@@ -11,10 +11,10 @@ using namespace reactphysics3d;
 
 void PhysicsObject::AddImpulse(glm::vec3 force) {
 	body->setLinearVelocity(rp3d::Vector3(0, 0, 0));
-	body->applyLocalForceAtCenterOfMass(Vec3Convert(force) * PhysicsManager::GetInstance().Get_TIME_STEP());
+	body->applyWorldForceAtCenterOfMass(Vec3Convert(force) * PhysicsManager::GetInstance().Get_TIME_STEP());
 }
 void PhysicsObject::AddSoftImpulse(glm::vec3 impulse) {
-	body->applyLocalForceAtCenterOfMass(Vec3Convert(impulse) * PhysicsManager::GetInstance().Get_TIME_STEP());
+	body->applyWorldForceAtCenterOfMass(Vec3Convert(impulse) * PhysicsManager::GetInstance().Get_TIME_STEP());
 }
 
 void PhysicsObject::SetTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {

@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include "SceneMedical.h"
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -507,14 +509,12 @@ void SceneRhythm::Init() {
 		newObj->trl = vec3(0.505f, 0, 0.005f);
 
 		progression->NewChild(TextObject::Create("dial_text", "test test", vec3(1), FONT_CASCADIA_MONO, true));
-		newObj->relativeTrl = true;
 		newObj->trl = vec3(0, -0.2f, 0);
 		newObj->offsetScl = vec3(0.1f, 0.1f, 1);
 		newObj->colorFilter = vec3(0.004f, 0.337f, 1);
 		newObj->alpha = 0.5f;
 
 		progression->NewChild(TextObject::Create("scores", "score: ", vec3(1), FONT_CASCADIA_MONO, true));
-		newObj->relativeTrl = true;
 		newObj->trl = vec3(0, -0.3f, 0);
 		newObj->offsetScl = vec3(0.075f, 0.075f, 1);
 		newObj->colorFilter = vec3(0.004f, 0.337f, 1);
@@ -554,6 +554,22 @@ void SceneRhythm::Init() {
 		worldRoot->NewChild(MeshObject::Create(RHYTHM_HIT_POINT));
 		newObj->name = "lane 3 point";
 		inGamePointsOfInterest[newObj->name] = newObj;
+
+		progression->NewChild(TextObject::Create("high score", "", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->trl.y = -0.375f;
+		newObj->offsetTrl.z = 0.025f;
+		newObj->offsetScl = vec3(0.075f, 0.075f, 1);
+		newObj->colorFilter = vec3(0.004f, 0.337f, 1);
+		newObj->alpha = 0.5f;
+		uiPointsOfInterest[newObj->name] = newObj;
+
+		progression->NewChild(TextObject::Create("new high score", "", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->trl.y = -0.45f;
+		newObj->offsetTrl.z = 0.05f;
+		newObj->offsetScl = vec3(0.075f, 0.075f, 1);
+		newObj->colorFilter = vec3(1, 1, 0.337f);
+		newObj->alpha = 0.5f;
+		uiPointsOfInterest[newObj->name] = newObj;
 
 		// light init
 		{
@@ -812,7 +828,7 @@ void SceneRhythm::Init() {
 	}
 }
 
-void SceneRhythm::Update(float dt) {
+void SceneRhythm::Update(double dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 
@@ -937,7 +953,7 @@ void SceneRhythm::Update(float dt) {
 			}
 		}
 
-		if (!RhythmGameManager::GetInstance().CheckMusicPlaying()) {
+		if (!RhythmGameManager::GetInstance().CheckMusicPlaying() || forceEndGame) {
 			AudioManager::GetInstance().FadeOutMUS(2750);
 			currentState = START_RESULT;
 			camera.basePosition = player.position + player.cameraOffset;
@@ -951,10 +967,15 @@ void SceneRhythm::Update(float dt) {
 		if (dynamicStateTimer > 3) {
 			dynamicStateTimer = 0;
 			
-			if (!RhythmGameManager::GetInstance().GetProgressionFixed()) {
+			if (!RhythmGameManager::GetInstance().GetProgressionFixed() || !RhythmGameManager::GetInstance().GetProgressionMaxed()) {
 				DialogueManager::GetInstance().EndDialogue();
 				DialogueManager::GetInstance().StartDialogue("System_Timeout");
 				situationTextColor = vec3(1, 0.004f, 0.337f);
+			}
+			else {
+				DialogueManager::GetInstance().EndDialogue();
+				DialogueManager::GetInstance().StartDialogue("Upload_Succesful");
+				situationTextColor = vec3(0.004f, 1, 0.337f);
 			}
 			
 			AudioManager::GetInstance().PauseMUS();
@@ -962,6 +983,15 @@ void SceneRhythm::Update(float dt) {
 
 			player.allowControl = true;
 			camera.Set(Cam::MODE::FIRST_PERSON);
+
+			if (difficulty == 0) {
+				DataManager::GetInstance().SaveData(DataManager::RHYTHM_SCORE_DIFF0, RhythmGameManager::GetInstance().GetScore());
+				DataManager::GetInstance().UpdateData(DataManager::RHYTHM_SCORE_DIFF0);
+			}
+			else {
+				DataManager::GetInstance().SaveData(DataManager::RHYTHM_SCORE_DIFF1, RhythmGameManager::GetInstance().GetScore());
+				DataManager::GetInstance().UpdateData(DataManager::RHYTHM_SCORE_DIFF1);
+			}
 
 			currentState = RESULT;
 		}
@@ -974,7 +1004,7 @@ void SceneRhythm::Update(float dt) {
 		if (resultSFXTimer >= 0.75f && resultSFXTimer < 1) {
 			resultSFXTimer = 1;
 
-			if (RhythmGameManager::GetInstance().GetProgressionFixed())
+			if (RhythmGameManager::GetInstance().GetProgressionFixed() && RhythmGameManager::GetInstance().GetProgressionMaxed())
 				AudioManager::GetInstance().PlaySFX(SFX_TADA);
 			else 
 				AudioManager::GetInstance().PlaySFX(SFX_FAIL);
@@ -993,7 +1023,7 @@ void SceneRhythm::Update(float dt) {
 		break;
 
 	case EXIT:
-		App::EndPrograme();
+		SceneManager::GetInstance().RequestChangeState(new SceneMedical());
 		break;
 
 	default: break;
@@ -1135,6 +1165,10 @@ void SceneRhythm::Update(float dt) {
 			case END_INTERMISSION:
 				obj->alpha = 1;
 				break;
+			case START_RESULT:
+			case RESULT:
+			case END_RESULT:
+				break;
 			default: obj->alpha = 0; break;
 			}
 		}
@@ -1149,8 +1183,7 @@ void SceneRhythm::Update(float dt) {
 			default: obj->alpha = 0; break;
 			}
 		}
-
-		if (obj->name == "rt base ui") {
+		else if (obj->name == "rt base ui") {
 			static float accel = 0;
 			switch (currentState) {
 			case START_INTERMISSION:
@@ -1217,6 +1250,57 @@ void SceneRhythm::Update(float dt) {
 				obj->rot.z -= 30 * dt;
 				break;
 			default: break;
+			}
+		}
+		else if (obj->name == "high score") {
+			switch (currentState) {
+			case RESULT: {
+				if (resultSFXTimer >= 1) {
+					obj->alpha = Smooth(obj->alpha, 0.5f, 50, dt);
+				}
+				
+				auto textObj = std::static_pointer_cast<TextObject>(obj);
+
+				if (difficulty == 0)
+					textObj->text = "highscore: " + std::to_string(DataManager::GetInstance().GetThisHighScoreData(DataManager::RHYTHM_SCORE_DIFF0));
+				else 
+					textObj->text = "highscore: " + std::to_string(DataManager::GetInstance().GetThisHighScoreData(DataManager::RHYTHM_SCORE_DIFF1));
+
+				break;
+			}
+			case END_RESULT:
+				obj->alpha = 0.5f;
+				break;
+			default:
+				obj->alpha = 0;
+				break;
+			}
+		}
+		else if (obj->name == "new high score") {
+			switch (currentState) {
+			case RESULT: {
+				if (resultSFXTimer >= 1.5) {
+					obj->alpha = Smooth(obj->alpha, 0.5f, 20, dt);
+				}
+
+				auto textObj = std::static_pointer_cast<TextObject>(obj);
+
+				if (difficulty == 0 && DataManager::GetInstance().LocalHighScoreChanged(DataManager::RHYTHM_SCORE_DIFF0))
+					textObj->text = "NEW HIGHSCORE";
+				else if (difficulty == 1 && DataManager::GetInstance().LocalHighScoreChanged(DataManager::RHYTHM_SCORE_DIFF1))
+					textObj->text = "NEW HIGHSCORE";
+				else {
+					textObj->text = "";
+				}
+
+				break;
+			}
+			case END_RESULT:
+				obj->alpha = 0.5f;
+				break;
+			default:
+				obj->alpha = 0;
+				break;
 			}
 		}
 	}
@@ -1800,6 +1884,7 @@ void SceneRhythm::HandleKeyPress() {
 		player.allowControl = true;
 		RhythmGameManager::GetInstance().SetAutoPlay(debug);
 	}
+	forceEndGame = false;
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_C)) {
 			if (camera.GetCurrentMode() != Cam::MODE::FREE) {
@@ -1814,6 +1899,10 @@ void SceneRhythm::HandleKeyPress() {
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P)) {
 			renderDebugPhysics = !renderDebugPhysics;
+		}
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_E)) {
+			forceEndGame = true;
 		}
 	}
 

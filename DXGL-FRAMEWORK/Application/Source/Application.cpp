@@ -18,6 +18,7 @@
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
+#include "DataManager.h"
 
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
@@ -136,13 +137,16 @@ void Application::Init()
 	// audio init
 	AudioManager::GetInstance().InitSystem();
 	AudioManager::GetInstance().OpenMixer();
+
+	// data init
+	DataManager::GetInstance().LoadData();
 }
 
 void Application::Run()
 {
 	srand(static_cast<unsigned int>(time(0)));
 	//Main Loop
-	SceneManager::GetInstance().ChangeState(new SceneDemo());
+	SceneManager::GetInstance().ChangeState(new SceneRhythm());
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
 	while (!glfwWindowShouldClose(m_window) && !KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ESCAPE) && !endPrograme)
@@ -174,6 +178,8 @@ void Application::Run()
 
 void Application::Exit()
 {
+	DataManager::GetInstance().SaveAllDataToFile();
+
 	KeyboardController::DestroyInstance();
 
 	AudioManager::GetInstance().CloseMixer();

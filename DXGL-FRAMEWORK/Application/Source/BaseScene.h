@@ -87,7 +87,7 @@ public:
 
 	// SceneManager interface
 	virtual void Enter() override { Init(); }
-	virtual void Update(float dt) override;    
+	virtual void Update(double dt) override;
 	virtual void Render() override;
 	virtual void Exit() override;
 
