@@ -14,6 +14,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include "SceneResults.h"
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -1810,8 +1812,7 @@ void SceneMedical::HandleKeyPress() {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ENTER)) {
 			canChangeScene = false; // Once scene has changed already reset to false
 
-			//SceneManager::GetInstance().RequestChangeState(new SceneResult());
-			App::EndPrograme();
+			SceneManager::GetInstance().RequestChangeState(new SceneResults());
 		}
 	}
 }

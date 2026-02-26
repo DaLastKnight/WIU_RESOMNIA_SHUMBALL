@@ -66,7 +66,7 @@ void SceneResults::Init() {
 	// physics debug init
 	{
 		if (ALLOW_PHYSICS_DEBUG) {
-			PhysicsManager::GetInstance().SetUpLogger("SceneDemo");
+			PhysicsManager::GetInstance().SetUpLogger("SceneResults");
 			PhysicsManager::GetInstance().SeteDebugRendering(true);
 			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
 		}
@@ -74,11 +74,11 @@ void SceneResults::Init() {
 
 	// directory init
 	{
-		AudioManager::GetInstance().SetDirectoryMUS("SceneDemo/Music");
-		AudioManager::GetInstance().SetDirectorySFX("SceneDemo/SFX");
-		TextureLoader::SetDirectory("SceneDemo/Image");
-		ModelLoader::SetDirectory("SceneDemo/Model");
-		DialogueManager::GetInstance().SetDirectory("SceneDemo/Dialogue");
+		AudioManager::GetInstance().SetDirectoryMUS("SceneResults/Music");
+		AudioManager::GetInstance().SetDirectorySFX("SceneResults/SFX");
+		TextureLoader::SetDirectory("SceneResults/Image");
+		ModelLoader::SetDirectory("SceneResults/Model");
+		DialogueManager::GetInstance().SetDirectory("SceneResults/Dialogue");
 	}
 
 	// audio init
@@ -262,25 +262,29 @@ void SceneResults::Init() {
 
 	// screen space init
 	{
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 		{
 			std::string intendedText;
 
 			if (i == 0)
 			{
-				intendedText = "[Game]   |   [Score]";
+				intendedText = "Games                | Scores";
 			}
 			if (i == 1)
 			{
-				intendedText = "Rhythm Transfer   |   [Score]";
+				intendedText = "Whack-A-Virus        | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::WACK_SCORE));
 			}
 			if (i == 2)
 			{
-				intendedText = "Whack-A-Virus   |   [Score]";
+				intendedText = "Rhythm Transfer      | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::WACK_SCORE));
 			}
 			if (i == 3)
 			{
-				intendedText = "Nanobots Disengage   |   [Score]";
+				intendedText = "Nanobots Disengage   | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::MEDICAL_TIMETAKEN));
+			}
+			if (i == 4)
+			{
+				intendedText = "Total Evaluated      | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::COLLAB_SCORE));
 			}
 
 			screenRoot->NewChild(TextObject::Create("Score", intendedText, vec3(1), FONT_CASCADIA_MONO, false));
