@@ -30,6 +30,7 @@
 
 #include "Console.h"
 #include "Utils.h"
+#include "Ease.h"
 
 using App = Application;
 using RObj = RenderObject;
@@ -649,9 +650,17 @@ void SceneRhythm::Init() {
 	// screen space init
 	{
 		
-		screenRoot->NewChild(TextObject::Create("dial_speaker", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		screenRoot->NewChild(TextObject::Create("controls", "", vec3(1), FONT_CASCADIA_MONO, true));
 		newObj->relativeTrl = true;
-		newObj->trl = vec3(0, -0.5f, 0);
+		newObj->trl = vec3(-0.98f, -0.95f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		auto newTextObj = std::static_pointer_cast<TextObject>(newObj);
+		newTextObj->centerText = false;
+		newTextObj->text = "controls: F | G | H | J";
+
+		screenRoot->NewChild(TextObject::Create("comment", "", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.75f, 0);
 		newObj->scl = vec3(30, 30, 1);
 
 		// debug text
@@ -830,6 +839,9 @@ void SceneRhythm::Init() {
 		}
 		RhythmGameManager::GetInstance().SetTickSFXKey(SFX_TICK);
 		RhythmGameManager::GetInstance().SetAutoPlay(false);
+
+		// scene collab
+		collabScore = DataManager::GetInstance().GetCurrentData(DataManager::COLLAB_SCORE);
 	}
 }
 
@@ -998,6 +1010,14 @@ void SceneRhythm::Update(double dt) {
 				DataManager::GetInstance().UpdateData(DataManager::RHYTHM_SCORE_DIFF1);
 			}
 
+			float balanceMult;
+			if (difficulty == 0)
+				balanceMult = 45000;
+			else
+				balanceMult = 65000;
+
+			AmplifiedCollabScore = collabScore * (RhythmGameManager::GetInstance().GetScore() / balanceMult);
+
 			currentState = RESULT;
 		}
 		break;
@@ -1028,6 +1048,9 @@ void SceneRhythm::Update(double dt) {
 		break;
 
 	case EXIT:
+		DataManager::GetInstance().SaveData(DataManager::COLLAB_SCORE, collabScore);
+		DataManager::GetInstance().UpdateData(DataManager::COLLAB_SCORE);
+
 		SceneManager::GetInstance().RequestChangeState(new SceneMedical());
 		break;
 
@@ -1431,13 +1454,47 @@ void SceneRhythm::Update(double dt) {
 
 
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
-			if (textObj->name.find("dial_s") != std::string::npos) {
-				if (DialogueManager::GetInstance().CheckActivePack()) {
-					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
+			if (textObj->name == "comment") {
+				if (currentState == RESULT) {
+					commentTimer += dt;
+
+					if (AmplifiedCollabScore > collabScore) {
+						textObj->text = "you are doing great! Next game will be easier for you.";
+						textObj->color = vec3(0.01f, 1, 0.337f);
+					}
+					else {
+						textObj->text = "you are not doing so well, next game will be harder for you.";
+						textObj->color = vec3(1, 0.01f, 0.337f);
+					}
+
+					if (commentTimer > 1.5f && commentTimer <= 2.5f) {
+						textObj->alpha = Ease(EASE::IN_OUT_SIN, LerpTime(commentTimer, 1.5f, 2.5f));
+					}
+					else if (commentTimer > 2.5f) {
+						textObj->alpha = 1;
+					}
 				}
-				else
-					textObj->text = "";
+				else if (currentState == END_RESULT) {
+					commentTimer == 0;
+					textObj->alpha = Smooth(textObj->alpha, 0.f, 25, dt);
+				}
+				else {
+					textObj->alpha = 0;
+				}
 			}
+
+			if (obj->name == "controls") {
+				if (currentState == END_INTERMISSION || currentState == GAME || currentState == START_GAME) {
+					obj->alpha = Smooth(obj->alpha, 1.f, 25, dt);
+				}
+				else if (currentState == START_RESULT) {
+					obj->alpha = Smooth(obj->alpha, 0.f, 25, dt);
+				}
+				else {
+					obj->alpha = 0;
+				}
+			}
+
 			if (textObj->name.find("_debugtxt_") != std::string::npos) {
 				textObj->allowRender = debug;
 			}

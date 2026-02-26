@@ -213,6 +213,9 @@ public:
     int GetMaxProgression() {
         return maxProgressionCount;
     }
+    int GetTrueMaxProgression() {
+        return trueMaxProgressionCount;
+    }
     bool GetProgressionMaxed() {
         return progressionMaxed;
     }
@@ -255,6 +258,7 @@ private:
 
     std::vector<Progress> progression;
     int progressionCount;
+    int trueMaxProgressionCount;
     int maxProgressionCount;
     float requiredProgressionPercentage = 0.8f;
     bool progressionMaxed = false;

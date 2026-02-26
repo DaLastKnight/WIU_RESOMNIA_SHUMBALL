@@ -127,6 +127,10 @@ private:
 
 	PhysicsRaycast physicsRaycast;
 
+	//scene collab
+	int collabScore;
+	int AmplifiedCollabScore;
+
 	// texture
 	std::array<GLuint, 2> baseUITexture;
 
@@ -139,6 +143,7 @@ private:
 	bool allowActivatePacketLoss = false;
 	bool allowActivateUploadSuccessful = false;
 	glm::vec3 situationTextColor = glm::vec3(1);
+	float commentTimer = 0;
 
 	// input info
 	bool lmb_pressed;

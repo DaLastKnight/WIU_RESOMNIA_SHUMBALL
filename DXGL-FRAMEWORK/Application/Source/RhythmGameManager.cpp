@@ -331,18 +331,18 @@ void RhythmGameManager::LoadGame(const std::string& chartFilePath) {
 
 	score = 0;
 
-	maxProgressionCount = 0;
+	trueMaxProgressionCount = 0;
 	for (auto& note : chart.notes) {
 
 		if (note->type == RhythmNote::TAP) {
-			maxProgressionCount++;
+			trueMaxProgressionCount++;
 		}
 		else if (note->type == RhythmNote::HOLD) {
-			maxProgressionCount += 2;
+			trueMaxProgressionCount += 2;
 		}
 	}
 
-	maxProgressionCount = maxProgressionCount * requiredProgressionPercentage;
+	maxProgressionCount = trueMaxProgressionCount * requiredProgressionPercentage;
 	progression.clear();
 
 	progressionMaxed = false;
