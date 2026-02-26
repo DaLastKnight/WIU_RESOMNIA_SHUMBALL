@@ -14,6 +14,7 @@
 #include "SceneDemo.h"
 #include "SceneManager.h"
 #include "SceneRhythm.h"
+#include "SceneMedical.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
@@ -139,6 +140,7 @@ void Application::Init()
 
 void Application::Run()
 {
+	srand(static_cast<unsigned int>(time(0)));
 	//Main Loop
 	SceneManager::GetInstance().ChangeState(new SceneDemo());
 

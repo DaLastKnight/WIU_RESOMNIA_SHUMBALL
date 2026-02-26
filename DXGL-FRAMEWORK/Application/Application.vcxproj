@@ -175,6 +175,7 @@
     <ClCompile Include="Source\RenderObject.cpp" />
     <ClCompile Include="Source\SceneManager.cpp" />
     <ClCompile Include="Source\SceneRhythm.cpp" />
+    <ClCompile Include="Source\SceneMedical.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\SRhythmRaycast.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="Source\SceneDemo.h" />
     <ClInclude Include="Source\SceneManager.h" />
     <ClInclude Include="Source\SceneRhythm.h" />
+    <ClInclude Include="Source\SceneMedical.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\SRhythmRaycast.h" />
     <ClInclude Include="Source\TextureLoader.h" />
