@@ -158,6 +158,8 @@ private:
 	float virusSpawnTimer = 0.0f;
 	float virusSpawnInterval = 6.0f;
 
+	int alterationFactorMax = 100;
+
 
 
 	// ***************************************************************

@@ -589,6 +589,12 @@ void SceneMedical::Update(double dt)
 
 	auto& cameraMode = camera.GetCurrentMode();
 
+	int alterationFactorInput = 0; // wait to receive data via getter function
+	if (alterationFactorInput > alterationFactorMax)
+	{
+		alterationFactorInput = alterationFactorMax;
+	}
+
 	
 
 
@@ -1027,7 +1033,22 @@ void SceneMedical::Update(double dt)
 			Bacteria b;
 			b.object = bacteria;
 			b.bacteriaDivertTimer = 0.0f;
-			b.bacteriaHP = 2;
+			if (alterationFactorMax - 10 <= 30) // assume 70 is received
+			{
+				b.bacteriaHP = 2;
+			}
+			else if (alterationFactorMax - 10 <= 50 && alterationFactorMax - 10 > 30)
+			{
+				b.bacteriaHP = 3;
+			}
+			else if (alterationFactorMax - 10 <= 70 && alterationFactorMax - 10 > 50)
+			{
+				b.bacteriaHP = 4;
+			}
+			else if (alterationFactorMax - 10 > 70)
+			{
+				b.bacteriaHP = 5;
+			}
 			b.bacteriaInvulnerabilityTimer = 0.0f;
 			bacterias.push_back(b);
 
@@ -1178,7 +1199,22 @@ void SceneMedical::Update(double dt)
 
 			Virus v;
 			v.object = virus;
-			v.virusHP = 3;
+			if (alterationFactorMax - 10 <= 30) // assume 70 is received
+			{
+				v.virusHP = 3;
+			}
+			else if (alterationFactorMax - 10 <= 50 && alterationFactorMax - 10 > 30)
+			{
+				v.virusHP = 4;
+			}
+			else if (alterationFactorMax - 10 <= 70 && alterationFactorMax - 10 > 50)
+			{
+				v.virusHP = 5;
+			}
+			else if (alterationFactorMax - 10 > 70)
+			{
+				v.virusHP = 6;
+			}
 			v.virusInvulnerabilityTimer = 0.0f;
 			viruses.push_back(v); // Send to container
 
