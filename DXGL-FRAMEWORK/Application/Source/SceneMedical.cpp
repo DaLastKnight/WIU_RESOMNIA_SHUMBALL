@@ -1531,10 +1531,70 @@ void SceneMedical::Render() {
 
 }
 
-void SceneMedical::Exit() {
+void SceneMedical::Exit() 
+{
+	for (int i = static_cast<int>(nanobots.size()) - 1; i >= 0; --i)
+	{
+		auto& delNano = nanobots[i];
+
+		if (!delNano.object || !delNano.object->GetPhysics())
+		{
+			continue;
+		}
+
+		delNano.object->Destroy();
+		nanobots.erase(nanobots.begin() + i);
+	}
+	for (int i = static_cast<int>(bacterias.size()) - 1; i >= 0; --i)
+	{
+		auto& delBact = bacterias[i];
+
+		if (!delBact.object || !delBact.object->GetPhysics())
+		{
+			continue;
+		}
+
+		delBact.object->Destroy();
+		bacterias.erase(bacterias.begin() + i);
+	}
+	for (int i = static_cast<int>(viruses.size()) - 1; i >= 0; --i)
+	{
+		auto& delVir = viruses[i];
+
+		if (!delVir.object || !delVir.object->GetPhysics())
+		{
+			continue;
+		}
+
+		delVir.object->Destroy();
+		viruses.erase(viruses.begin() + i);
+	}
+	for (int i = static_cast<int>(menus.size()) - 1; i >= 0; --i)
+	{
+		auto& delMenu = menus[i];
+
+		if (!delMenu.object || !delMenu.object->GetPhysics())
+		{
+			continue;
+		}
+
+		delMenu.object->Destroy();
+		menus.erase(menus.begin() + i);
+	}
+	for (int i = static_cast<int>(overloadStackUI.size()) - 1; i >= 0; --i)
+	{
+		auto& delOverload = overloadStackUI[i];
+
+		if (!delOverload.object || !delOverload.object->GetPhysics())
+		{
+			continue;
+		}
+
+		delOverload.object->Destroy();
+		overloadStackUI.erase(overloadStackUI.begin() + i);
+	}
+
 	BaseScene::Exit();
-
-
 }
 
 void SceneMedical::HandleKeyPress() {
