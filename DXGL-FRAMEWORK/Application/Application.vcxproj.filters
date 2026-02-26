@@ -99,6 +99,12 @@
     <ClCompile Include="Source\SceneResults.cpp">
       <Filter>Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SceneWhack.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Virus.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -196,6 +202,12 @@
     </ClInclude>
     <ClInclude Include="Source\SceneResults.h">
       <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneWhack.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Virus.h">
+      <Filter>Scene Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

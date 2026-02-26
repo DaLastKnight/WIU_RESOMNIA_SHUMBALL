@@ -1,0 +1,16 @@
+[
+    {
+        "speaker": "Press Spacebar to advance dialogue",
+        "lines": [
+            "Welcome to Technival!",
+            "This game revolves around 3 minigames.",
+            "Each game is centred around a theme related to technology.",
+            "You'll go through the minigames in a sequential order,",
+            "with each game affecting the next,",
+            "eventually resulting in a final score.",
+            "That's all you need to know for now!",
+            "Next up! The tutorial for...",
+            "Whack-A-Virus!"
+        ]
+    }
+]

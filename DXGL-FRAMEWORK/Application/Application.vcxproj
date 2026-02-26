@@ -177,9 +177,11 @@
     <ClCompile Include="Source\SceneResults.cpp" />
     <ClCompile Include="Source\SceneRhythm.cpp" />
     <ClCompile Include="Source\SceneMedical.cpp" />
+    <ClCompile Include="Source\SceneWhack.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\SRhythmRaycast.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
+    <ClCompile Include="Source\Virus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Ease.h" />
@@ -209,11 +211,13 @@
     <ClInclude Include="Source\SceneResults.h" />
     <ClInclude Include="Source\SceneRhythm.h" />
     <ClInclude Include="Source\SceneMedical.h" />
+    <ClInclude Include="Source\SceneWhack.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\SRhythmRaycast.h" />
     <ClInclude Include="Source\TextureLoader.h" />
     <ClInclude Include="Source\Utils.h" />
     <ClInclude Include="Source\Vertex.h" />
+    <ClInclude Include="Source\Virus.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

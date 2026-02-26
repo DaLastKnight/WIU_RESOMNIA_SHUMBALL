@@ -130,13 +130,19 @@ void SceneDemo::Init() {
 	// init roots
 	{
 		worldRoot = std::make_shared<RObj>();
-		worldRoot->RootInit(RObj::WORLD, GROUP);
+		worldRoot->renderType = RObj::WORLD;
+		worldRoot->geometryType = GROUP;
+		worldRoot->UpdateModel();
 
 		viewRoot = std::make_shared<RObj>();
-		viewRoot->RootInit(RObj::VIEW, GROUP);
+		viewRoot->renderType = RObj::VIEW;
+		viewRoot->geometryType = GROUP;
+		viewRoot->UpdateModel();
 
 		screenRoot = std::make_shared<RObj>();
-		screenRoot->RootInit(RObj::SCREEN, GROUP);
+		screenRoot->renderType = RObj::SCREEN;
+		screenRoot->geometryType = GROUP;
+		screenRoot->UpdateModel();
 
 		LightObject::maxLight = MAX_LIGHT;
 		LightObject::lightList.reserve(MAX_LIGHT);
@@ -190,7 +196,7 @@ void SceneDemo::Init() {
 		RObj::setDefaultStat.Subscribe(PHYSICS_BALL, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::POLISHED_METAL);
 
-			obj->AddPhysics(PhysicsObject::DYNAMIC); 
+			obj->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f, 0, 0));
 			physics->SetBounciness(0.1f);
