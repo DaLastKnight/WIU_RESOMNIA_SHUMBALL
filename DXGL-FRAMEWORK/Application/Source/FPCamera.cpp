@@ -179,7 +179,10 @@ void FPCamera::Update(double dt) {
 	smoothTheta = Smooth(smoothTheta, theta, rotSmoothing, dt);
 	smoothPsi = Smooth(smoothPsi, psi, moveSmoothing, dt);
 	smoothPosition.x = Smooth(smoothPosition.x, basePosition.x, moveSmoothing, dt);
-	smoothPosition.y = Smooth(smoothPosition.y, basePosition.y, moveSmoothing / 10, dt);
+	if (currentMode == MODE::FREE || currentMode == MODE::LOCKED)
+		smoothPosition.y = Smooth(smoothPosition.y, basePosition.y, moveSmoothing, dt);
+	else
+		smoothPosition.y = Smooth(smoothPosition.y, basePosition.y, moveSmoothing / 10, dt);
 	smoothPosition.z = Smooth(smoothPosition.z, basePosition.z, moveSmoothing, dt);
 
 	// bobbing
@@ -239,6 +242,7 @@ void FPCamera::Set(MODE mode) {
 		break;
 	case MODE::PAUSE:
 	case MODE::LOCK_ON:
+	case MODE::LOCKED:
 		allowSelfMovement = false;
 		break;
 	default:

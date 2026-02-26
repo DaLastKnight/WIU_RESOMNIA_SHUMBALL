@@ -36,8 +36,8 @@ public:
 
 	static Mesh* GenerateText(const std::string& meshName, unsigned numRow, unsigned numCol, float advanceWidth, unsigned textureID);
 
-	static Mesh* GenerateSkybox(const std::string& meshName, unsigned textureID);
-	static Mesh* GenerateGround(const std::string& meshName, float size, float texSize, unsigned textureID);
+	static Mesh* GenerateSkybox(const std::string& meshName, int textureID = -1);
+	static Mesh* GenerateGround(const std::string& meshName, float size, float texSize, int textureID = -1);
 
 	static Mesh* GenerateLine(const std::string& meshName, float length);
 

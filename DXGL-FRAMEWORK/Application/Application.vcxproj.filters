@@ -81,6 +81,18 @@
     <ClCompile Include="Source\SceneManager.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SceneRhythm.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SRhythmRaycast.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RhythmGameManager.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Ease.cpp">
+      <Filter>Scene Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -160,6 +172,18 @@
     </ClInclude>
     <ClInclude Include="Source\SceneManager.h">
       <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneRhythm.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SRhythmRaycast.h">
+      <Filter>Scene Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RhythmGameManager.h">
+      <Filter>Scene Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Ease.h">
+      <Filter>Scene Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

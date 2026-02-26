@@ -31,7 +31,7 @@ void DataManager::SaveData() {
 	outFile << savedData.dump(4); // saves json content into the file with indent of 4 space for each bracket
 	outFile.close();
 
-	Print("saved map to file at \"" + fullPath + "\"", 2);
+	Print("saved player data to file at \"" + fullPath + "\"", 2);
 }
 
 
@@ -51,5 +51,5 @@ void DataManager::LoadData() {
 		highestScores[i] = loadedScores[GameTypeToString(static_cast<GAME_TYPE>(i))].get<float>();
 	}
 
-	Print("loaded map from file at \"" + fullPath + "\"", 2);
+	Print("loaded player data from file at \"" + fullPath + "\"", 2);
 }

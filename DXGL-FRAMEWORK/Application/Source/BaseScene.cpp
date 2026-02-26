@@ -23,6 +23,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "PhysicsManager.h"
+#include "DialogueManager.h"
 
 #include "Utils.h"
 
@@ -211,6 +212,8 @@ void BaseScene::Exit()
 	RObj::screenList.clear();
 	RObj::physicsList.clear();
 
+
+	DialogueManager::GetInstance().ClearDialogueManager();
 
 	worldRoot.reset();
 	viewRoot.reset();

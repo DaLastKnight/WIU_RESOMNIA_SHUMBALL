@@ -129,6 +129,13 @@ void RenderObject::Destroy() {
 	setDestroyedEvent.Invoke(geometryType, shared_from_this());
 }
 
+void RenderObject::ClearChildren() {
+	for (auto& child : children) {
+		setDestroyedEvent.Invoke(child->geometryType, child);
+	}
+	children.clear();
+}
+
 void RenderObject::NewChild(std::shared_ptr<RenderObject> child) {
 	children.push_back(std::move(child));
 	children.back()->parent = shared_from_this();
