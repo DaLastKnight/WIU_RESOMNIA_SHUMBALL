@@ -39,3 +39,4 @@ Release/
 
 # exclude logs
 Application/Log/ReactPhysics3D/*.html
+!Application/**/*.json

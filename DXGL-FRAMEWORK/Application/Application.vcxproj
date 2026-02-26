@@ -171,6 +171,8 @@
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
+    <ClCompile Include="Source\SceneManager.cpp" />
+    <ClCompile Include="Source\SceneTesting.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
   </ItemGroup>
@@ -196,6 +198,8 @@
     <ClInclude Include="Source\RenderObject.h" />
     <ClInclude Include="Source\Scene.h" />
     <ClInclude Include="Source\SceneDemo.h" />
+    <ClInclude Include="Source\SceneManager.h" />
+    <ClInclude Include="Source\SceneTesting.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\TextureLoader.h" />
     <ClInclude Include="Source\Utils.h" />

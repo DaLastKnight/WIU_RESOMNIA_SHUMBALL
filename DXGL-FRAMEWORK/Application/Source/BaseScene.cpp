@@ -129,7 +129,7 @@ void BaseScene::Init()
 	}
 }
 
-void BaseScene::Update(double dt) {
+void BaseScene::Update(float dt) {
 
 	// refreshes and clears per frame
 	RObj::newObject.reset();
@@ -204,19 +204,18 @@ void BaseScene::Render()
 
 void BaseScene::Exit()
 {
-	// Cleanup VBO here
-	for (auto& mesh : meshList)
-		if (mesh)
-			delete mesh;
+	
+	LightObject::lightList.clear();
+	RObj::worldList.clear();
+	RObj::viewList.clear();
+	RObj::screenList.clear();
+	RObj::physicsList.clear();
 
-	DataManager::GetInstance().SaveData();
-
-	AudioManager::GetInstance().PauseMUS();
-	AudioManager::GetInstance().UnloadAll();
 
 	worldRoot.reset();
 	viewRoot.reset();
 	screenRoot.reset();
+
 
 	PhysicsManager::GetInstance().CleanUp();
 

@@ -84,6 +84,7 @@ void PhysicsObject::SetCollisionActive(bool isEnabled) {
 bool PhysicsObject::GetCollisionActive() {
 	if (!colliders.empty())
 		return colliders[0]->getIsSimulationCollider();
+	return false;
 }
 
 void PhysicsObject::SetTrigger(bool isEnabled) {
@@ -281,7 +282,11 @@ void PhysicsManager::InitWorld() {
 }
 
 void PhysicsManager::CleanUp() {
+
+	eventListener = PhysicsEventListener();
+
 	physicsCommon.destroyPhysicsWorld(world);
+	world = nullptr;
 }
 
 void PhysicsManager::SetUpLogger(std::string name) {

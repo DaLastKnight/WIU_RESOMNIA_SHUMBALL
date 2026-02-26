@@ -279,6 +279,7 @@ void SceneDemo::Init() {
 				UpdateLightUniform(newLightObj);
 			}
 		}
+
 	}
 
 	// view space init
@@ -312,17 +313,18 @@ void SceneDemo::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 1.5f, -1));
-		camera.Set(FPCamera::MODE::FIRST_PERSON);
+		camera.Init(glm::vec3(1, 2, -1));
+		camera.Set(Cam::MODE::FIRST_PERSON);
 
 		// player init
-		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
+		player.allowControl = true;
 	}
 
 	RObj::newObject.reset();
 }
 
-void SceneDemo::Update(double dt) {
+void SceneDemo::Update(float dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 
@@ -365,6 +367,8 @@ void SceneDemo::Update(double dt) {
 		}
 	}
 	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
+	AddDebugText("Camera mode: " + std::to_string((int)camera.GetCurrentMode()));
+	AddDebugText("Player allowControl: " + std::to_string(player.allowControl));
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
