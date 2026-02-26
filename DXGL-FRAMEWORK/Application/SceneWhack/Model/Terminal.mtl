@@ -1,0 +1,14 @@
+# Blender 3.4.1 MTL File: 'Terminal UV_1.blend'
+# www.blender.org
+
+newmtl uv_checker_material_uv_grid_2048x2048
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Текстуры SP/uv_checker_material_uv_grid_2048x2048_BaseColor.png
+map_Ns Текстуры SP/uv_checker_material_uv_grid_2048x2048_Roughness.png
+map_refl Текстуры SP/uv_checker_material_uv_grid_2048x2048_Metallic.png
+map_Ke Текстуры SP/uv_checker_material_uv_grid_2048x2048_Emission.png
+map_Bump -bm 1.000000 Текстуры SP/uv_checker_material_uv_grid_2048x2048_Normal.png

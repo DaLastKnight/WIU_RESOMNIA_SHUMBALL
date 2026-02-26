@@ -171,8 +171,10 @@
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
+    <ClCompile Include="Source\SceneWhack.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
+    <ClCompile Include="Source\Virus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\PhysicsManager.h" />
@@ -196,10 +198,12 @@
     <ClInclude Include="Source\RenderObject.h" />
     <ClInclude Include="Source\Scene.h" />
     <ClInclude Include="Source\SceneDemo.h" />
+    <ClInclude Include="Source\SceneWhack.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\TextureLoader.h" />
     <ClInclude Include="Source\Utils.h" />
     <ClInclude Include="Source\Vertex.h" />
+    <ClInclude Include="Source\Virus.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
