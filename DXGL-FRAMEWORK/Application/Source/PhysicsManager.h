@@ -37,7 +37,7 @@ public:
     Event<void, const rp3d::Body*> contactEvent;
 
     void AddForce(glm::vec3 force) {
-        body->applyLocalForceAtCenterOfMass(Vec3Convert(force));
+        body->applyWorldForceAtCenterOfMass(Vec3Convert(force));
     }
     void AddImpulse(glm::vec3 force);
     // similar to AddImpulse but apply while retaining previous velocity

@@ -85,7 +85,10 @@ void SceneMedical::Init() {
 
 		// sfx init
 		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
-
+		AudioManager::GetInstance().LoadSFX(DIGITAL_CLICK, "digital_click.mp3");
+		AudioManager::GetInstance().LoadSFX(NANOBOT_SHOOT, "nanobot_shoot.mp3");
+		AudioManager::GetInstance().LoadSFX(ENEMY_HIT, "enemy_hit.mp3");
+		AudioManager::GetInstance().LoadSFX(ENEMY_DESPAWN, "enemy_despawn.mp3");
 	}
 
 	// atmosphere init
@@ -485,6 +488,7 @@ void SceneMedical::Init() {
 		viewRoot->NewChild(MeshObject::Create(NANOBOT_MODEL));
 		newObj->trl = glm::vec3(0.0f, -0.2f, -0.5f);
 		newObj->scl = glm::vec3(0.1f, 0.1f, 0.1f);
+
 	}
 
 	// screen space init
@@ -570,6 +574,7 @@ void SceneMedical::Init() {
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
+		player.cameraOffset = glm::vec3(0, 0, 0);
 	}
 
 	RObj::newObject.reset();
@@ -896,9 +901,7 @@ void SceneMedical::Update(double dt)
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	if (debug) {
 		AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
-		AddDebugText("worldRoot.model.trl: " + VecToString(getPosFromModel(worldRoot->model)));
-		AddDebugText("viewRoot.trl: " + VecToString(getPosFromModel(viewRoot->model)));
-		AddDebugText("screenRoot.trl: " + VecToString(getPosFromModel(screenRoot->model)));
+		AddDebugText("camera direction: " + VecToString(camera.GetPlainDirection()));
 	}
 
 	// world render objects
@@ -947,13 +950,19 @@ void SceneMedical::Update(double dt)
 			glm::vec3 travelDir = camera.GetPlainDirection();
 			float projectileSpeed = 200000.0f;
 
-			nanobot->offsetRot = glm::vec3(0.f, 90.f, 0.f);
 			nanobot->offsetScl = glm::vec3(0.5f, 0.5f, 0.5f);
 
 			nanobot->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = nanobot->GetPhysics();
 			physics->SetPosition(camera.GetPlainPosition() + travelDir * 1.5f);
 
+			glm::vec3 eulerOrientation = glm::vec3(0);
+			travelDir = glm::normalize(travelDir);
+			eulerOrientation.x = glm::degrees(asinf(travelDir.y));
+			eulerOrientation.y = glm::degrees(atan2f(travelDir.z, travelDir.x));
+
+			physics->SetOrientation(eulerOrientation);
+			
 			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.5f), vec3(0));
 
 			glm::vec3 finalForce = travelDir * projectileSpeed;
@@ -1011,7 +1020,7 @@ void SceneMedical::Update(double dt)
 			bacteria->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = bacteria->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 0));
+			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(1.f, 1.f, 1.f), glm::vec3(0, 0, 0));
 
 			physics->SetPosition(glm::vec3(posX, posY, posZ));
 
@@ -1089,6 +1098,7 @@ void SceneMedical::Update(double dt)
 
 			if (distanceToPlayer <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE) // Ignore collider with player by expanding fake hitbox check
 			{
+				AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 				bacteria.object->Destroy();
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
 
@@ -1113,6 +1123,7 @@ void SceneMedical::Update(double dt)
 				{
 					if (bacteria.bacteriaHP > 0 && bacteria.bacteriaInvulnerabilityTimer <= 0.0f)
 					{
+						AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
 						bacteria.bacteriaHP--;
 						bacteria.bacteriaInvulnerabilityTimer = 1.0f;
 					}
@@ -1120,6 +1131,7 @@ void SceneMedical::Update(double dt)
 
 					if (bacteria.bacteriaHP <= 0)
 					{
+						AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 						bacteria.object->Destroy();
 						bacterias.erase(bacterias.begin() + i); // Remove the exact element
 
@@ -1160,7 +1172,7 @@ void SceneMedical::Update(double dt)
 			virus->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = virus->GetPhysics();
 
-			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 0));
+			physics->AddCollider(PhysicsObject::SPHERE, glm::vec3(1.f, 1.f, 1.f), glm::vec3(0, 0, 0));
 
 			physics->SetPosition(glm::vec3(posX, posY, posZ));
 
@@ -1218,6 +1230,7 @@ void SceneMedical::Update(double dt)
 
 			if (distance <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE)
 			{
+				AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 				virus.object->Destroy();
 				viruses.erase(viruses.begin() + i); // Remove the exact element
 
@@ -1242,12 +1255,14 @@ void SceneMedical::Update(double dt)
 				{
 					if (virus.virusHP > 0 && virus.virusInvulnerabilityTimer <= 0.0f)
 					{
+						AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
 						virus.virusHP--;
 						virus.virusInvulnerabilityTimer = 1.0f;
 					}
 
 					if (virus.virusHP <= 0)
 					{
+						AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 						virus.object->Destroy();
 						viruses.erase(viruses.begin() + i); // Remove the exact element
 
@@ -1497,6 +1512,13 @@ void SceneMedical::Render() {
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 
+	if (ALLOW_PHYSICS_DEBUG && renderDebugPhysics && debugPhysicsWorld) {
+		modelStack.Clear();
+		glm::mat4 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, glm::value_ptr(MVP));
+
+		debugPhysicsWorld->RenderPhysicsWorld();
+	}
 
 	viewStack.PushMatrix();
 	viewStack.LoadIdentity();
@@ -1614,6 +1636,9 @@ void SceneMedical::HandleKeyPress() {
 			else
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_P)) {
+			renderDebugPhysics = !renderDebugPhysics;
+		}
 	}
 
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) 
@@ -1688,6 +1713,7 @@ void SceneMedical::HandleKeyPress() {
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
 			if (currentActiveNanobotAmmo < maxNanobotAmmo)
 			{
+				AudioManager::GetInstance().PlaySFX(NANOBOT_SHOOT);
 				isNanobotFired = true;
 			}
 		}
@@ -1705,6 +1731,8 @@ void SceneMedical::HandleKeyPress() {
 		// ******************************************************************************************
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SLASH))
 		{
+			AudioManager::GetInstance().PlaySFX(DIGITAL_CLICK);
+
 			if (isHelpOpen)
 			{
 				isHelpOpen = false;
@@ -1727,6 +1755,7 @@ void SceneMedical::HandleKeyPress() {
 	// ***************************************************************
 	if (currentState == MedicalGameState::RESULTS && KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_BACKSPACE))
 	{
+		AudioManager::GetInstance().PlaySFX(DIGITAL_CLICK);
 		ClearResultsMenu();
 		currentState = MedicalGameState::PLAYING;
 		camera.Set(Cam::MODE::FIRST_PERSON);
@@ -2088,7 +2117,7 @@ void SceneMedical::ShowHelpMenu()
 		}
 		if (i == 2)
 		{
-			intendedText = "(/) to re-open Help";
+			intendedText = "(/) to re-open Help   |   Highscore: "; /*+ std::to_string*/
 		}
 		if (i == 4)
 		{
