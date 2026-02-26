@@ -6,16 +6,23 @@
 class SceneManager
 {
 public:
-	static SceneManager& GetInstance();
+	static SceneManager& GetInstance() {
+		static SceneManager instance;
+		return instance;
+	}
 
 	void PushState(Scene* pScene);
-	void RequestChangeState(Scene* pScene);
-
-	void ChangeState(Scene* pScene);
 	void PopState();
+
+	void ChangeState(Scene* pScene) {
+		PopState();
+		PushState(pScene);
+	}
 
 	void Update(float dt);
 	void Render();
+
+	void RequestChangeState(Scene* pScene);
 
 	Scene* m_pendingScene = nullptr;
 	bool m_doChange = false;
