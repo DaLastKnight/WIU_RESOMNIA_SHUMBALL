@@ -2483,7 +2483,7 @@
         },
         {
             "type": 0,
-            "lane": 2,
+            "lane": 0,
             "beat": 311.875
         },
         {
@@ -2594,5 +2594,5 @@
     ],
     "endTime": 166,
     "offsetStartBeat": -4,
-    "musicOffsetBeat": -0.86
+    "musicOffsetBeat": -0.9
 }

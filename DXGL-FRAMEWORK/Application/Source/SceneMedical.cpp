@@ -81,11 +81,10 @@ void SceneMedical::Init() {
 
 	// audio init
 	{
-		// music init
-		AudioManager::GetInstance().LoadMUS("Wheel_Chill.ogg", 57.7555); // you need to input the total duration of the music in seconds as a double, sdl mixer cannot get the duration itself
+		AudioManager::GetInstance().VolumeMUS(1);
+		AudioManager::GetInstance().VolumeChannel(-1, 1);
 
 		// sfx init
-		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
 		AudioManager::GetInstance().LoadSFX(DIGITAL_CLICK, "digital_click.mp3");
 		AudioManager::GetInstance().LoadSFX(NANOBOT_SHOOT, "nanobot_shoot.mp3");
 		AudioManager::GetInstance().LoadSFX(ENEMY_HIT, "enemy_hit.mp3");
@@ -590,7 +589,7 @@ void SceneMedical::Update(double dt)
 
 	auto& cameraMode = camera.GetCurrentMode();
 
-	int alterationFactorInput = 0; // wait to receive data via getter function
+	int alterationFactorInput = DataManager::GetInstance().GetCurrentData(DataManager::COLLAB_SCORE); 
 	if (alterationFactorInput > alterationFactorMax)
 	{
 		alterationFactorInput = alterationFactorMax;
@@ -933,12 +932,6 @@ void SceneMedical::Update(double dt)
 			break;
 		}
 
-		// btw. this code here visual does nothing, if you turn un debug and get close to to spot light and see it, youll realise its rotating perpendicularly to the light direction
-		//if (obj->name == "demo light spot") {
-		//	obj->offsetRot.y += 45 * dt;
-		//	obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
-		//} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
-
 
 
 
@@ -1034,19 +1027,19 @@ void SceneMedical::Update(double dt)
 			Bacteria b;
 			b.object = bacteria;
 			b.bacteriaDivertTimer = 0.0f;
-			if (alterationFactorMax - 10 <= 30) // assume 70 is received
+			if (alterationFactorInput - 10 <= 30) // assume 70 is received
 			{
 				b.bacteriaHP = 2;
 			}
-			else if (alterationFactorMax - 10 <= 50 && alterationFactorMax - 10 > 30)
+			else if (alterationFactorInput - 10 <= 50 && alterationFactorInput - 10 > 30)
 			{
 				b.bacteriaHP = 3;
 			}
-			else if (alterationFactorMax - 10 <= 70 && alterationFactorMax - 10 > 50)
+			else if (alterationFactorInput - 10 <= 70 && alterationFactorInput - 10 > 50)
 			{
 				b.bacteriaHP = 4;
 			}
-			else if (alterationFactorMax - 10 > 70)
+			else if (alterationFactorInput - 10 > 70)
 			{
 				b.bacteriaHP = 5;
 			}
@@ -1200,19 +1193,19 @@ void SceneMedical::Update(double dt)
 
 			Virus v;
 			v.object = virus;
-			if (alterationFactorMax - 10 <= 30) // assume 70 is received
+			if (alterationFactorInput - 10 <= 30) // assume 70 is received
 			{
 				v.virusHP = 3;
 			}
-			else if (alterationFactorMax - 10 <= 50 && alterationFactorMax - 10 > 30)
+			else if (alterationFactorInput - 10 <= 50 && alterationFactorInput - 10 > 30)
 			{
 				v.virusHP = 4;
 			}
-			else if (alterationFactorMax - 10 <= 70 && alterationFactorMax - 10 > 50)
+			else if (alterationFactorInput - 10 <= 70 && alterationFactorInput - 10 > 50)
 			{
 				v.virusHP = 5;
 			}
-			else if (alterationFactorMax - 10 > 70)
+			else if (alterationFactorInput - 10 > 70)
 			{
 				v.virusHP = 6;
 			}
@@ -1809,16 +1802,17 @@ void SceneMedical::HandleKeyPress() {
 	// SCENE CHANGING IS DONE HERE
 	// ******************************************************************************************************************************
 	// ******************************************************************************************************************************
-	if (canChangeScene && KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ENTER))
+	if (canChangeScene)
 	{
-		// however needed to change scene
-		// ...
-		// If you need the game data to save highscores, there is GetBestTimeForMedical() and GetGameGradeForMedical taking int and std::string respectively
+		DataManager::GetInstance().SaveData(DataManager::MEDICAL_TIMETAKEN, GetBestTimeForMedical());
+		DataManager::GetInstance().UpdateData(DataManager::MEDICAL_TIMETAKEN);
 
-		//SceneManager::GetInstance().RequestChangeState(new SceneWack());
-		App::EndPrograme();
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ENTER)) {
+			canChangeScene = false; // Once scene has changed already reset to false
 
-		canChangeScene = false; // Once scene has changed already reset to false
+			//SceneManager::GetInstance().RequestChangeState(new SceneResult());
+			App::EndPrograme();
+		}
 	}
 }
 
@@ -2158,7 +2152,7 @@ void SceneMedical::ShowHelpMenu()
 		}
 		if (i == 2)
 		{
-			intendedText = "(/) to re-open Help   |   Highscore: "; /*+ std::to_string*/
+			intendedText = "(/) to re-open Help   |   Lowest time taken (highscore): " + std::to_string(DataManager::GetInstance().GetThisHighScoreData(DataManager::MEDICAL_TIMETAKEN));
 		}
 		if (i == 4)
 		{

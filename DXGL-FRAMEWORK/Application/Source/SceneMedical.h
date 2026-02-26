@@ -56,7 +56,6 @@ public:
 private:
 
 	enum SFX_TYPE {
-		GOOFY_AHH_ASRIEL_STAR_SOUND,
 
 		DIGITAL_CLICK,
 		NANOBOT_SHOOT,

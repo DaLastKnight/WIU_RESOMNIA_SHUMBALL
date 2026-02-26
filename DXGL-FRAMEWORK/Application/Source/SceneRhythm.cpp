@@ -80,6 +80,11 @@ void SceneRhythm::Init() {
 
 	// audio init
 	{
+		AudioManager::GetInstance().VolumeMUS(1);
+		AudioManager::GetInstance().VolumeChannel(-1, 1);
+
+		// music init (handled in RhythmGameManager)
+
 		// sfx init
 		AudioManager::GetInstance().LoadSFX(SFX_CLICK, "click.mp3");
 		AudioManager::GetInstance().LoadSFX(SFX_FAIL, "fail.mp3");

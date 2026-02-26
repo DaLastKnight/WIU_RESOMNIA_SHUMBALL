@@ -112,6 +112,13 @@ int DataManager::GetThisHighScoreData(DATA dataType) {
 	Error(" DataManager::GetPrevHghScoreData(): invalid data, no such data represented as \"" + std::to_string(dataType) + "\" exist");
 }
 
+int DataManager::GetCurrentData(DATA dataType) {
+	if (dataType < TOTAL_DATA && dataType >= 0) {
+		return data[dataType];
+	}
+	Error(" DataManager::GetPrevHghScoreData(): invalid data, no such data represented as \"" + std::to_string(dataType) + "\" exist");
+}
+
 std::string DataManager::DataToString(DATA dataType) {
 	switch (dataType) {
 	case MEDICAL_TIMETAKEN: return "MEDICAL_TIMETAKEN";

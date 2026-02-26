@@ -37,6 +37,7 @@ public:
 
     int GetPrevHghScoreData(DATA dataType);
     int GetThisHighScoreData(DATA dataType);
+    int GetCurrentData(DATA dataType);
 
     std::string DataToString(DATA dataType);
 
@@ -64,7 +65,7 @@ private:
 
     DataManager() {
         for (int i = 0; i < TOTAL_DATA; i++) {
-            data_buffer[i] = data_stored[i] = -1;
+            data_buffer[i] = data_stored[i] = 0;
         }
     }
     ~DataManager() = default;

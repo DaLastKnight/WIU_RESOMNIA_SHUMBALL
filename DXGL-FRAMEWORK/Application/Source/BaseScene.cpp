@@ -212,6 +212,7 @@ void BaseScene::Exit()
 	RObj::screenList.clear();
 	RObj::physicsList.clear();
 
+	AudioManager::GetInstance().UnloadAll();
 
 	DialogueManager::GetInstance().ClearDialogueManager();
 
