@@ -15,7 +15,7 @@ public:
 
     enum DATA {
         MEDICAL_TIMETAKEN,
-        WACK_SCORE,
+        WHACK_SCORE,
         RHYTHM_SCORE_DIFF0,
         RHYTHM_SCORE_DIFF1,
         COLLAB_SCORE,
@@ -40,6 +40,8 @@ public:
     int GetCurrentData(DATA dataType);
 
     std::string DataToString(DATA dataType);
+
+    int rhythm_latestDifficulty;
 
 private:
 

@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include "SceneRhythm.h"
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -23,6 +25,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "SceneManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -739,6 +742,8 @@ void SceneWhack::Init() {
 	}
 
 	RObj::newObject.reset();
+
+	highestScore = DataManager::GetInstance().GetPrevHghScoreData(DataManager::WHACK_SCORE);
 }
 
 void SceneWhack::Update(double dt) {
@@ -848,7 +853,7 @@ void SceneWhack::Update(double dt) {
 			newVirus.waypoints = newVirus.BuildRandomPath(portalEvilPositionsList, solsrng, portalDistribution, spawnIndex, true);
 			newVirus.waypointIndex = 0;
 			virusList.push_back(newVirus);
-			elapsedVirusInterval = 5;
+			elapsedVirusInterval = 2.5f;
 		}
 	}
 
@@ -1233,7 +1238,7 @@ void SceneWhack::Update(double dt) {
 
 					if (player.renderGroup.lock()->GetPhysics()->Getbody() == overlapped)
 					{
-						if (finishedGameOnce)
+						if (finishedGameOnce || debug)
 						{
 							// Insert scene switch code
 							// Uses int highestScore from scene data member
@@ -1243,6 +1248,14 @@ void SceneWhack::Update(double dt) {
 							// C: 4-6
 							// D: 1-3
 							// F: 0
+
+							DataManager::GetInstance().SaveData(DataManager::WHACK_SCORE, gameScore);
+							DataManager::GetInstance().UpdateData(DataManager::WHACK_SCORE);
+
+							DataManager::GetInstance().SaveData(DataManager::COLLAB_SCORE, gameScore * 5);
+							DataManager::GetInstance().UpdateData(DataManager::COLLAB_SCORE);
+
+							SceneManager::GetInstance().RequestChangeState(new SceneRhythm());
 						}
 					}
 
@@ -1914,7 +1927,7 @@ void SceneWhack::HandleKeyPress() {
 		break;
 	case DIALOGUE:
 		// dialogue controls
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE))
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE) || debug)
 		{
 			if (DialogueManager::GetInstance().CheckActivePack())
 			{
@@ -2345,6 +2358,8 @@ void SceneWhack::StartCutscene()
 
 	if (endGame)
 	{
+		finishedGameOnce = true;
+
 		currentGameState = DIALOGUE;
 		switch (cutsceneIndex)
 		{
@@ -2355,6 +2370,9 @@ void SceneWhack::StartCutscene()
 				highestScore = gameScore;
 				AudioManager::GetInstance().PlaySFX(NEWRECORD);
 				DialogueManager::GetInstance().StartDialogue("EndGame_NewRecord");
+
+				DataManager::GetInstance().SaveData(DataManager::WHACK_SCORE, highestScore);
+				DataManager::GetInstance().UpdateData(DataManager::WHACK_SCORE);
 			}
 			else if (gameScore == 0)
 			{

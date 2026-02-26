@@ -1050,6 +1050,7 @@ void SceneRhythm::Update(double dt) {
 	case EXIT:
 		DataManager::GetInstance().SaveData(DataManager::COLLAB_SCORE, collabScore);
 		DataManager::GetInstance().UpdateData(DataManager::COLLAB_SCORE);
+		DataManager::GetInstance().rhythm_latestDifficulty = difficulty;
 
 		SceneManager::GetInstance().RequestChangeState(new SceneMedical());
 		break;

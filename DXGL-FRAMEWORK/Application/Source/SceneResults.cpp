@@ -59,7 +59,7 @@ void SceneResults::Init() {
 
 	// set physics world settings
 	auto& worldSettings = PhysicsManager::GetInstance().GetWorldSettingsObject();
-	//worldSettings.gravity = rp3d::Vector3(0, -9.81, 0); //this is the default gravity
+	worldSettings.gravity = rp3d::Vector3(0, 0, 0);
 
 	BaseScene::Init();
 
@@ -233,8 +233,6 @@ void SceneResults::Init() {
 	{
 		worldRoot->NewChild(MeshObject::Create(AXES));
 
-		worldRoot->NewChild(MeshObject::Create(GROUND));
-
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
 		// light init
@@ -262,35 +260,76 @@ void SceneResults::Init() {
 
 	// screen space init
 	{
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			std::string intendedText;
 
+			screenRoot->NewChild(TextObject::Create("Score", intendedText, vec3(1), FONT_CASCADIA_MONO, false));
+			newObj->relativeTrl = true;
+			newObj->trl = glm::vec3(-0.36f, 0.5f - i * 0.1f, 0);
+			newObj->scl = glm::vec3(50, 50, 1);
+
+			auto textObj = std::static_pointer_cast<TextObject>(newObj);
+
 			if (i == 0)
 			{
-				intendedText = "Games                | Scores";
+				textObj->text = "Congratulations!";
+				textObj->centerText = true;
+				textObj->trl.x = 0;
 			}
 			if (i == 1)
 			{
-				intendedText = "Whack-A-Virus        | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::WACK_SCORE));
+				textObj->text = "You have completed the Technival games!";
+				textObj->centerText = true;
+				textObj->trl.x = 0;
 			}
 			if (i == 2)
 			{
-				intendedText = "Rhythm Transfer      | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::WACK_SCORE));
+				textObj->text = "Here are your scores: ";
+				textObj->centerText = true;
+				textObj->trl.x = 0;
 			}
 			if (i == 3)
 			{
-				intendedText = "Nanobots Disengage   | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::MEDICAL_TIMETAKEN));
+				textObj->text = "Games                 | Scores";
 			}
 			if (i == 4)
 			{
-				intendedText = "Total Evaluated      | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::COLLAB_SCORE));
+				textObj->text = "Whack-A-Virus         | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::WHACK_SCORE));
+				textObj->color = vec3(0.7f, 1, 0.7f);
 			}
-
-			screenRoot->NewChild(TextObject::Create("Score", intendedText, vec3(1), FONT_CASCADIA_MONO, false));
-			newObj->relativeTrl = true;
-			newObj->trl = glm::vec3(-0.4f, 0.2f - i * 0.1f, 0);
-			newObj->scl = glm::vec3(50, 50, 1);
+			if (i == 5)
+			{
+				DataManager::DATA data;
+				if (DataManager::GetInstance().rhythm_latestDifficulty == 0)
+					data = DataManager::RHYTHM_SCORE_DIFF0;
+				else
+					data = DataManager::RHYTHM_SCORE_DIFF1;
+				textObj->text = "Rhythm Transfer       | " + std::to_string(DataManager::GetInstance().GetCurrentData(data));
+				textObj->color = vec3(0.7f, 0.7f, 1);
+			}
+			if (i == 6)
+			{
+				textObj->text = "Nanobots Disengage    | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::MEDICAL_TIMETAKEN));
+				textObj->color = vec3(1, 0.7f, 0.7f);
+			}
+			if (i == 7)
+			{
+				textObj->text = "Total Evaluated Score | " + std::to_string(DataManager::GetInstance().GetCurrentData(DataManager::COLLAB_SCORE));
+				textObj->color = vec3(1, 1, 0.337f);
+			}
+			if (i == 8)
+			{
+				textObj->text = "";
+			}
+			if (i == 9)
+			{
+				textObj->text = "(press [space] to exit)";
+				textObj->centerText = true;
+				textObj->trl.x = 0;
+				textObj->alpha = 0.65f;
+				textObj->color = vec3(0.25f);
+			}
 		}
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
@@ -299,8 +338,8 @@ void SceneResults::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 2, -1));
-		camera.Set(Cam::MODE::FIRST_PERSON);
+		camera.Init(glm::vec3(1, 2, -1), vec3(0, 0.5f, 1));
+		camera.Set(Cam::MODE::PAUSE);
 
 		// player init
 		player.Init(worldRoot, GROUP, vec3(0, 2, 0));

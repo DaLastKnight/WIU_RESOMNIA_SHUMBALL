@@ -29,13 +29,13 @@ void DataManager::UpdateData(DATA dataType) {
 
 		highScoreChanged = stored < current;
 		if (dataType == MEDICAL_TIMETAKEN) {
-			if (stored == -1)
+			if (stored == 0)
 				highScoreChanged = true;
 			else 
 				highScoreChanged = stored > current;
 		}
 
-		if (buffer != -1) {
+		if (buffer != 0) {
 			localHighScoreChanged = buffer < current;
 			if (dataType == MEDICAL_TIMETAKEN) {
 				localHighScoreChanged = buffer > current;
@@ -45,7 +45,7 @@ void DataManager::UpdateData(DATA dataType) {
 			localHighScoreChanged = highScoreChanged;
 		}
 
-		if ((buffer == -1 && highScoreChanged) || localHighScoreChanged)
+		if ((buffer == 0 && highScoreChanged) || localHighScoreChanged)
 			buffer = current;
 
 		return;
@@ -60,7 +60,7 @@ void DataManager::SaveAllDataToFile() {
 	for (int i = 0; i < TOTAL_DATA; i++) {
 		auto& buffer = data_buffer[i];
 
-		if (buffer != -1) {
+		if (buffer != 0) {
 			savedData[DataToString(static_cast<DATA>(i))] = buffer;
 		}
 		else {
@@ -122,7 +122,7 @@ int DataManager::GetCurrentData(DATA dataType) {
 std::string DataManager::DataToString(DATA dataType) {
 	switch (dataType) {
 	case MEDICAL_TIMETAKEN: return "MEDICAL_TIMETAKEN";
-	case WACK_SCORE: return "WACK_SCORE";
+	case WHACK_SCORE: return "WHACK_SCORE";
 	case RHYTHM_SCORE_DIFF0: return "RHYTHM_SCORE_DIFF0";
 	case RHYTHM_SCORE_DIFF1: return "RHYTHM_SCORE_DIFF1";
 	case COLLAB_SCORE: return "COLLAB_SCORE";

@@ -1031,19 +1031,19 @@ void SceneMedical::Update(double dt)
 			b.bacteriaDivertTimer = 0.0f;
 			if (alterationFactorInput - 10 <= 30) // assume 70 is received
 			{
-				b.bacteriaHP = 2;
+				b.bacteriaHP = 5;
 			}
 			else if (alterationFactorInput - 10 <= 50 && alterationFactorInput - 10 > 30)
 			{
-				b.bacteriaHP = 3;
+				b.bacteriaHP = 4;
 			}
 			else if (alterationFactorInput - 10 <= 70 && alterationFactorInput - 10 > 50)
 			{
-				b.bacteriaHP = 4;
+				b.bacteriaHP = 3;
 			}
 			else if (alterationFactorInput - 10 > 70)
 			{
-				b.bacteriaHP = 5;
+				b.bacteriaHP = 2;
 			}
 			b.bacteriaInvulnerabilityTimer = 0.0f;
 			bacterias.push_back(b);
@@ -1082,82 +1082,93 @@ void SceneMedical::Update(double dt)
 
 			bool bacteriaDestroyed = false;
 
-			float distance = glm::length(patDir);
-
-			if (distance > 0.1f)
-			{
-				patDir = glm::normalize(patDir);
-				float bacteriaMovementSpeed = 0.0f;
-
-				if (waveNumber == 1)
-				{
-					bacteriaMovementSpeed = 4.0f;
-				}
-				else if (waveNumber == 2)
-				{
-					bacteriaMovementSpeed = 5.0f;
-				}
-				else
-				{
-					bacteriaMovementSpeed = 6.0f;
-				}
-
-				glm::vec3 finalVel = patDir * bacteriaMovementSpeed;
-
-				if (cameraMode != Cam::MODE::PAUSE)
-				{
-					physics->SetVelocity(finalVel);
-				}
-			}
-
-			glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
-			float distanceToPlayer = glm::length(dToPDir);
-
-			if (distanceToPlayer <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE) // Ignore collider with player by expanding fake hitbox check
-			{
+			if (debug && KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_K)) {
 				AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 				bacteria.object->Destroy();
 				bacterias.erase(bacterias.begin() + i); // Remove the exact element
 
-				overloadingStack++;
-				changeInOverloadStack = true;
 				remainingEntitiesP--;
+				bacteriaDestroyed = true;
 			}
+			else {
+				float distance = glm::length(patDir);
 
-			for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !bacteriaDestroyed; --j)
-			{
-				if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+				if (distance > 0.1f)
 				{
-					continue;
-				}
+					patDir = glm::normalize(patDir);
+					float bacteriaMovementSpeed = 0.0f;
 
-				auto nanoPhy = nanobots[j].object->GetPhysics();
-				glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
-
-				float distanceToNano = glm::length(dToNanoDir);
-
-				if (distanceToNano <= 1.0f + 1.0f)
-				{
-					if (bacteria.bacteriaHP > 0 && bacteria.bacteriaInvulnerabilityTimer <= 0.0f)
+					if (waveNumber == 1)
 					{
-						AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
-						bacteria.bacteriaHP--;
-						bacteria.bacteriaInvulnerabilityTimer = 1.0f;
+						bacteriaMovementSpeed = 4.0f;
 					}
-					
-
-					if (bacteria.bacteriaHP <= 0)
+					else if (waveNumber == 2)
 					{
-						AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
-						bacteria.object->Destroy();
-						bacterias.erase(bacterias.begin() + i); // Remove the exact element
+						bacteriaMovementSpeed = 5.0f;
+					}
+					else
+					{
+						bacteriaMovementSpeed = 6.0f;
+					}
 
-						remainingEntitiesP--;
+					glm::vec3 finalVel = patDir * bacteriaMovementSpeed;
 
-						bacteriaDestroyed = true;
+					if (cameraMode != Cam::MODE::PAUSE)
+					{
+						physics->SetVelocity(finalVel);
 					}
 				}
-			}	
+
+				glm::vec3 dToPDir = camera.GetPlainPosition() - phyPos;
+				float distanceToPlayer = glm::length(dToPDir);
+
+				if (distanceToPlayer <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE) // Ignore collider with player by expanding fake hitbox check
+				{
+					AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
+					bacteria.object->Destroy();
+					bacterias.erase(bacterias.begin() + i); // Remove the exact element
+
+					overloadingStack++;
+					changeInOverloadStack = true;
+					remainingEntitiesP--;
+					bacteriaDestroyed = true;
+				}
+
+				for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !bacteriaDestroyed; --j)
+				{
+					if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+					{
+						continue;
+					}
+
+					auto nanoPhy = nanobots[j].object->GetPhysics();
+					glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
+
+					float distanceToNano = glm::length(dToNanoDir);
+
+					if (distanceToNano <= 1.0f + 1.0f)
+					{
+						if (bacteria.bacteriaHP > 0 && bacteria.bacteriaInvulnerabilityTimer <= 0.0f)
+						{
+							AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
+							bacteria.bacteriaHP--;
+							bacteria.bacteriaInvulnerabilityTimer = 1.0f;
+						}
+
+
+						if (bacteria.bacteriaHP <= 0)
+						{
+							AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
+							bacteria.object->Destroy();
+							bacterias.erase(bacterias.begin() + i); // Remove the exact element
+
+							remainingEntitiesP--;
+
+							bacteriaDestroyed = true;
+						}
+					}
+				}
+			}
 		}
 
 
@@ -1197,19 +1208,19 @@ void SceneMedical::Update(double dt)
 			v.object = virus;
 			if (alterationFactorInput - 10 <= 30) // assume 70 is received
 			{
-				v.virusHP = 3;
+				v.virusHP = 7;
 			}
 			else if (alterationFactorInput - 10 <= 50 && alterationFactorInput - 10 > 30)
 			{
-				v.virusHP = 4;
+				v.virusHP = 5;
 			}
 			else if (alterationFactorInput - 10 <= 70 && alterationFactorInput - 10 > 50)
 			{
-				v.virusHP = 5;
+				v.virusHP = 4;
 			}
 			else if (alterationFactorInput - 10 > 70)
 			{
-				v.virusHP = 6;
+				v.virusHP = 3;
 			}
 			v.virusInvulnerabilityTimer = 0.0f;
 			viruses.push_back(v); // Send to container
@@ -1232,75 +1243,86 @@ void SceneMedical::Update(double dt)
 
 			bool virusDestroyed = false;
 
-			float distance = glm::length(AIDir);
-
-			if (distance > 0.1f)
-			{
-				AIDir = glm::normalize(AIDir);
-				float virusMovementSpeed = 0.0f;
-
-				if (waveNumber == 1)
-				{
-					virusMovementSpeed = 3.0f;
-				}
-				else if (waveNumber == 2)
-				{
-					virusMovementSpeed = 4.0f;
-				}
-				else
-				{
-					virusMovementSpeed = 5.0f;
-				}
-
-				glm::vec3 finalVel = AIDir * virusMovementSpeed;
-
-				if (cameraMode != Cam::MODE::PAUSE)
-				{
-					physics->SetVelocity(finalVel);
-				}
-			}
-
-			if (distance <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE)
-			{
+			if (debug && KeyboardController::GetInstance()->IsKeyDown(GLFW_KEY_K)) {
 				AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
 				virus.object->Destroy();
 				viruses.erase(viruses.begin() + i); // Remove the exact element
 
-				overloadingStack++;
-				changeInOverloadStack = true;
 				remainingEntitiesAI--;
+				virusDestroyed = true;
 			}
+			else {
+				float distance = glm::length(AIDir);
 
-			for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !virusDestroyed; --j)
-			{
-				if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+				if (distance > 0.1f)
 				{
-					continue;
-				}
+					AIDir = glm::normalize(AIDir);
+					float virusMovementSpeed = 0.0f;
 
-				auto nanoPhy = nanobots[j].object->GetPhysics();
-				glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
-
-				float distanceToNano = glm::length(dToNanoDir);
-
-				if (distanceToNano <= 1.0f + 1.0f)
-				{
-					if (virus.virusHP > 0 && virus.virusInvulnerabilityTimer <= 0.0f)
+					if (waveNumber == 1)
 					{
-						AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
-						virus.virusHP--;
-						virus.virusInvulnerabilityTimer = 1.0f;
+						virusMovementSpeed = 3.0f;
+					}
+					else if (waveNumber == 2)
+					{
+						virusMovementSpeed = 4.0f;
+					}
+					else
+					{
+						virusMovementSpeed = 5.0f;
 					}
 
-					if (virus.virusHP <= 0)
+					glm::vec3 finalVel = AIDir * virusMovementSpeed;
+
+					if (cameraMode != Cam::MODE::PAUSE)
 					{
-						AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
-						virus.object->Destroy();
-						viruses.erase(viruses.begin() + i); // Remove the exact element
+						physics->SetVelocity(finalVel);
+					}
+				}
 
-						remainingEntitiesAI--;
+				if (distance <= 2.0f + 2.0f && cameraMode != Cam::MODE::PAUSE)
+				{
+					AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
+					virus.object->Destroy();
+					viruses.erase(viruses.begin() + i); // Remove the exact element
 
-						virusDestroyed = true; // exit the loop and prevent accessing erased memory for the rest of the loop as object is already gone
+					overloadingStack++;
+					changeInOverloadStack = true;
+					remainingEntitiesAI--;
+					virusDestroyed = true;
+				}
+
+				for (int j = static_cast<int>(nanobots.size()) - 1; j >= 0 && !virusDestroyed; --j)
+				{
+					if (!nanobots[j].object || !nanobots[j].object->GetPhysics())
+					{
+						continue;
+					}
+
+					auto nanoPhy = nanobots[j].object->GetPhysics();
+					glm::vec3 dToNanoDir = nanoPhy->GetPosition() - phyPos;
+
+					float distanceToNano = glm::length(dToNanoDir);
+
+					if (distanceToNano <= 1.0f + 1.0f)
+					{
+						if (virus.virusHP > 0 && virus.virusInvulnerabilityTimer <= 0.0f)
+						{
+							AudioManager::GetInstance().PlaySFX(ENEMY_HIT);
+							virus.virusHP--;
+							virus.virusInvulnerabilityTimer = 1.0f;
+						}
+
+						if (virus.virusHP <= 0)
+						{
+							AudioManager::GetInstance().PlaySFX(ENEMY_DESPAWN);
+							virus.object->Destroy();
+							viruses.erase(viruses.begin() + i); // Remove the exact element
+
+							remainingEntitiesAI--;
+
+							virusDestroyed = true; // exit the loop and prevent accessing erased memory for the rest of the loop as object is already gone
+						}
 					}
 				}
 			}
@@ -1811,6 +1833,14 @@ void SceneMedical::HandleKeyPress() {
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ENTER)) {
 			canChangeScene = false; // Once scene has changed already reset to false
+
+			int time = GetBestTimeForMedical();
+
+			if (time == 0)
+				time = 20000;
+
+			DataManager::GetInstance().SaveData(DataManager::COLLAB_SCORE, 20000 / time);
+			DataManager::GetInstance().UpdateData(DataManager::COLLAB_SCORE);
 
 			SceneManager::GetInstance().RequestChangeState(new SceneResults());
 		}
