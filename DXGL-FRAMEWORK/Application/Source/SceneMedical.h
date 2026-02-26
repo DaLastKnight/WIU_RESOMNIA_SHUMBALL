@@ -49,6 +49,10 @@ public:
 	void Render() override;
 	void Exit() override;
 
+	// Game Data that's needed for highscore keeping
+	int GetBestTimeForMedical();
+	std::string GetGameGradeForMedical();
+
 private:
 
 	enum SFX_TYPE {

@@ -1673,6 +1673,23 @@ void SceneMedical::HandleKeyPress() {
 		player.allowControl = true;
 		isInResults = false;
 	}
+
+
+
+
+
+	// ******************************************************************************************************************************
+	// ******************************************************************************************************************************
+	// SCENE CHANGING IS DONE HERE
+	// ******************************************************************************************************************************
+	// ******************************************************************************************************************************
+	if (canChangeScene && KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ENTER))
+	{
+		// however needed to change scene
+		// ...
+		// If you need the game data to save highscores, there is GetBestTimeForMedical() and GetGameGradeForMedical taking int and std::string respectively
+		canChangeScene = false; // Once scene has changed already reset to false
+	}
 }
 
 
@@ -2007,7 +2024,7 @@ void SceneMedical::ShowHelpMenu()
 		}
 		if (i == 1)
 		{
-			intendedText = "ALT to Pause";
+			intendedText = "ALT to Pause   |   (Enter) while in pause to change scene";
 		}
 		if (i == 2)
 		{
@@ -2073,7 +2090,7 @@ void SceneMedical::ShowResultsMenu()
 
 		menus.push_back(gm);
 	}
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 7; i++)
 	{
 		std::string intendedText;
 
@@ -2093,8 +2110,12 @@ void SceneMedical::ShowResultsMenu()
 		{
 			intendedText = "(<--) to retry";
 		}
+		if (i == 6)
+		{
+			intendedText = "(Enter) to go to next game";
+		}
 
-		auto helpText = AddFlexText("Results", intendedText, glm::vec3(-0.2f, 0.125f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
+		auto helpText = AddFlexText("Results", intendedText, glm::vec3(-0.2f, 0.15f - i * 0.05f, 0), glm::vec3(30, 30, 1), FONT_CASCADIA_MONO);
 		textObjects.push_back(helpText);
 	}
 }
@@ -2170,4 +2191,14 @@ bool SceneMedical::AddSceneMedicalText(const std::string& text, int index) {
 void SceneMedical::ClearSceneMedicalText() {
 	for (auto& obj_weak : sceneMedicalTextList)
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
+}
+
+int SceneMedical::GetBestTimeForMedical()
+{
+	return bestTimeTaken;
+}
+
+std::string SceneMedical::GetGameGradeForMedical()
+{
+	return gameGrade;
 }
