@@ -1,0 +1,84 @@
+#ifndef SCENE_RESULTS_H
+#define SCENE_RESULTS_H
+
+#include "BaseScene.h"
+
+
+class SceneResults : public BaseScene
+{
+public:
+
+	enum GEOMETRY_TYPE : int
+	{
+		AXES = 0,
+		GROUND,
+		SKYBOX,
+		LIGHT,
+		GROUP,
+		DEBUG_LINE,
+
+		FONT_CASCADIA_MONO,
+		// add more variables here
+		FLASHLIGHT,
+
+		UI_TEST,
+		UI_TEST_2,
+
+		PHYSICS_BALL,
+		PHYSICS_BOX,
+		TRIGGER_BOX,
+
+		TOTAL
+	};
+
+	SceneResults();
+	~SceneResults();
+
+	void Init() override;
+	void Update(double dt) override;
+	void Render() override;
+	void Exit() override;
+
+private:
+
+	bool dirtyWorldList = false;
+
+	enum SFX_TYPE {
+		GOOFY_AHH_ASRIEL_STAR_SOUND,
+
+		TOTAL_SFX
+	};
+
+	float FontSpacing(GEOMETRY_TYPE font) {
+		switch (font) {
+		case GEOMETRY_TYPE::FONT_CASCADIA_MONO: return 0.375f;
+		default: return 1;
+		}
+	}
+
+	void HandleKeyPress();
+
+	void RenderMesh(GEOMETRY_TYPE type, bool enableLight);
+	void RenderObj(const std::shared_ptr<RenderObject> obj);
+
+	// debug
+	bool debug = false;
+
+	std::vector<std::weak_ptr<RenderObject>> debugTextList;
+	void InitDebugText(GEOMETRY_TYPE font);
+	// if passed in index, overwrite data in that specific debug text
+	// returns success
+	// does not work in Init()
+	bool AddDebugText(const std::string& text, int index = -1);
+	void ClearDebugText();
+
+	bool cullFaceActive = true;
+	bool wireFrameActive = false;
+
+	bool renderDebugPhysics = false;
+	Mesh* debugPhysicsWorld;
+	double debugPhysicsTimer = 0;
+	
+};
+
+#endif

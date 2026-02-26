@@ -96,6 +96,9 @@
     <ClCompile Include="Source\DialogueManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SceneResults.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\SceneDemo.h">
@@ -190,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="Source\DataManager.h">
       <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SceneResults.h">
+      <Filter>Scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
