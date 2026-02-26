@@ -58,6 +58,11 @@ private:
 	enum SFX_TYPE {
 		GOOFY_AHH_ASRIEL_STAR_SOUND,
 
+		DIGITAL_CLICK,
+		NANOBOT_SHOOT,
+		ENEMY_HIT,
+		ENEMY_DESPAWN,
+
 		TOTAL_SFX
 	};
 
@@ -152,6 +157,8 @@ private:
 	float bacteriaSpawnInterval = 3.0f;
 	float virusSpawnTimer = 0.0f;
 	float virusSpawnInterval = 6.0f;
+
+	int alterationFactorMax = 100;
 
 
 
