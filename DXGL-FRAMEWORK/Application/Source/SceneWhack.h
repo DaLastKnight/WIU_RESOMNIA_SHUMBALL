@@ -63,13 +63,15 @@ public:
 		// World Models
 		GROUND,
 		PLATFORM,
-		WALL,
+		SCI_FLOOR,
+		SCI_WALL,
+		PHYSICS_BOX,
 		TERMINAL,
+		CRATE,
+		TELEPORTER,
 		TRIGGER_BOX,
 		ANTIVIRUS_BALL,
 		VIRUS_1,
-		VIRUS_2,
-		VIRUS_3,
 		PORTAL_EVIL,
 		PORTAL_GOOD,
 		CROSSHAIR,
@@ -80,7 +82,7 @@ public:
 		// Screen Models
 		WHITE,
 		GAUGE,
-
+		TUTORIAL,
 		
 
 		TOTAL
@@ -100,7 +102,11 @@ private:
 	bool dirtyWorldList = false;
 
 	enum SFX_TYPE {
-		GOOFY_AHH_ASRIEL_STAR_SOUND,
+		HIT,
+		VIRUS_DIE,
+		NEWRECORD,
+		OKAYSCORE,
+		ZEROSCORE,
 
 		TOTAL_SFX
 	};
@@ -140,19 +146,36 @@ private:
 
 	// Game members
 	bool gamePaused = false;
-	bool canStartGame = true;
+	bool canStartGame = false;
+	double startGameTimer = 2; // This is to ensure that canStartGame isn't infinitely true
 	bool inGame = false;
+	bool endGame = false;
+	bool isNewRecord = false;
+	bool finishedGameOnce = false;
+	bool allGameObjectsDestroyed;
 	float gameTimer = 60;
 	int gameScore = 0;
+	int highestScore = 0;
 	double elapsed = 0;
+	void MidgameChange();
+	bool gameChange = false;
+	bool triggeredChange = false;
+	bool triggeredOnce = false;
 
 	// Player UI members
 	glm::vec3 gaugeMarkerPosition;
 	bool isGaugeActive;
+
+	// Light members
+	bool isUpdateGameLight = false;
+	bool isUpdateScoreDisplayLight = false;
+
+	// Score Display
+	glm::vec3 scoreDisplayPosition;
 	
 	// Virus members
 	std::vector<Virus> virusList;
-	double elapsedVirusInterval = 3;
+	double elapsedVirusInterval = 0;
 	int FindVirusIndex(const std::shared_ptr<RenderObject>& obj)
 	{
 		for (int k = 0; k < (int)virusList.size(); ++k)
@@ -207,12 +230,18 @@ private:
 		return -1;
 	}
 	void InitPortalMaps();
-	void ChangePortalMap();
+	void CreatePortalMap();
 
 	// Cutscene members
+	GAMESTATE currentGameState = FREEROAM;
 	void StartCutscene();
+	bool hasFinishedCarnivalIntro = false;
 	bool hasFinishedTutorial = false;
-
+	bool gameIntroActive = false;
+	bool showTutorial = false;
+	bool showScoreDisplay = false;
+	bool showGameScore = false;
+	bool pauseMarker = false;
 	
 };
 

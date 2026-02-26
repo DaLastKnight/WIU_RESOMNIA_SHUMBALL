@@ -10,6 +10,9 @@ class Virus
 public:
 	bool hasBeenDestroyed = false;
 	bool hasBeenHit = false;
+	bool returningToX = false;
+	float homeX = 0.f;
+	int hp = 10;
 	float timerHit = 5.f;
 	std::weak_ptr<RenderObject> virus;
 

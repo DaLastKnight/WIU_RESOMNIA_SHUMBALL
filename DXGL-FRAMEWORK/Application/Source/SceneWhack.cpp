@@ -39,12 +39,6 @@ using glm::vec3;
 using glm::mat4;
 using std::string;
 
-
-/* notes:
-* if you are unsure if a certain function does something, hover over it and see what it does (i added description for most of the functions you might need help to know what it does)
-*/
-
-
 /*****************************************************************************************************************************************************************************************/
 /************************************************************************************ scene functions ************************************************************************************/
 /*****************************************************************************************************************************************************************************************/
@@ -66,7 +60,7 @@ void SceneWhack::Init() {
 	// physics debug init
 	{
 		if (ALLOW_PHYSICS_DEBUG) {
-			PhysicsManager::GetInstance().SetUpLogger("SceneDemo");
+			PhysicsManager::GetInstance().SetUpLogger("SceneWhack");
 			PhysicsManager::GetInstance().SeteDebugRendering(true);
 			PhysicsManager::GetInstance().SetDebugRenderItems(true, false, true, false, false);
 		}
@@ -84,14 +78,40 @@ void SceneWhack::Init() {
 	// audio init
 	{
 		// music init
-		AudioManager::GetInstance().LoadMUS("Wheel_Chill.ogg", 57.7555); // you need to input the total duration of the music in seconds as a double, sdl mixer cannot get the duration itself
+		AudioManager::GetInstance().LoadMUS("mental_pollution.ogg", 154.0000);
 
 		// sfx init
-		AudioManager::GetInstance().LoadSFX(GOOFY_AHH_ASRIEL_STAR_SOUND, "sfx_asriel_star_drop.wav");
+		AudioManager::GetInstance().LoadSFX(HIT, "boom_swoosh.wav");
+		AudioManager::GetInstance().VolumeSFX(HIT, 1.f);
 
+		AudioManager::GetInstance().LoadSFX(VIRUS_DIE, "pixel_explode.wav");
+		AudioManager::GetInstance().VolumeSFX(VIRUS_DIE, 0.4f);
+
+		AudioManager::GetInstance().LoadSFX(NEWRECORD, "happy_wheels_win.wav");
+		AudioManager::GetInstance().VolumeSFX(HIT, 1.f);
+
+		AudioManager::GetInstance().LoadSFX(OKAYSCORE, "sparkle.wav");
+		AudioManager::GetInstance().VolumeSFX(HIT, 1.f);
+
+		AudioManager::GetInstance().LoadSFX(ZEROSCORE, "sadtrombone.wav");
+		AudioManager::GetInstance().VolumeSFX(HIT, 1.f);
 	}
 
-	DialogueManager::GetInstance().LoadDialoguePack("Tutorial1.json");
+	// dialogue init
+	{
+		DialogueManager::GetInstance().LoadDialoguePack("CarnivalIntro.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Tutorial1.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Tutorial2.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Tutorial3.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Tutorial4.json");
+		DialogueManager::GetInstance().LoadDialoguePack("Tutorial5.json");
+		DialogueManager::GetInstance().LoadDialoguePack("GameIntro.json");
+		DialogueManager::GetInstance().LoadDialoguePack("EndGame.json");
+		DialogueManager::GetInstance().LoadDialoguePack("EndGame_NewRecord.json");
+		DialogueManager::GetInstance().LoadDialoguePack("EndGame_ZeroScore.json");
+	}
+
+	
 
 	// atmosphere init
 	{
@@ -110,18 +130,21 @@ void SceneWhack::Init() {
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1));
 		meshList[DEBUG_LINE] = MeshBuilder::GenerateLine("debug line", 1);
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
-		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
+		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox_black.tga"));
 		
 		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("circuit.tga"));
 		meshList[PLATFORM] = MeshBuilder::GenerateGround("platform", 20, 5, TextureLoader::LoadTexture("circuit.tga"));
+		meshList[SCI_FLOOR] = MeshBuilder::GenerateOBJ("sci floor", "sci_floor.obj", TextureLoader::LoadTexture("sci_floor.tga"));
+		meshList[SCI_WALL] = MeshBuilder::GenerateQuad("sci wall", vec3(1), 1, 1, TextureLoader::LoadTexture("sci_wall.tga"));
+		meshList[PHYSICS_BOX] = MeshBuilder::GenerateCube("physics box", vec3(1), 1);
 		meshList[TERMINAL] = MeshBuilder::GenerateOBJMTL("terminal", "terminal.obj", "terminal.mtl", TextureLoader::LoadTexture("terminal.png"));
+		meshList[CRATE] = MeshBuilder::GenerateOBJMTL("crate", "crate.obj", "crate.mtl", TextureLoader::LoadTexture("crate.png"));
+		meshList[TELEPORTER] = MeshBuilder::GenerateOBJMTL("teleporter", "teleporter.obj", "teleporter.mtl", TextureLoader::LoadTexture("teleporter.png"));
 
 		meshList[ANTIVIRUS_BALL] = MeshBuilder::GenerateSphere("antivirus ball", vec3(1.f), 0.5f, 16, 8, TextureLoader::LoadTexture("antivirus.tga"));
 		meshList[TRIGGER_BOX] = MeshBuilder::GenerateCube("trigger box", vec3(1.f), 2);
 
 		meshList[VIRUS_1] = MeshBuilder::GenerateOBJ("virus1", "virus_one.obj");
-		meshList[VIRUS_2] = MeshBuilder::GenerateOBJ("virus2", "virus_two.obj");
-		meshList[VIRUS_3] = MeshBuilder::GenerateOBJ("virus3", "virus_three.obj");
 
 		meshList[PORTAL_EVIL] = MeshBuilder::GenerateQuad("portal evil", vec3(1), 1, 1, TextureLoader::LoadTexture("portal.tga"));
 		meshList[PORTAL_GOOD] = MeshBuilder::GenerateQuad("portal good", vec3(1), 1, 1, TextureLoader::LoadTexture("portal.tga"));
@@ -130,6 +153,7 @@ void SceneWhack::Init() {
 
 		meshList[WHITE] = MeshBuilder::GenerateQuad("white", vec3(1), 1, 1, TextureLoader::LoadTexture("white.png"));
 		meshList[GAUGE] = MeshBuilder::GenerateQuad("gauge", vec3(1), 1, 1, TextureLoader::LoadTexture("gauge.png"));
+		meshList[TUTORIAL] = MeshBuilder::GenerateQuad("tutorial", vec3(1), 1, 1, TextureLoader::LoadTexture("tutorial.tga"));
 	}
 
 	// init roots
@@ -212,11 +236,27 @@ void SceneWhack::Init() {
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::BOX, vec3(10, 0.5f, 10), vec3(0, -0.5f, 0));
 			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
-			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_3 | CATEGORY_4);
+			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 |CATEGORY_3 | CATEGORY_4);
 			physics->SetBounciness(0.f);
 			physics->SetFrictionCoefficient(0.5f);
 			physics->UpdateMassProperties();
 
+			});
+		RObj::setDefaultStat.Subscribe(SCI_FLOOR, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+			});
+		RObj::setDefaultStat.Subscribe(SCI_WALL, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+			obj->colorFilter = vec3(0.4f, 0.4f, 0.6f);
+			});
+		RObj::setDefaultStat.Subscribe(PHYSICS_BOX, [](const std::shared_ptr<RObj>& obj) {
+			obj->offsetScl = vec3(2.f, 20.f, 20.f);
+			obj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(1.f, 10.f, 10.f));
+			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
+			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 | CATEGORY_3);
+			physics->UpdateMassProperties();
 			});
 		RObj::setDefaultStat.Subscribe(TERMINAL, [](const std::shared_ptr<RObj>& obj) {
 			obj->colorFilter = vec3(0.4f, 0.4f, 0.6f);
@@ -226,6 +266,32 @@ void SceneWhack::Init() {
 			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
 			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 | CATEGORY_3);
 			physics->UpdateMassProperties();
+			});
+		RObj::setDefaultStat.Subscribe(CRATE, [](const std::shared_ptr<RObj>& obj) {
+			obj->AddPhysics(PhysicsObject::DYNAMIC);
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.9f, 1.f, 0.9f), vec3(0.f, 1.f, 0.f));
+			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
+			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 | CATEGORY_3);
+			physics->UpdateMassProperties();
+			});
+		RObj::setDestroyedEvent.Subscribe(CRATE, [&](const std::shared_ptr<RObj>& obj) { // these specific lines is required for all physics object that can be deleted in the programe, its safe to add it for all physics objects to be safe in case if you missed any
+			dirtyWorldList = true;
+			});
+		RObj::setDefaultStat.Subscribe(TELEPORTER, [](const std::shared_ptr<RObj>& obj) {
+			obj->name = "teleporter";
+			obj->colorFilter = vec3(0.6f, 0.8f, 1.f);
+			obj->offsetScl = vec3(0.1f, 0.1f, 0.1f);
+			obj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = obj->GetPhysics();
+			physics->AddCollider(PhysicsObject::SPHERE, vec3(0.4f), vec3(0.f, 0.4f, 0.f));
+			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
+			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 | CATEGORY_3);
+			physics->SetTrigger(true);
+			physics->UpdateMassProperties();
+			});
+		RObj::setDestroyedEvent.Subscribe(TELEPORTER, [&](const std::shared_ptr<RObj>& obj) { // these specific lines is required for all physics object that can be deleted in the programe, its safe to add it for all physics objects to be safe in case if you missed any
+			dirtyWorldList = true;
 			});
 		
 
@@ -251,7 +317,7 @@ void SceneWhack::Init() {
 
 			obj->AddPhysics(PhysicsObject::STATIC);
 			auto physics = obj->GetPhysics();
-			physics->AddCollider(PhysicsObject::BOX, vec3(1.f, 1.f, 1.f));
+			physics->AddCollider(PhysicsObject::BOX, vec3(2.f, 1.f, 2.f));
 			physics->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_3);
 			physics->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1);
 			physics->SetTrigger(true);
@@ -264,7 +330,7 @@ void SceneWhack::Init() {
 
 		RObj::setDefaultStat.Subscribe(VIRUS_1, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
-			obj->colorFilter = vec3(1, 0, 0);
+			obj->colorFilter = vec3(0, 1, 0);
 			obj->offsetScl = vec3(0.02f, 0.02f, 0.02f);
 			obj->AddPhysics(PhysicsObject::DYNAMIC);
 			auto physics = obj->GetPhysics();
@@ -277,7 +343,6 @@ void SceneWhack::Init() {
 			physics->UpdateMassProperties();
 			});
 		RObj::setDestroyedEvent.Subscribe(VIRUS_1, [&](const std::shared_ptr<RObj>& obj) {
-			gameScore++;
 			dirtyWorldList = true;
 			});
 
@@ -327,6 +392,7 @@ void SceneWhack::Init() {
 
 
 		RObj::setDefaultStat.Subscribe(WHITE, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::NO_LIGHT);
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
@@ -334,7 +400,6 @@ void SceneWhack::Init() {
 			obj->relativeTrl = true;
 			obj->hasTransparency = true;
 			});
-		
 	}
 
 	auto& newObj = RObj::newObject;
@@ -348,22 +413,154 @@ void SceneWhack::Init() {
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
+		for (int i = 0; i < 10; i++)
+		{
+			for (int j = 0; j < 10; j++)
+			{
+				worldRoot->NewChild(MeshObject::Create(SCI_FLOOR));
+				newObj->trl = vec3(-9.f + (i * 2.f), 6.f, -9.f + (j * 2.f));
+			}
+		}
+		
+		for (int j = 0; j < 3; j++)
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				worldRoot->NewChild(MeshObject::Create(SCI_WALL));
+				newObj->trl = vec3(-8.f + (i * 4.f), 8.f + (j * 4.f), -10.f);
+				newObj->scl = vec3(4.f);
+			}
+
+			for (int i = 0; i < 5; i++)
+			{
+				worldRoot->NewChild(MeshObject::Create(SCI_WALL));
+				newObj->trl = vec3(-8.f + (i * 4.f), 8.f + (j * 4.f), 10.f);
+				newObj->rot.y = 180.f;
+				newObj->scl = vec3(4.f);
+			}
+
+			for (int i = 0; i < 5; i++)
+			{
+				worldRoot->NewChild(MeshObject::Create(SCI_WALL));
+				newObj->trl = vec3(-10.f, 8.f + (j * 4.f), -8.f + (i * 4.f));
+				newObj->rot.y = 90.f;
+				newObj->scl = vec3(4.f);
+			}
+		}
+
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				worldRoot->NewChild(MeshObject::Create(SCI_WALL));
+				newObj->trl = vec3(-8.f + (i * 4.f), 18.f, -8.f + (j * 4.f));
+				newObj->rot.x = 90.f;
+				newObj->scl = vec3(4.f);
+			}
+		}
+
+		worldRoot->NewChild(MeshObject::Create(CRATE));
+		newObj->GetPhysics()->SetPosition(vec3(-5.f, 6.5f, 0.f));
+
+		worldRoot->NewChild(MeshObject::Create(CRATE));
+		newObj->GetPhysics()->SetPosition(vec3(2.f, 6.5f, -5.f));
+		newObj->GetPhysics()->SetOrientation(vec3(0.f, 45.f, 0.f));
+
+		worldRoot->NewChild(MeshObject::Create(CRATE));
+		newObj->GetPhysics()->SetPosition(vec3(-2.f, 6.5f, -5.f));
+		newObj->GetPhysics()->SetOrientation(vec3(0.f, 15.f, 0.f));
+
+		worldRoot->NewChild(MeshObject::Create(CRATE));
+		newObj->offsetScl = vec3(0.5f);
+		newObj->RemovePhysics();
+		newObj->AddPhysics(PhysicsObject::STATIC);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, vec3(0.45f, 0.5f, 0.45f), vec3(0.f, 0.5f, 0.f));
+		newObj->GetPhysics()->Getbody()->getCollider(0)->setCollisionCategoryBits(CATEGORY_2);
+		newObj->GetPhysics()->Getbody()->getCollider(0)->setCollideWithMaskBits(CATEGORY_1 | CATEGORY_2 | CATEGORY_3);
+		scoreDisplayPosition = vec3(4.f, 6.f, 5.f);
+		newObj->GetPhysics()->SetPosition(scoreDisplayPosition);
+		newObj->GetPhysics()->SetOrientation(vec3(0.f, 30.f, 0.f));
+		newObj->GetPhysics()->UpdateMassProperties();
+
+		worldRoot->NewChild(MeshObject::Create(GROUP));
+		newObj->name = "score_display";
+		newObj->trl = vec3(2.f, 6.5f, 5.f);
+		auto parentObj = newObj; 
+		
+		parentObj->NewChild(MeshObject::Create(WHITE));
+		newObj->alpha = 0.5f;
+		newObj->hasTransparency = true;
+		newObj->colorFilter = vec3(0.5f, 0.75f, 1.f);
+		newObj->name = "score_panel";
+		newObj->trl = vec3(0.f, 0.f, 0.f);
+		newObj->offsetTrl = vec3(0.f, 0.5f, 0.f);
+		newObj->scl = vec3(0.8f, 1.5f, 0.8f);
+
+		parentObj->NewChild(TextObject::Create("score_text", "High score:", vec3(0), FONT_CASCADIA_MONO, true));
+		newObj->trl = vec3(0.f, 1.f, 0.f);
+		newObj->scl = vec3(0.15f);
+
+		parentObj->NewChild(TextObject::Create("score_record", "High score:", vec3(0), FONT_CASCADIA_MONO, true));
+		newObj->trl = vec3(0.f, 0.8f, 0.f);
+		newObj->scl = vec3(0.15f);
+
+		worldRoot->NewChild(MeshObject::Create(TELEPORTER));
+		newObj->GetPhysics()->SetPosition(vec3(7.f, 6.f, -7.f));
+
+		worldRoot->NewChild(TextObject::Create("teleporter_text", "Go to next scene", vec3(0), FONT_CASCADIA_MONO, true));
+		newObj->trl = vec3(7.f, 7.f, -7.f);
+		newObj->scl = vec3(0.15f);
+
+		worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+		newObj->name = "glass";
+		newObj->colorFilter = vec3(0.5f, 0.75f, 1.f);
+		newObj->alpha = 0.5f;
+		newObj->hasTransparency = true;
+		newObj->GetPhysics()->SetPosition(vec3(10.f, 8.f, 0.f));
+		newObj->GetPhysics()->SetAllowSleep(false);
+
+		worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+		newObj->alpha = 0.f;
+		newObj->hasTransparency = true;
+		newObj->GetPhysics()->SetPosition(vec3(-10.f, 8.f, 0.f));
+		newObj->GetPhysics()->SetAllowSleep(false);
+
+		worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+		newObj->alpha = 0.f;
+		newObj->hasTransparency = true;
+		newObj->GetPhysics()->SetPosition(vec3(0.f, 8.f, 10.f));
+		newObj->GetPhysics()->SetOrientation(vec3(0.f, 90.f, 0.f));
+		newObj->GetPhysics()->SetAllowSleep(false);
+
+		worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+		newObj->alpha = 0.f;
+		newObj->hasTransparency = true;
+		newObj->GetPhysics()->SetPosition(vec3(0.f, 8.f, -10.f));
+		newObj->GetPhysics()->SetOrientation(vec3(0.f, 90.f, 0.f));
+		newObj->GetPhysics()->SetAllowSleep(false);
+
+		
 		worldRoot->NewChild(MeshObject::Create(TERMINAL));
 		newObj->name = "terminal";
 		newObj->GetPhysics()->SetPosition(vec3(8.f, 6.f, 0.f));
 		newObj->GetPhysics()->SetOrientation(vec3(0.f, -90.f, 0.f));
 
+		worldRoot->NewChild(TextObject::Create("terminal_text", "Play game here!", vec3(0), FONT_CASCADIA_MONO, true));
+		newObj->trl = vec3(8.f, 8.f, 0.f);
+		newObj->scl = vec3(0.15f);
+
 		InitPortalMaps();
-		ChangePortalMap();
 
 		worldRoot->NewChild(MeshObject::Create(CROSSHAIR));
 		newObj->name = "crosshair";
 		newObj->scl = vec3(3);
 		newObj->trl = vec3(0, 1.f, 0);
 		newObj->rot.y = -90.f;
+		newObj->allowRender = false;
 
 		worldRoot->NewChild(MeshObject::Create(PORTAL_GOOD));
 		newObj->name = "portal_ground";
+		newObj->alpha = 0.f;
 		newObj->offsetScl = vec3(40.f);
 		newObj->GetPhysics()->SetPosition(vec3(50.f, 0.5f, 0.f));
 		newObj->GetPhysics()->SetAllowSleep(false);
@@ -388,12 +585,11 @@ void SceneWhack::Init() {
 			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj); // casting the obj to its actual type to acess variables only in its actual type
 			{
-				newLightObj->trl = vec3(0, 20, 0);
-				newLightObj->name = "demo light";
+				newLightObj->trl = vec3(0.f, 6.5f, 0.f);
 				auto& lightProperties = newLightObj->lightProperties;
 				lightProperties.type = Light::LIGHT_POINT;
-				lightProperties.color = vec3(1, 1, 1);
-				lightProperties.power = 1;
+				lightProperties.color = vec3(1.f);
+				lightProperties.power = 0.5f;
 				// 0 - 1 percentage of actual values applies
 				lightProperties.kC = 1;
 				lightProperties.kL = 0.001f;
@@ -404,21 +600,63 @@ void SceneWhack::Init() {
 			worldRoot->NewChild(LightObject::Create(LIGHT));
 			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
 			{
-				newLightObj->trl = vec3(20, 5, 0);
-				newLightObj->name = "demo light spot";
+				newLightObj->trl = vec3(7.f, 10.f, -7.f);
+				newLightObj->name = "teleporterLight";
 				newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
-				newLightObj->rot = vec3(45, 45, 0);
+				newLightObj->rot = vec3(0, 0, 0);
 				auto& lightProperties = newLightObj->lightProperties;
 				lightProperties.type = Light::LIGHT_SPOT;
-				lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
-				lightProperties.power = 1;
+				lightProperties.color = vec3(1.f, 1.f, 1.f);
+				lightProperties.power = 4;
 				// 0 - 1 percentage of actual values applies
 				lightProperties.kC = 1;
 				lightProperties.kL = 0.005f;
 				lightProperties.kQ = 0.01f;
 				// spot light variables (yes, these are the only 2 you need to change manually)
-				lightProperties.cosCutoff = 31.f;
-				lightProperties.cosInner = 29.f;
+				lightProperties.cosCutoff = 30.f;
+				lightProperties.cosInner = 25.f;
+				UpdateLightUniform(newLightObj);
+			}
+
+			worldRoot->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				newLightObj->trl = vec3(0.f, 10.f, 0.f);
+				newLightObj->name = "roomLight";
+				newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
+				newLightObj->rot = vec3(0, 0, 0);
+				auto& lightProperties = newLightObj->lightProperties;
+				lightProperties.type = Light::LIGHT_SPOT;
+				lightProperties.color = vec3(1.f, 1.f, 1.f);
+				lightProperties.power = 5;
+				// 0 - 1 percentage of actual values applies
+				lightProperties.kC = 1;
+				lightProperties.kL = 0.005f;
+				lightProperties.kQ = 0.01f;
+				// spot light variables (yes, these are the only 2 you need to change manually)
+				lightProperties.cosCutoff = 50.f;
+				lightProperties.cosInner = 30.f;
+				UpdateLightUniform(newLightObj);
+			}
+
+			worldRoot->NewChild(LightObject::Create(LIGHT));
+			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+			{
+				newLightObj->trl = vec3(40.f, 20.f, 0.f);
+				newLightObj->name = "gameLight";
+				newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
+				newLightObj->rot = vec3(0, 0, 0);
+				auto& lightProperties = newLightObj->lightProperties;
+				lightProperties.type = Light::LIGHT_SPOT;
+				lightProperties.color = vec3(1.f, 1.f, 1.f);
+				lightProperties.power = 0.001f;
+				// 0 - 1 percentage of actual values applies
+				lightProperties.kC = 1;
+				lightProperties.kL = 0.005f;
+				lightProperties.kQ = 0.01f;
+				// spot light variables (yes, these are the only 2 you need to change manually)
+				lightProperties.cosCutoff = 200.f;
+				lightProperties.cosInner = 150.f;
 				UpdateLightUniform(newLightObj);
 			}
 		}
@@ -441,6 +679,12 @@ void SceneWhack::Init() {
 		newObj->trl = vec3(0.f, -0.7f, 0);
 		newObj->scl = vec3(20, 120, 1);
 
+		screenRoot->NewChild(MeshObject::Create(TUTORIAL, 1)); // create with 1 as UILayer, default 0
+		newObj->relativeTrl = true;
+		newObj->name = "tutorial";
+		newObj->trl = vec3(0.f, 0.25f, 0);
+		newObj->scl = vec3(600, 600, 1);
+
 		screenRoot->NewChild(TextObject::Create("dial_speaker", "test test", vec3(1), FONT_CASCADIA_MONO, true));
 		newObj->relativeTrl = true;
 		newObj->trl = vec3(0, -0.5f, 0);
@@ -453,6 +697,16 @@ void SceneWhack::Init() {
 		screenRoot->NewChild(TextObject::Create("score", "test test", vec3(1), FONT_CASCADIA_MONO, true));
 		newObj->relativeTrl = true;
 		newObj->trl = vec3(0.7f, 0.8f, 0);
+		newObj->scl = vec3(80, 80, 1);
+
+		screenRoot->NewChild(TextObject::Create("press_start", "Press Z to start game!", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0.f, -0.8f, 0);
+		newObj->scl = vec3(80, 80, 1);
+
+		screenRoot->NewChild(TextObject::Create("new_record", "NEW RECORD!", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0.f, 0.4f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
 		screenRoot->NewChild(TextObject::Create("gameTimer", "test test", vec3(1), FONT_CASCADIA_MONO, true));
@@ -491,11 +745,6 @@ void SceneWhack::Update(double dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 
-	if (gamePaused)
-	{
-		dt = 0;
-	}
-
 	// fps calculation
 	const float fpsUpdateTime = 0.5f;
 	static float avgFps = 0;
@@ -516,8 +765,6 @@ void SceneWhack::Update(double dt) {
 	if (dt > 0.1f) {
 		dt = 0.1f;
 	}
-	debugPhysicsTimer += dt;
-	elapsed += dt;
 
 	// simulation fps calculation
 	static float simAvgFps = 0;
@@ -534,6 +781,15 @@ void SceneWhack::Update(double dt) {
 	}
 	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
 
+	debugPhysicsTimer += dt;
+	elapsed += dt;
+	startGameTimer -= dt;
+
+	if (startGameTimer <= 0)
+	{
+		canStartGame = false;
+	}
+
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
 	auto& viewList = RObj::viewList;
@@ -542,34 +798,64 @@ void SceneWhack::Update(double dt) {
 
 	// if you ever felt that you need dt inside HandleKeyPress(), that means you are doing smt wro- i mean, you need to use a variable to pass the info and commit changes in Update instead, HandleKeyPress() should not have those kinda logic inside it
 	HandleKeyPress();
+	StartCutscene();
 
-	auto& newObj = RObj::newObject;
-	elapsedVirusInterval -= dt;
-	if (elapsedVirusInterval <= 0)
+	// Game updates
+	if (inGame && !endGame)
 	{
-		worldRoot->NewChild(MeshObject::Create(VIRUS_1));
-		newObj->name = "virus";
-		newObj->GetPhysics()->Getbody()->enableGravity(false);
-		
-		static std::mt19937 solsrng(std::random_device{}());
-		std::uniform_int_distribution<int> portalDistribution(0, portalEvilPositionsList.size() - 1);
-		int spawnIndex = portalDistribution(solsrng);
-		newObj->GetPhysics()->SetPosition(portalEvilPositionsList[spawnIndex]);
-		newObj->GetPhysics()->SetOrientation(vec3(0.f, 90.f, 0.f));
+		gameTimer -= dt;
 
-		Virus newVirus(newObj);
-		newVirus.waypoints = newVirus.BuildRandomPath(portalEvilPositionsList, solsrng, portalDistribution, spawnIndex, true);
-		newVirus.waypointIndex = 0;
-		virusList.push_back(newVirus);
-		elapsedVirusInterval = 3;
+		if (gameTimer <= 0.f)
+		{
+			allGameObjectsDestroyed = true;
+			isGaugeActive = false;
+			if (gameScore > highestScore)
+			{
+				isNewRecord = true;
+			}
+		}
+		else if ((int)gameTimer % 15 == 0 && gameTimer != 60.f && gameTimer > 1.f && !triggeredChange && !triggeredOnce)
+		{
+			triggeredChange = true;
+			triggeredOnce = true;
+		}
+		else if ((int)gameTimer % 15 != 0)
+		{
+			triggeredOnce = false;
+		}
+
+		if (triggeredChange)
+		{
+			MidgameChange();
+		}
+
+		auto& newObj = RObj::newObject;
+		elapsedVirusInterval -= dt;
+		if (elapsedVirusInterval <= 0 && !portalEvilPositionsList.empty())
+		{
+			worldRoot->NewChild(MeshObject::Create(VIRUS_1));
+			newObj->name = "virus";
+			newObj->GetPhysics()->Getbody()->enableGravity(false);
+
+			static std::mt19937 solsrng(std::random_device{}());
+			std::uniform_int_distribution<int> portalDistribution(0, portalEvilPositionsList.size() - 1);
+			int spawnIndex = portalDistribution(solsrng);
+			newObj->GetPhysics()->SetPosition(portalEvilPositionsList[spawnIndex]);
+			newObj->GetPhysics()->SetOrientation(vec3(0.f, 90.f, 0.f));
+
+			Virus newVirus(newObj);
+			newVirus.homeX = newObj->GetPhysics()->GetPosition().x;
+			newVirus.waypoints = newVirus.BuildRandomPath(portalEvilPositionsList, solsrng, portalDistribution, spawnIndex, true);
+			newVirus.waypointIndex = 0;
+			virusList.push_back(newVirus);
+			elapsedVirusInterval = 5;
+		}
 	}
 
-	gameTimer -= dt;
+	RObj::newObject.reset();
 
 	// player updates
 	{
-		//player.renderGroup.lock()->offsetRot.y += 100.f * dt;
-		
 		// update position and camera bobbing
 		if (camera.GetCurrentMode() != Cam::MODE::FREE)
 			player.UpdatePhysicsWithCamera(dt, camera);
@@ -590,7 +876,6 @@ void SceneWhack::Update(double dt) {
 		case GROUP:
 			obj->allowRender = debug;
 			break;
-
 		case SKYBOX:
 			obj->trl = camera.GetFinalPosition();
 			break;
@@ -599,21 +884,65 @@ void SceneWhack::Update(double dt) {
 			break;
 		}
 
-		// btw. this code here visual does nothing, if you turn un debug and get close to to spot light and see it, youll realise its rotating perpendicularly to the light direction
-		if (obj->name == "demo light spot") {
-			obj->offsetRot.y += 45 * dt;
-			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
-		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
-
 		if (obj->name == "crosshair")
 		{
+			if (!inGame || allGameObjectsDestroyed)
+			{
+				obj->allowRender = false;
+			}
+			else if (inGame)
+			{
+				obj->allowRender = true;
+			}
+			
 			obj->trl = selectedPortalPosition - vec3(5.f, 0.f, 0.f);
 			obj->rot.z += 45.f * dt;
-			/*vec3 toTarget = obj->trl - player.position;
+		}
+
+		if (obj->name == "score_display")
+		{
+			vec3 toTarget = obj->trl - player.position;
 			toTarget.y = 0.f;
+			float distanceSquared = glm::dot(toTarget, toTarget);
+			if (distanceSquared < 2.5f * 2.5f || showScoreDisplay)
+			{
+				obj->alpha = Smooth(obj->alpha, 1.f, 5.f, (float)dt);
+			}
+			else
+			{
+				obj->alpha = Smooth(obj->alpha, 0.f, 5.f, (float)dt);
+			}
 			toTarget = glm::normalize(toTarget);
 			float desiredYawDeg = glm::degrees(atan2f(toTarget.x, toTarget.z));
-			obj->rot.y = desiredYawDeg + 90.f;*/
+			obj->rot.y = desiredYawDeg + 180.f;
+		}
+
+		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj))
+		{
+			if (textObj->name.find("score_record") != std::string::npos)
+			{
+				textObj->text = std::to_string(highestScore);
+			}
+
+			if (textObj->name.find("teleporter_text") != std::string::npos)
+			{
+				textObj->color = vec3(1);
+				vec3 toTarget = obj->trl - player.position;
+				toTarget.y = 0.f;
+				toTarget = glm::normalize(toTarget);
+				float desiredYawDeg = glm::degrees(atan2f(toTarget.x, toTarget.z));
+				obj->rot.y = desiredYawDeg + 180.f;
+			}
+
+			if (textObj->name.find("terminal_text") != std::string::npos)
+			{
+				textObj->color = vec3(1);
+				vec3 toTarget = obj->trl - player.position;
+				toTarget.y = 0.f;
+				toTarget = glm::normalize(toTarget);
+				float desiredYawDeg = glm::degrees(atan2f(toTarget.x, toTarget.z));
+				obj->rot.y = desiredYawDeg + 180.f;
+			}
 		}
 
 		if (debug) {
@@ -637,8 +966,6 @@ void SceneWhack::Update(double dt) {
 			obj->allowRender = debug;
 		}
 
-
-
 		if (debug) {
 
 		}
@@ -659,15 +986,16 @@ void SceneWhack::Update(double dt) {
 		if (obj->name == "gauge")
 		{
 			obj->allowRender = false;
-			if (isGaugeActive) obj->allowRender = true;
+			if (isGaugeActive && inGame) obj->allowRender = true;
 		}
 
 		if (obj->name == "marker")
 		{
-			if (isGaugeActive)
+			if (isGaugeActive && inGame)
 			{
 				obj->allowRender = true;
-				gaugeMarkerPosition.x = obj->trl.x = -0.225f * cosf(4.f * (float)elapsed);
+				if (!pauseMarker) gaugeMarkerPosition.x = obj->trl.x = -0.225f * cosf(4.f * (float)elapsed);
+				//gaugeMarkerPosition.x = obj->trl.x = -0.225f * cosf(4.f * (float)elapsed);
 			}
 			else
 			{
@@ -676,9 +1004,39 @@ void SceneWhack::Update(double dt) {
 			}
 		}
 
+		if (obj->name == "tutorial")
+		{
+			if (showTutorial)
+			{
+				obj->allowRender = true;
+			}
+			else
+			{
+				obj->allowRender = false;
+			}
+		}
+
 		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 			if (textObj->name.find("dial_s") != std::string::npos) {
 				if (DialogueManager::GetInstance().CheckActivePack()) {
+					if (!hasFinishedCarnivalIntro)
+					{
+						textObj->color = vec3(1, 1, 0);
+						textObj->trl = vec3(0, 0.f, 0);
+						textObj->scl = vec3(30, 30, 1);
+					}
+					else if (gameIntroActive)
+					{
+						textObj->color = vec3(0.f, 1.f, 0.f);
+						textObj->trl = vec3(0, -0.5f, 0);
+						textObj->scl = vec3(30, 30, 1);
+					}
+					else
+					{
+						textObj->color = vec3(1.f, 1.f, 1.f);
+						textObj->trl = vec3(0, -0.5f, 0);
+						textObj->scl = vec3(30, 30, 1);
+					}
 					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
 				}
 				else
@@ -686,18 +1044,94 @@ void SceneWhack::Update(double dt) {
 			}
 			if (textObj->name.find("dial_t") != std::string::npos) {
 				if (DialogueManager::GetInstance().CheckActivePack()) {
+					if (!hasFinishedCarnivalIntro)
+					{
+						textObj->trl = vec3(0, 0.1f, 0);
+						textObj->scl = vec3(60, 60, 1);
+					}
+					else if (gameIntroActive)
+					{
+						textObj->color = vec3(0.f, 1.f, 0.f);
+						textObj->trl = vec3(0, 0, 0);
+						textObj->scl = vec3(100, 100, 1);
+					}
+					else
+					{
+						textObj->color = vec3(1.f, 1.f, 1.f);
+						textObj->trl = vec3(0, -0.575f, 0);
+						textObj->scl = vec3(30, 30, 1);
+					}
 					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
 				}
 				else
 					textObj->text = "";
 			}
+			if (textObj->name.find("press_start") != std::string::npos) {
+				if (canStartGame)
+				{
+					textObj->alpha = Smooth(textObj->alpha, 1.f, 6.f, (float)dt);
+				}
+				else
+				{
+					textObj->alpha = Smooth(textObj->alpha, 0.f, 6.f, (float)dt);
+				}
+			}
 			if (textObj->name.find("score") != std::string::npos)
 			{
-				textObj->text = std::to_string(gameScore);
+				if (inGame)
+				{
+					textObj->allowRender = true;
+					if (endGame)
+					{
+						textObj->trl = vec3(0.f, 0.6f, 0.f);
+						textObj->scl = vec3(120.f, 120.f, 0.f);
+					}
+					else
+					{
+						textObj->trl = vec3(0.7f, 0.8f, 0);
+						textObj->scl = vec3(80, 80, 1);
+					}
+
+					textObj->text = "Score: " + std::to_string(gameScore);
+				}
+				else
+				{
+					textObj->allowRender = false;
+				}
+			}
+			if (textObj->name.find("new_record") != std::string::npos)
+			{
+				if (endGame && isNewRecord)
+				{
+					textObj->allowRender = true;
+				}
+				else
+				{
+					textObj->allowRender = false;
+				}
+
+				textObj->color = vec3(0.f, 1.f, 1.f);
 			}
 			if (textObj->name.find("gameTimer") != std::string::npos)
 			{
-				textObj->text = std::to_string(static_cast<int>(gameTimer));
+				if (inGame && !endGame)
+				{
+					textObj->allowRender = true;
+					if (gameTimer < 11.f)
+					{
+						textObj->color = vec3(1.f, 0.f, 0.f);
+					}
+					else
+					{
+						textObj->color = vec3(1.f);
+					}
+				}
+				else
+				{
+					textObj->allowRender = false;
+				}
+
+				textObj->text = "Time left: " + std::to_string(static_cast<int>(gameTimer));
 			}
 			if (textObj->name.find("_debugtxt_") != std::string::npos) {
 				textObj->allowRender = debug;
@@ -720,7 +1154,23 @@ void SceneWhack::Update(double dt) {
 		obj->allowRender = debug;
 		Light& properties = obj->lightProperties;
 
+		if (obj->name == "gameLight")
+		{
+			if (isUpdateGameLight)
+			{
+				if (gameIntroActive)
+				{
+					properties.power = 5.f;
+				}
+				else if (endGame)
+				{
+					properties.power = 0.001f;
+				}
 
+				isUpdateGameLight = false;
+				UpdateLightUniform(obj);
+			}
+		}
 
 		if (debug) {
 
@@ -777,13 +1227,37 @@ void SceneWhack::Update(double dt) {
 			physics->InterpolateTransform();
 			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
 
+			if (obj->name == "teleporter")
+			{
+				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
+
+					if (player.renderGroup.lock()->GetPhysics()->Getbody() == overlapped)
+					{
+						if (finishedGameOnce)
+						{
+							// Insert scene switch code
+							// Uses int highestScore from scene data member
+							// Score range for grades (if still doing, if not: best score for player is 10)
+							// A: >= 10
+							// B: 7-9
+							// C: 4-6
+							// D: 1-3
+							// F: 0
+						}
+					}
+
+					});
+				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
+				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+			}
+
 			if (obj->name == "gamestart_box") {
 				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
 					
 					if (player.renderGroup.lock()->GetPhysics()->Getbody() == overlapped)
 					{
-						camera.Set(FPCamera::MODE::LOCK_ON);
-						camera.SetDirection(vec3(20.f, 4.f, 0.f) - camera.GetPlainPosition());
+						canStartGame = true;
+						startGameTimer = 0.1;
 					}
 					
 					});
@@ -793,6 +1267,17 @@ void SceneWhack::Update(double dt) {
 
 			if (obj->name == "portal_ground")
 			{
+				if (!inGame || allGameObjectsDestroyed)
+				{
+					obj->alpha = Smooth(obj->alpha, 0.f, 4.f, (float)dt);
+					if (obj->alpha >= 0.999f) obj->alpha = 1.f;
+				}
+				else if (inGame)
+				{
+					obj->alpha = Smooth(obj->alpha, 1.f, 10.f, (float)dt);
+					if (obj->alpha <= 0.001f) obj->alpha = 0.f;
+				}
+				
 				obj->offsetRot.x += 45.f * dt;
 				
 				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
@@ -821,10 +1306,30 @@ void SceneWhack::Update(double dt) {
 			}
 
 			if (obj->name == "portal_evil")
-			{
- 				int portalIndex = FindEvilPortalIndex(obj);
+			{	
+				if (gameChange)
+				{
+					obj->alpha = Smooth(obj->alpha, 0.f, 10.f, (float)dt);
+					if (obj->alpha <= 0.001f) obj->alpha = 0.f;
+				}
+				else
+				{
+					obj->alpha = Smooth(obj->alpha, 1.f, 10.f, (float)dt);
+					if (obj->alpha >= 0.999f) obj->alpha = 1.f;
+				}
+				
+				int portalIndex = FindEvilPortalIndex(obj);
 				if (portalIndex != -1)
 				{
+					if (allGameObjectsDestroyed)
+					{
+						portalEvilList.erase(portalEvilList.begin() + portalIndex);
+						physicsList.erase(physicsList.begin() + i);
+						obj->Destroy();
+						obj.reset();
+						continue;
+					}
+					
 					physics->SetPosition(vec3(portalEvilList[portalIndex].portalBasePosition.x + 1.f * sinf((float)elapsed * 2.f), physics->GetPosition().y, physics->GetPosition().z));
 					obj->offsetRot.z += 45.f * dt;
 					vec3 toTarget = physics->GetPosition() - player.position;
@@ -836,7 +1341,7 @@ void SceneWhack::Update(double dt) {
 			}
 
 			if (obj->name == "portal_good")
-			{
+			{	
 				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
 
 					for (unsigned j = 0; j < virusList.size();)
@@ -861,9 +1366,29 @@ void SceneWhack::Update(double dt) {
 				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
 				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
 				
+				if (gameChange)
+				{
+					obj->alpha = Smooth(obj->alpha, 0.f, 10.f, (float)dt);
+					if (obj->alpha <= 0.001f) obj->alpha = 0.f;
+				}
+				else
+				{
+					obj->alpha = Smooth(obj->alpha, 1.f, 10.f, (float)dt);
+					if (obj->alpha >= 0.999f) obj->alpha = 1.f;
+				}
+
 				int portalIndex = FindGoodPortalIndex(obj);
 				if (portalIndex != -1)
 				{
+					if (allGameObjectsDestroyed)
+					{
+						portalGoodList.erase(portalGoodList.begin() + portalIndex);
+						physicsList.erase(physicsList.begin() + i);
+						obj->Destroy();
+						obj.reset();
+						continue;
+					}
+					
 					physics->SetPosition(vec3(portalGoodList[portalIndex].portalBasePosition.x + 1.f * sinf((float)elapsed * 2.f), physics->GetPosition().y, physics->GetPosition().z));
 					obj->offsetRot.z += 45.f * dt;
 					vec3 toTarget = physics->GetPosition() - player.position;
@@ -881,7 +1406,7 @@ void SceneWhack::Update(double dt) {
 				{
 					ballTimeList[timerIndex].timer -= static_cast<float>(dt);
 
-					if (ballTimeList[timerIndex].timer <= 0.f)
+					if (ballTimeList[timerIndex].timer <= 0.f || allGameObjectsDestroyed)
 					{
 						ballTimeList.erase(ballTimeList.begin() + timerIndex);
 						physicsList.erase(physicsList.begin() + i);
@@ -904,7 +1429,10 @@ void SceneWhack::Update(double dt) {
 							
 							if (virusPhysics->Getbody() == contacted)
 							{
+								AudioManager::GetInstance().PlaySFX(HIT);
 								virusList[j].hasBeenHit = true;
+								virusList[j].returningToX = false;
+								virusList[j].hp -= 5;
 							}
 
 							j++;
@@ -921,8 +1449,18 @@ void SceneWhack::Update(double dt) {
 				int virusIndex = FindVirusIndex(obj);
 				if (virusIndex != -1)
 				{
-					if (virusList[virusIndex].hasBeenDestroyed)
+					if (physics->GetPosition().x >= 45.f || virusList[virusIndex].hp <= 0)
 					{
+						virusList[virusIndex].hasBeenDestroyed = true;
+					}
+					
+					if (virusList[virusIndex].hasBeenDestroyed || allGameObjectsDestroyed)
+					{
+						if (virusList[virusIndex].hasBeenDestroyed)
+						{
+							AudioManager::GetInstance().PlaySFX(VIRUS_DIE);
+							gameScore++;
+						}
 						virusList.erase(virusList.begin() + virusIndex);
 						physicsList.erase(physicsList.begin() + i);
 						obj->Destroy();
@@ -939,35 +1477,63 @@ void SceneWhack::Update(double dt) {
 					{
 						if (!currentVirus.hasBeenHit)
 						{
-							currentVirus.virus.lock()->GetPhysics()->SetOrientation(vec3(0.f, 90.f, 0.f));
-							vec3 virusPosition = physics->GetPosition();
-							vec3 targetPosition = currentVirus.waypoints[currentVirus.waypointIndex];
-
-							vec3 virusToTarget = targetPosition - virusPosition;
-
-							float distanceSquared = glm::dot(virusToTarget, virusToTarget);
-							float arriveRadius = currentVirus.arriveRadius;
-
-							if (distanceSquared <= arriveRadius * arriveRadius)
+							if (currentVirus.returningToX)
 							{
-								currentVirus.waypointIndex++;
-								if (currentVirus.waypointIndex >= currentVirus.waypoints.size())
+								vec3 virusVelocity = physics->GetVelocity();
+								virusVelocity.x = 0.f;
+								physics->SetVelocity(virusVelocity);
+								
+								vec3 virusPosition = physics->GetPosition();
+								float differenceX = currentVirus.homeX - virusPosition.x;
+								float step = currentVirus.moveSpeed * (float)dt;
+
+								if (fabsf(differenceX) <= 0.05f)
 								{
-									currentVirus.waypointIndex = 0;
+									virusPosition.x = currentVirus.homeX;
+									physics->SetPosition(virusPosition);
+									currentVirus.returningToX = false;
+								}
+								else
+								{
+									virusPosition.x += (differenceX > 0.f ? step : -step);
+									physics->SetPosition(virusPosition);
+								}
+							}
+							else
+							{
+								physics->SetOrientation(vec3(0.f, 90.f, 0.f));
+								vec3 virusPosition = physics->GetPosition();
+								vec3 targetPosition = currentVirus.waypoints[currentVirus.waypointIndex];
+
+								vec3 virusToTarget = targetPosition - virusPosition;
+								virusToTarget.x = 0.f;
+
+								float distanceSquared = glm::dot(virusToTarget, virusToTarget);
+								float arriveRadius = currentVirus.arriveRadius;
+
+								if (distanceSquared <= arriveRadius * arriveRadius)
+								{
+									currentVirus.waypointIndex++;
+									if (currentVirus.waypointIndex >= currentVirus.waypoints.size())
+									{
+										currentVirus.waypointIndex = 0;
+									}
+
+									targetPosition = currentVirus.waypoints[currentVirus.waypointIndex];
+									virusToTarget = targetPosition - virusPosition;
+									virusToTarget.x = 0.f;
+									distanceSquared = glm::dot(virusToTarget, virusToTarget);
 								}
 
-								targetPosition = currentVirus.waypoints[currentVirus.waypointIndex];
-								virusToTarget = targetPosition - virusPosition;
-								distanceSquared = glm::dot(virusToTarget, virusToTarget);
-							}
-
-							if (distanceSquared > 0.000001f)
-							{
-								vec3 direction = virusToTarget / sqrtf(distanceSquared);
-								vec3 desiredVelocity = direction * currentVirus.moveSpeed;
-								vec3 currentVelocity = physics->GetVelocity();
-								vec3 newVelocity = Smooth(currentVelocity, desiredVelocity, currentVirus.smoothing, (float)dt);
-								physics->SetVelocity(newVelocity);
+								if (distanceSquared > 0.000001f)
+								{
+									vec3 direction = virusToTarget / sqrtf(distanceSquared);
+									vec3 desiredVelocity = direction * currentVirus.moveSpeed;
+									vec3 currentVelocity = physics->GetVelocity();
+									vec3 newVelocity = Smooth(currentVelocity, desiredVelocity, currentVirus.smoothing, (float)dt);
+									newVelocity.x = 0.f;
+									physics->SetVelocity(newVelocity);
+								}
 							}
 						}
 						else
@@ -977,10 +1543,12 @@ void SceneWhack::Update(double dt) {
 							{
 								currentVirus.timerHit = 5.f;
 								currentVirus.hasBeenHit = false;
+								currentVirus.returningToX = true;
+								vec3 currentVelocity = physics->GetVelocity();
+								currentVelocity.x = 0.f;
+								physics->SetVelocity(currentVelocity);
 							}
 						}
-						
-						
 					}
 				}
 			}
@@ -997,15 +1565,10 @@ void SceneWhack::Update(double dt) {
 	// camera
 	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
 
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
-	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
-	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
 	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPosition()));
 	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
 	AddDebugText("gaugeMarker.position: " + VecToString(gaugeMarkerPosition));
-	AddDebugText("mouseX: " + std::to_string(MouseController::GetInstance()->GetMousePositionX()));
-	AddDebugText("mouseY: " + std::to_string(MouseController::GetInstance()->GetMousePositionY()));
 
 	if (dirtyWorldList) {
 		for (unsigned i = 0; i < worldList.size(); ) {
@@ -1017,9 +1580,20 @@ void SceneWhack::Update(double dt) {
 		}
 	}
 
+	if (inGame && !endGame)
+	{
+		if (allGameObjectsDestroyed)
+		{
+			if (AudioManager::GetInstance().PlayingMUS() == 1)
+			{
+				AudioManager::GetInstance().FadeOutMUS(1000);
+			}
+			endGame = true;
+		}
+	}
+
 	RObj::newObject.reset();
 }
-
 
 void SceneWhack::Render() {
 	BaseScene::Render();
@@ -1136,8 +1710,6 @@ void SceneWhack::Exit() {
 }
 
 void SceneWhack::HandleKeyPress() {
-
-	static GAMESTATE currentGameState = FREEROAM;
 	
 	if (debug) {
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_8)) {
@@ -1157,21 +1729,9 @@ void SceneWhack::HandleKeyPress() {
 	}
 
 	// debug keys
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_0))
-	{
-		if (gamePaused)
-		{
-			gamePaused = false;
-		}
-		else
-		{
-			gamePaused = true;
-		}
-	}
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
 		debug = !debug;
 		renderDebugPhysics = false;
-		camera.Set(Cam::MODE::FIRST_PERSON);
 		player.allowControl = true;
 	}
 	if (debug) {
@@ -1211,16 +1771,26 @@ void SceneWhack::HandleKeyPress() {
 	switch (currentGameState)
 	{
 	case GAMEPLAY:
+
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_5))
 		{
-			ChangePortalMap();
-			portalIndex = 0;
+			if (!pauseMarker)
+			{
+				pauseMarker = true;
+			}
+			else
+			{
+				pauseMarker = false;
+			}
+		}
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_6))
+		{
+			gameTimer = 0.f;
 		}
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_A))
 		{
-			selectedPortalPosition = portalGoodList[portalIndex].portalBasePosition;
-			//camera.SetDirection(selectedPortalPosition - camera.GetPlainPosition());
 			portalIndex--;
 			if (portalIndex < 0)
 			{
@@ -1230,23 +1800,32 @@ void SceneWhack::HandleKeyPress() {
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_D))
 		{
-			selectedPortalPosition = portalGoodList[portalIndex].portalBasePosition;
-			//camera.SetDirection(selectedPortalPosition - camera.GetPlainPosition());
 			portalIndex++;
 			if (portalIndex % portalGoodPositionsList.size() == 0 && portalIndex != 0)
 			{
 				portalIndex = 0;
 			}
 		}
-		
-		if (MouseController::GetInstance()->IsButtonDown(MouseController::LMB)) {
+		if (!portalGoodList.empty()) selectedPortalPosition = portalGoodList[portalIndex].portalBasePosition;
+
+		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_7))
+		{
+			triggeredChange = true;
+		}
+
+		if (triggeredChange)
+		{
+			portalIndex = 0;
+		}
+
+		if (MouseController::GetInstance()->IsButtonDown(MouseController::LMB) && !endGame) {
 			isGaugeActive = true;
 		}
 		else
 		{
 			isGaugeActive = false;
 		}
-		if (MouseController::GetInstance()->IsButtonReleased(MouseController::LMB))
+		if (MouseController::GetInstance()->IsButtonReleased(MouseController::LMB) && !endGame)
 		{
 			isGaugeActive = false;
 
@@ -1262,17 +1841,21 @@ void SceneWhack::HandleKeyPress() {
 			physics->Getbody()->enableGravity(false);
 
 			float impulseStrength = 0.f;
-			if (gaugeMarkerPosition.x < 0.05f && gaugeMarkerPosition.x > -0.05f)
+			if (gaugeMarkerPosition.x < 0.03f && gaugeMarkerPosition.x > -0.03f) // Green
 			{
-				impulseStrength = 40000.f;
+				impulseStrength = 50000.f;
 			}
-			else if (gaugeMarkerPosition.x < 0.12f && gaugeMarkerPosition.x > -0.12f)
+			else if (gaugeMarkerPosition.x < 0.1f && gaugeMarkerPosition.x > -0.1f) // Yellow
+			{
+				impulseStrength = 35000.f;
+			}
+			else if (gaugeMarkerPosition.x < 0.165f && gaugeMarkerPosition.x > -0.165f) // Orange
 			{
 				impulseStrength = 25000.f;
 			}
-			else if (gaugeMarkerPosition.x < 0.225f && gaugeMarkerPosition.x > -0.225f)
+			else if (gaugeMarkerPosition.x < 0.225f && gaugeMarkerPosition.x > -0.225f) // Red
 			{
-				impulseStrength = 10000.f;
+				impulseStrength = 20000.f;
 			}
 
 			physics->AddImpulse(impulseStrength * direction);
@@ -1284,6 +1867,16 @@ void SceneWhack::HandleKeyPress() {
 	case FREEROAM:
 		if (player.allowControl)
 		{
+			if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z))
+			{
+				if (canStartGame)
+				{
+					gameIntroActive = true;
+					currentGameState = DIALOGUE;
+					canStartGame = false;
+				}
+			}
+
 			// movement
 			{
 				auto playerGroup = player.renderGroup.lock();
@@ -1331,71 +1924,6 @@ void SceneWhack::HandleKeyPress() {
 		break;
 	default:
 		break;
-	}
-
-	
-
-	if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-		//AudioManager::GetInstance().PlayMUS(0, 1);
-	}
-
-	// player controls
-	if (player.allowControl) {
-
-		
-
-		// action
-		
-
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
-			AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
-		}
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
-			if (AudioManager::GetInstance().PlayingMUS())
-				AudioManager::GetInstance().PauseMUS();
-			else
-				AudioManager::GetInstance().ResumeMUS();
-		}
-		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) > 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() + 1);
-		}
-		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
-		}
-
-		// fake jump lol
-		/*if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_SPACE)) {
-			player.renderGroup.lock()->GetPhysics()->AddSoftImpulse(vec3(0, 10000, 0));
-		}*/
-
-		
-
-		
-	}
-
-	static bool inGame = false;
-	static bool changed = false;
-
-	if (changed)
-	{
-		if (inGame)
-		{
-			player.renderGroup.lock()->GetPhysics()->Getbody()->enableGravity(false);
-			player.renderGroup.lock()->GetPhysics()->SetVelocity(vec3(player.renderGroup.lock()->GetPhysics()->GetVelocity().x, 0.f, player.renderGroup.lock()->GetPhysics()->GetVelocity().z));
-			camera.Set(Cam::MODE::LOCK_ON);
-			player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(15.f, 10.f, 0.f));
-			camera.SetDirection(vec3(20.f, 6.5f, 0.f) - vec3(10.f, 6.5f, 0.f));
-			
-			player.allowControl = false;
-		}
-		else
-		{
-			camera.Set(Cam::MODE::FIRST_PERSON);
-			player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0.f, 6.5f, 0.f));
-			player.allowControl = true;
-		}
-
-		changed = false;
 	}
 }
 
@@ -1467,8 +1995,6 @@ void SceneWhack::RenderObj(const std::shared_ptr<RObj> obj) {
 	meshList[obj->geometryType]->material = meshMaterial;
 
 }
-
-
 
 void SceneWhack::RenderMesh(GEOMETRY_TYPE type, bool enableLight) {
 
@@ -1552,16 +2078,46 @@ void SceneWhack::ClearDebugText() {
 		std::dynamic_pointer_cast<TextObject>(obj_weak.lock())->text = "";
 }
 
+void SceneWhack::MidgameChange()
+{
+	gameChange = true;
+	auto& physicsList = RObj::physicsList;
+	bool allDisappeared = true;
+	for (unsigned i = 0; i < physicsList.size();)
+	{
+		if (physicsList[i].expired()) {
+			physicsList.erase(physicsList.begin() + i);
+			continue;
+		}
+
+		auto obj = physicsList[i].lock();
+		auto physics = obj->GetPhysics();
+
+		if (obj->name == "portal_good" || obj->name == "portal_evil")
+		{
+			if (obj->alpha > 0.f)
+			{
+				return;
+			}
+		}
+
+		i++;
+	}
+
+	triggeredChange = false;
+	CreatePortalMap();
+}
+
 void SceneWhack::InitPortalMaps()
 {
 	portalEvilMapList[0] = { vec3(40.f, 15.f, -5.f), vec3(40.f, 15.f, 5.f), vec3(40.f, 5.f, -5.f), vec3(40.f, 5.f, 5.f) };
-	portalEvilMapList[1] = { vec3(40.f, 15.f, 0.f), vec3(40.f, 10.f, -10.f), vec3(40.f, 10.f, 10.f),  vec3(40.f, 5.f, 0.f) };
+	portalEvilMapList[1] = { vec3(40.f, 15.f, 0.f), vec3(40.f, 10.f, -9.f), vec3(40.f, 10.f, 9.f),  vec3(40.f, 5.f, 0.f) };
 
 	portalGoodMapList[0] = { vec3(43.f, 15.f, 0.f), vec3(43.f, 10.f, -5.f), vec3(43.f, 10.f, 0.f), vec3(43.f, 10.f, 5.f),  vec3(43.f, 5.f, 0.f) };
-	portalGoodMapList[1] = { vec3(43.f, 15.f, -5.f), vec3(43.f, 15.f, 5.f), vec3(43.f, 10.f, -5.f), vec3(43.f, 10.f, 0.f), vec3(43.f, 10.f, 5.f), vec3(43.f, 5.f, -5.f), vec3(43.f, 5.f, 5.f) };
+	portalGoodMapList[1] = { vec3(43.f, 13.f, -5.f), vec3(43.f, 13.f, 5.f), vec3(43.f, 10.f, 0.f), vec3(43.f, 7.f, -5.f), vec3(43.f, 7.f, 5.f) };
 }
 
-void SceneWhack::ChangePortalMap()
+void SceneWhack::CreatePortalMap()
 {
 	auto& physicsList = RObj::physicsList;
 	for (unsigned i = 0; i < physicsList.size();)
@@ -1648,6 +2204,7 @@ void SceneWhack::ChangePortalMap()
 	{
 		worldRoot->NewChild(MeshObject::Create(PORTAL_EVIL));
 		newObj->name = "portal_evil";
+		newObj->alpha = 0.f;
 		newObj->GetPhysics()->SetPosition(portalEvilPositionsList[i]);
 		newObj->colorFilter = vec3(1.f, 0.1f, 0.1f);
 
@@ -1658,6 +2215,7 @@ void SceneWhack::ChangePortalMap()
 	{
 		worldRoot->NewChild(MeshObject::Create(PORTAL_GOOD));
 		newObj->name = "portal_good";
+		newObj->alpha = 0.f;
 		newObj->GetPhysics()->SetPosition(portalGoodPositionsList[i]);
 
 		portalGoodList.push_back({ portalGoodPositionsList[i], newObj });
@@ -1686,38 +2244,141 @@ void SceneWhack::ChangePortalMap()
 	}
 
 	selectedPortalPosition = portalGoodList[0].portalBasePosition;
+	gameChange = false;
+	triggeredChange = false;
 }
 
 void SceneWhack::StartCutscene()
 {
+	if (DialogueManager::GetInstance().CheckActivePack()) return;
 	static int cutsceneIndex = 0;
 
 	// maybe add enums for each cutscene later
 	if (!hasFinishedTutorial)
 	{
+		currentGameState = DIALOGUE;
 		switch (cutsceneIndex)
 		{
 		case 0:
-			if (DialogueManager::GetInstance().CheckActivePack()) return;
 			player.allowControl = false;
+			hasFinishedCarnivalIntro = false;
 			camera.Set(FPCamera::MODE::LOCK_ON);
 			camera.SetDirection(vec3(20.f, 4.f, 0.f) - camera.GetPlainPosition());
-			DialogueManager::GetInstance().StartDialogue("Tutorial1");
+			DialogueManager::GetInstance().StartDialogue("CarnivalIntro");
 			cutsceneIndex++;
 			break;
 		case 1:
-			if (DialogueManager::GetInstance().CheckActivePack()) return;
-			player.allowControl = false;
-			camera.SetDirection(vec3(20.f, 4.f, 5.f) - camera.GetPlainPosition());
+			hasFinishedCarnivalIntro = true;
 			DialogueManager::GetInstance().StartDialogue("Tutorial1");
 			cutsceneIndex++;
 			break;
 		case 2:
+			showTutorial = true;
+			DialogueManager::GetInstance().StartDialogue("Tutorial2");
+			cutsceneIndex++;
+			break;
+		case 3:
+			showTutorial = false;
+			showScoreDisplay = true;
+			camera.SetDirection(scoreDisplayPosition - camera.GetPlainPosition());
+			DialogueManager::GetInstance().StartDialogue("Tutorial3");
+			cutsceneIndex++;
+			break;
+		case 4:
+			showScoreDisplay = false;
+			camera.SetDirection(vec3(7.f, 6.f, -7.f) - camera.GetPlainPosition());
+			DialogueManager::GetInstance().StartDialogue("Tutorial4");
+			cutsceneIndex++;
+			break;
+		case 5:
+			camera.SetDirection(vec3(20.f, 4.f, 0.f) - camera.GetPlainPosition());
+			DialogueManager::GetInstance().StartDialogue("Tutorial5");
+			cutsceneIndex++;
+			break;
+		case 6:
 			if (DialogueManager::GetInstance().CheckActivePack()) return;
 			hasFinishedTutorial = true;
 			camera.Set(Cam::MODE::FIRST_PERSON);
 			player.allowControl = true;
+			currentGameState = FREEROAM;
 			cutsceneIndex = 0;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (gameIntroActive)
+	{
+		currentGameState = DIALOGUE;
+		switch (cutsceneIndex)
+		{
+		case 0:
+			player.renderGroup.lock()->GetPhysics()->Getbody()->enableGravity(false);
+			player.renderGroup.lock()->GetPhysics()->SetVelocity(vec3(player.renderGroup.lock()->GetPhysics()->GetVelocity().x, 0.f, player.renderGroup.lock()->GetPhysics()->GetVelocity().z));
+			camera.Set(Cam::MODE::LOCK_ON);
+			player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(15.f, 10.f, 0.f));
+			camera.SetDirection(vec3(20.f, 6.5f, 0.f) - vec3(10.f, 6.5f, 0.f));
+			DialogueManager::GetInstance().StartDialogue("GameIntro");
+			cutsceneIndex++;
+			break;
+		case 1:
+			isUpdateGameLight = true;
+			cutsceneIndex++;
+			break;
+		case 2:
+			gameIntroActive = false;
+			inGame = true;
+			isNewRecord = false;
+			gameScore = 0;
+			currentGameState = GAMEPLAY;
+			gameTimer = 60.f;
+			AudioManager::GetInstance().PlayMUS(-1, 0);
+			CreatePortalMap();
+			elapsedVirusInterval = 0;
+			cutsceneIndex = 0;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (endGame)
+	{
+		currentGameState = DIALOGUE;
+		switch (cutsceneIndex)
+		{
+		case 0:
+			isUpdateGameLight = true;
+			if (gameScore > highestScore)
+			{
+				highestScore = gameScore;
+				AudioManager::GetInstance().PlaySFX(NEWRECORD);
+				DialogueManager::GetInstance().StartDialogue("EndGame_NewRecord");
+			}
+			else if (gameScore == 0)
+			{
+				AudioManager::GetInstance().PlaySFX(ZEROSCORE);
+				DialogueManager::GetInstance().StartDialogue("EndGame_ZeroScore");
+			}
+			else
+			{
+				AudioManager::GetInstance().PlaySFX(OKAYSCORE);
+				DialogueManager::GetInstance().StartDialogue("EndGame");
+			}
+			cutsceneIndex++;
+			break;
+		case 1:
+			currentGameState = FREEROAM;
+			player.renderGroup.lock()->GetPhysics()->Getbody()->enableGravity(true);
+			inGame = false;
+			allGameObjectsDestroyed = false;
+			camera.Set(Cam::MODE::FIRST_PERSON);
+			player.renderGroup.lock()->GetPhysics()->SetPosition(vec3(0.f, 6.5f, 0.f));
+			cutsceneIndex = 0;
+			endGame = false;
+			break;
+		default:
 			break;
 		}
 	}
