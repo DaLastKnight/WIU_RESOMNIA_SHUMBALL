@@ -11,14 +11,20 @@
 #include <stdlib.h>
 
 #include "Scene.h"
-#include "SceneBowling.h"
+#include "SceneDemo.h"
+#include "SceneManager.h"
+#include "SceneRhythm.h"
+#include "SceneMedical.h"
 #include "KeyboardController.h"
 #include "MouseController.h"
 #include "AudioManager.h"
+#include "DataManager.h"
 
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
 const unsigned int frameTime = 1000 / FPS; // time for each frame
+
+bool Application::endPrograme = false;
 
 //Define an error callback
 static void error_callback(int error, const char* description)
@@ -131,19 +137,24 @@ void Application::Init()
 	// audio init
 	AudioManager::GetInstance().InitSystem();
 	AudioManager::GetInstance().OpenMixer();
+
+	// data init
+	DataManager::GetInstance().LoadData();
 }
 
 void Application::Run()
 {
+	srand(static_cast<unsigned int>(time(0)));
 	//Main Loop
-	Scene *scene = new SceneBowling();
-	scene->Init();
+	SceneManager::GetInstance().ChangeState(new SceneRhythm());
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
-	while (!glfwWindowShouldClose(m_window) && !KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ESCAPE))
+	while (!glfwWindowShouldClose(m_window) && !KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_ESCAPE) && !endPrograme)
 	{
-		scene->Update(m_timer.getElapsedTime());
-		scene->Render();
+		float dt = static_cast<float>(m_timer.getElapsedTime());
+
+		SceneManager::GetInstance().Update(dt);
+		SceneManager::GetInstance().Render();
 		//Swap buffers
 		glfwSwapBuffers(m_window);
 
@@ -163,16 +174,18 @@ void Application::Run()
         m_timer.waitUntil(frameTime);       // Frame rate limiter. Limits each frame to a specified time in ms.   
 
 	} //Check if the ESC key had been pressed or if the window had been closed
-	scene->Exit();
-	delete scene;
 }
 
 void Application::Exit()
 {
+	DataManager::GetInstance().SaveAllDataToFile();
+
 	KeyboardController::DestroyInstance();
 
 	AudioManager::GetInstance().CloseMixer();
 	AudioManager::GetInstance().ExitSystem();
+
+	SceneManager::GetInstance().CleanUp();
 	
 	//Close OpenGL window and terminate GLFW
 	glfwDestroyWindow(m_window);

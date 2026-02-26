@@ -40,6 +40,11 @@ public:
 	int geometryType;
 	Material material;
 
+	glm::vec3 colorFilter = glm::vec3(1);
+	glm::vec3 accumulatedColorFilter;
+	float alpha = 1;
+	float accumulatedAlpha;
+
 	bool hasTransparency = false;
 	bool allowRender = true;
 	bool relativeTrl = false; // only affect screen render, trl will be from -1 to 1 in relative distance to center and side of the screen, instead of in px
@@ -71,6 +76,7 @@ public:
 
 	// Subscribe() to a lambda and itll be Invoke() when creating a object with the same key
 	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDefaultStat;
+	static EventPack<int, void, const std::shared_ptr<RenderObject>&> setDestroyedEvent;
 
 	bool isDirty = true;
 
@@ -81,6 +87,7 @@ public:
 	void UsePhysicsModel();
 
 	void Destroy();
+	void ClearChildren();
 	void NewChild(std::shared_ptr<RenderObject> child);
 
 	void SwapParentTo(const std::shared_ptr<RenderObject>& newParent);
@@ -110,9 +117,7 @@ public:
 
 	void RootInit(RENDER_TYPE renderType, int geometryType);
 
-	virtual ~RenderObject() {
-		delete physics;
-	}
+	virtual ~RenderObject();
 	RenderObject(int geometryType, RENDER_TYPE renderType, unsigned UILayer = 0)
 		: geometryType(geometryType), renderType(renderType), UILayer(UILayer) {
 	}
@@ -130,10 +135,12 @@ protected:
 	glm::vec3 prevTrl = trl;
 	glm::vec3 prevRot = rot;
 	glm::vec3 prevScl = scl;
+	glm::vec3 prevColorFilter = colorFilter;
+	float prevAlpha = alpha;
 
 	static constexpr unsigned MAX_UI_LAYERS = 100;
 
-	glm::mat4 GetModel();
+	glm::mat4 GetModel(bool onlyAccumulatedStats = false);
 	void UpdateModelWithParent(glm::mat4 parentModel);
 
 	std::shared_ptr<RenderObject> Clone() const;
@@ -141,6 +148,8 @@ protected:
 		return nullptr;
 	}
 	void CloneChildrenFrom(const RenderObject& parentOfClonedChidren);
+
+	void DetachFromParent();
 
 	void AddHierarchyToList(RENDER_TYPE type, std::shared_ptr<RenderObject> obj);
 

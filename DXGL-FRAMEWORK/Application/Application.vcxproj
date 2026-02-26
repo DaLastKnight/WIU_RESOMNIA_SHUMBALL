@@ -144,18 +144,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\glm;$(SolutionDir)\glew\include;$(SolutionDir)\glfw\include;$(SolutionDir)\Common\Source;$(SolutionDir)\json;$(SolutionDir)\SDL2\include;$(SolutionDir)\SDL2_mixer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\glm;$(SolutionDir)\glew\include;$(SolutionDir)\glfw\include;$(SolutionDir)\Common\Source;$(SolutionDir)\json;$(SolutionDir)\SDL2\include;$(SolutionDir)\SDL2_mixer\include;$(SolutionDir)\ReactPhysics3D\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)glew\lib;$(SolutionDir)glfw\lib-vc2022;$(SolutionDir)$(Configuration);$(SolutionDir)SDL2\lib;$(SolutionDir)SDL2_mixer\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;winmm.lib;Common.lib;SDL2.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)glew\lib;$(SolutionDir)glfw\lib-vc2022;$(SolutionDir)$(Configuration);$(SolutionDir)SDL2\lib;$(SolutionDir)SDL2_mixer\lib;$(SolutionDir)Reactphysics3D\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;winmm.lib;Common.lib;SDL2.lib;SDL2_mixer.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Ease.cpp" />
     <ClCompile Include="Source\PhysicsManager.cpp" />
     <ClCompile Include="Source\DialogueManager.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -168,14 +169,19 @@
     <ClCompile Include="Source\MatrixStack.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\MeshBuilder.cpp" />
-    <ClCompile Include="Source\SceneBowling.cpp" />
+    <ClCompile Include="Source\RhythmGameManager.cpp" />
     <ClCompile Include="Source\SceneDemo.cpp" />
     <ClCompile Include="Source\ModelLoader.cpp" />
     <ClCompile Include="Source\RenderObject.cpp" />
+    <ClCompile Include="Source\SceneManager.cpp" />
+    <ClCompile Include="Source\SceneRhythm.cpp" />
+    <ClCompile Include="Source\SceneMedical.cpp" />
     <ClCompile Include="Source\shader.cpp" />
+    <ClCompile Include="Source\SRhythmRaycast.cpp" />
     <ClCompile Include="Source\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Ease.h" />
     <ClInclude Include="Source\PhysicsManager.h" />
     <ClInclude Include="Source\DataManager.h" />
     <ClInclude Include="Source\DialogueManager.h" />
@@ -195,10 +201,14 @@
     <ClInclude Include="Source\MeshBuilder.h" />
     <ClInclude Include="Source\ModelLoader.h" />
     <ClInclude Include="Source\RenderObject.h" />
+    <ClInclude Include="Source\RhythmGameManager.h" />
     <ClInclude Include="Source\Scene.h" />
-    <ClInclude Include="Source\SceneBowling.h" />
     <ClInclude Include="Source\SceneDemo.h" />
+    <ClInclude Include="Source\SceneManager.h" />
+    <ClInclude Include="Source\SceneRhythm.h" />
+    <ClInclude Include="Source\SceneMedical.h" />
     <ClInclude Include="Source\shader.hpp" />
+    <ClInclude Include="Source\SRhythmRaycast.h" />
     <ClInclude Include="Source\TextureLoader.h" />
     <ClInclude Include="Source\Utils.h" />
     <ClInclude Include="Source\Vertex.h" />

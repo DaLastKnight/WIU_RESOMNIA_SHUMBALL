@@ -11,10 +11,10 @@ using namespace reactphysics3d;
 
 void PhysicsObject::AddImpulse(glm::vec3 force) {
 	body->setLinearVelocity(rp3d::Vector3(0, 0, 0));
-	body->applyLocalForceAtCenterOfMass(Vec3Convert(force) * PhysicsManager::GetInstance().Get_TIME_STEP());
+	body->applyWorldForceAtCenterOfMass(Vec3Convert(force) * PhysicsManager::GetInstance().Get_TIME_STEP());
 }
 void PhysicsObject::AddSoftImpulse(glm::vec3 impulse) {
-	body->applyLocalForceAtCenterOfMass(Vec3Convert(impulse) * PhysicsManager::GetInstance().Get_TIME_STEP());
+	body->applyWorldForceAtCenterOfMass(Vec3Convert(impulse) * PhysicsManager::GetInstance().Get_TIME_STEP());
 }
 
 void PhysicsObject::SetTransform(glm::vec3 position_vec3, glm::vec3 eulerRotation) {
@@ -42,7 +42,7 @@ glm::mat4 PhysicsObject::GetModel() {
 	return glm::make_mat4(matrix);
 }
 
-glm::vec3 PhysicsObject::GetPostion() {
+glm::vec3 PhysicsObject::GetPosition() {
 	return Vec3Convert(body->getTransform().getPosition());
 }
 
@@ -84,6 +84,7 @@ void PhysicsObject::SetCollisionActive(bool isEnabled) {
 bool PhysicsObject::GetCollisionActive() {
 	if (!colliders.empty())
 		return colliders[0]->getIsSimulationCollider();
+	return false;
 }
 
 void PhysicsObject::SetTrigger(bool isEnabled) {
@@ -181,6 +182,7 @@ PhysicsObject::PhysicsObject(BODY_TYPE type, glm::vec3 position_vec3, glm::vec3 
 }
 
 PhysicsObject::~PhysicsObject() {
+	PhysicsManager::GetInstance().GetEventListener().RemoveEventsOf(this);
 	PhysicsManager::GetInstance().GetWorld()->destroyRigidBody(body);
 }
 
@@ -196,10 +198,10 @@ void PhysicsEventListener::onContact(const CollisionCallback::CallbackData& call
 
 		for (auto& event : contactEvents) {
 			if (event.physics->Getbody() == contactPair.getBody1() && event.contactType == contactPair.getEventType()) {
-				event.event.Invoke(contactPair.getBody1());
+				event.event.Invoke(contactPair.getBody2());
 			}
 			else if (event.physics->Getbody() == contactPair.getBody2() && event.contactType == contactPair.getEventType()) {
-				event.event.Invoke(contactPair.getBody2());
+				event.event.Invoke(contactPair.getBody1());
 			}
 		}
 	}
@@ -213,10 +215,10 @@ void PhysicsEventListener::onTrigger(const OverlapCallback::CallbackData& callba
 
 		for (auto& event : triggerEvents) {
 			if (event.physics->Getbody() == overlappingPair.getBody1() && event.overlapType == overlappingPair.getEventType()) {
-				event.event.Invoke(overlappingPair.getBody1());
+				event.event.Invoke(overlappingPair.getBody2());
 			}
 			else if (event.physics->Getbody() == overlappingPair.getBody2() && event.overlapType == overlappingPair.getEventType()) {
-				event.event.Invoke(overlappingPair.getBody2());
+				event.event.Invoke(overlappingPair.getBody1());
 			}
 		}
 	}
@@ -251,20 +253,20 @@ void PhysicsEventListener::AddToTriggerEvents(PhysicsEvent physicsEvent) {
 	triggerEvents.push_back(physicsEvent);
 }
 
-void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) {
-	for (unsigned i = 0; i < contactEvents.size(); ) {
-		if (world->getRigidBody(contactEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
-			contactEvents.erase(contactEvents.begin() + i);
-			continue;
-		}
-		i++;
+void PhysicsEventListener::RemoveEventsOf(PhysicsObject* physics) {
+	{
+		auto it = std::find_if(contactEvents.begin(), contactEvents.end(), [&physics](const PhysicsEvent& pEvent) {
+			return physics == pEvent.physics;
+			});
+		if (it != contactEvents.end())
+			contactEvents.erase(it);
 	}
-	for (unsigned i = 0; i < triggerEvents.size(); ) {
-		if (world->getRigidBody(triggerEvents[i].physics->Getbody()->getEntity().id) == nullptr) {
-			triggerEvents.erase(triggerEvents.begin() + i);
-			continue;
-		}
-		i++;
+	{
+		auto it = std::find_if(triggerEvents.begin(), triggerEvents.end(), [&physics](const PhysicsEvent& pEvent) {
+			return physics == pEvent.physics;
+			});
+		if (it != triggerEvents.end())
+			triggerEvents.erase(it);
 	}
 }
 
@@ -272,8 +274,7 @@ void PhysicsEventListener::UpdateEventValidity(const rp3d::PhysicsWorld* world) 
 /********************************* PhysicsManager *********************************/
 
 void PhysicsManager::InitWorld() {
-	PhysicsWorld::WorldSettings settings; // change settings with this if needed
-	world = physicsCommon.createPhysicsWorld();
+	world = physicsCommon.createPhysicsWorld(worldSettings);
 	world->setEventListener(&eventListener);
 	world->setSleepLinearVelocity(0.01f);
 	world->setSleepAngularVelocity(0.01f);
@@ -281,7 +282,11 @@ void PhysicsManager::InitWorld() {
 }
 
 void PhysicsManager::CleanUp() {
+
+	eventListener = PhysicsEventListener();
+
 	physicsCommon.destroyPhysicsWorld(world);
+	world = nullptr;
 }
 
 void PhysicsManager::SetUpLogger(std::string name) {

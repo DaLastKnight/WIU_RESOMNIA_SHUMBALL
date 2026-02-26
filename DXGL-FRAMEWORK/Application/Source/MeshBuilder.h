@@ -25,7 +25,7 @@ public:
 	// mode | 0 = normal render, 1 = inverse render
 	static Mesh* GenerateTorus(const std::string& meshName, glm::vec3 color = glm::vec3(1.f), float width = 1.f, float radius = 1.f, unsigned int slices = 16, unsigned int stacks = 16, unsigned int mode = 0);
 	static Mesh* GenerateFrustum(const std::string& meshName, glm::vec3 color, float baseRadius, float topRadius, float height, float numSlice = 360);
-	static Mesh* GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height, int textureID = -1);
+	static Mesh* GenerateQuad(const std::string& meshName, glm::vec3 color, float width, float height, int textureID = -1, bool backFaceRender = false);
 	static Mesh* GenerateCube(const std::string& meshName, glm::vec3 color, float length);
 	static Mesh* GenerateTrap(const std::string& meshName, glm::vec3 color, float baseLength, float baseWidth, float topLength, float topWidth, float height);
 	static Mesh* GenerateHemisphere(const std::string& meshName, glm::vec3 color, int numStack, int numSlice, float radius);
@@ -36,8 +36,8 @@ public:
 
 	static Mesh* GenerateText(const std::string& meshName, unsigned numRow, unsigned numCol, float advanceWidth, unsigned textureID);
 
-	static Mesh* GenerateSkybox(const std::string& meshName, unsigned textureID);
-	static Mesh* GenerateGround(const std::string& meshName, float size, float texSize, unsigned textureID);
+	static Mesh* GenerateSkybox(const std::string& meshName, int textureID = -1);
+	static Mesh* GenerateGround(const std::string& meshName, float size, float texSize, int textureID = -1);
 
 	static Mesh* GenerateLine(const std::string& meshName, float length);
 

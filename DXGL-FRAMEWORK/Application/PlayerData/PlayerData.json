@@ -1,8 +1,7 @@
 {
-    "highestScores": {
-        "bowling": 0.0,
-        "rhythm game": 0.0,
-        "whack a mole": 0.0,
-        "medical gun": 0.0
-    }
+    "MEDICAL_TIMETAKEN": 0,
+    "WACK_SCORE": 0,
+    "RHYTHM_SCORE_DIFF0": 0,
+    "RHYTHM_SCORE_DIFF1": 0,
+    "COLLAB_SCORE": 0
 }

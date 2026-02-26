@@ -53,7 +53,7 @@ public:
     // return playback position in seconds
     double GetMUSPosition();
     void SetMUSPosition(double postionInSeconds);
-    double GetMUSDUration();
+    double GetMUSDuration();
 
     
     void SetSFXPosition(int channel, glm::vec3 hearFacingDirection, glm::vec3 hearPosition, glm::vec3 sourcePosition, float maxDistance = 25);

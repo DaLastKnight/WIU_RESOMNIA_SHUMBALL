@@ -24,6 +24,7 @@ std::shared_ptr<RenderObject> RenderObject::newObject;
 std::vector<std::weak_ptr<RenderObject>> RenderObject::physicsList;
 
 EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDefaultStat;
+EventPack<int, void, const std::shared_ptr<RenderObject>&> RenderObject::setDestroyedEvent;
 
 void RenderObject::SortScreenList() {
 	std::array<std::vector<std::weak_ptr<RenderObject>>, MAX_UI_LAYERS> bucketList;
@@ -59,12 +60,24 @@ void RenderObject::SortScreenList() {
 }
 
 void RenderObject::UpdateModel() {
-	if (isDirty || trl != prevTrl || rot != prevRot || scl != prevScl) {
+	bool onlyAccumulatedStats = false;
+
+	if (trl != prevTrl || rot != prevRot || scl != prevScl) {
 		prevTrl = trl;
 		prevRot = rot;
 		prevScl = scl;
+		isDirty = true;
+	}
+	else if (prevColorFilter != colorFilter || prevAlpha != alpha) {
+		prevColorFilter = colorFilter;
+		prevAlpha = alpha;
+		isDirty = true;
+		onlyAccumulatedStats = true;
+	}
+
+	if (isDirty) {
 		isDirty = false;
-		model = GetModel();
+		model = GetModel(onlyAccumulatedStats);
 		for (auto child : children) {
 			child->UpdateModelWithParent(model);
 		}
@@ -76,6 +89,24 @@ void RenderObject::UsePhysicsModel() {
 	rot = QuatToEuler(physics->GetOrientation());
 	rotQuat = physics->GetOrientation();
 	UpdateModel();*/
+
+	if (prevColorFilter != colorFilter || prevAlpha != alpha) {
+		prevColorFilter = colorFilter;
+		prevAlpha = alpha;
+
+		std::shared_ptr<RenderObject> selected = shared_from_this();
+		accumulatedColorFilter = vec3(1);
+		accumulatedAlpha = 1;
+		while (selected) {
+			accumulatedColorFilter *= selected->colorFilter;
+			accumulatedAlpha *= selected->alpha;
+			selected = selected->parent.lock();
+		}
+	}
+
+	if (physics->Getbody()->isSleeping())
+		return;
+
 	model = physics->GetModel();
 	if (offsetTrl != vec3(0))
 		model = model * glm::translate(mat4(1), vec3(offsetTrl.x, offsetTrl.y, offsetTrl.z));
@@ -87,21 +118,22 @@ void RenderObject::UsePhysicsModel() {
 		model = model * glm::rotate(mat4(1), glm::radians(offsetRot.z), vec3(0, 0, 1));
 	if (offsetScl != vec3(1))
 		model = model * glm::scale(mat4(1), vec3(offsetScl.x, offsetScl.y, offsetScl.z));
+
 	for (auto child : children) {
 		child->UpdateModelWithParent(model);
 	}
 }
 
 void RenderObject::Destroy() {
-	if (auto shared_parent = parent.lock()) {
-		for (unsigned i = 0; i < shared_parent->children.size(); i++) {
-			auto& p_child = shared_parent->children[i];
-			if (p_child.get() == this) {
-				shared_parent->children.erase(shared_parent->children.begin() + i);
-				break;
-			}
-		}
+	DetachFromParent();
+	setDestroyedEvent.Invoke(geometryType, shared_from_this());
+}
+
+void RenderObject::ClearChildren() {
+	for (auto& child : children) {
+		setDestroyedEvent.Invoke(child->geometryType, child);
 	}
+	children.clear();
 }
 
 void RenderObject::NewChild(std::shared_ptr<RenderObject> child) {
@@ -160,14 +192,27 @@ void RenderObject::RootInit(RENDER_TYPE renderType, int geometryType) {
 	this_shared->UpdateModel();
 }
 
-glm::mat4 RenderObject::GetModel() {
-	std::stack < std::shared_ptr<RenderObject>> hierarchyStack;
+RenderObject::~RenderObject() {
+	delete physics;
+}
+
+glm::mat4 RenderObject::GetModel(bool onlyAccumulatedStats) {
+	std::stack<std::shared_ptr<RenderObject>> hierarchyStack;
 
 	std::shared_ptr<RenderObject> selected = shared_from_this();
+	accumulatedColorFilter = vec3(1);
+	accumulatedAlpha = 1;
+
 	while (selected) {
-		hierarchyStack.push(selected);
+		accumulatedColorFilter *= selected->colorFilter;
+		accumulatedAlpha *= selected->alpha;
+		if (!onlyAccumulatedStats)
+			hierarchyStack.push(selected);
 		selected = selected->parent.lock();
 	}
+
+	if (onlyAccumulatedStats)
+		return model;
 
 	MatrixStack thisModelStack;
 	thisModelStack.Clear();
@@ -175,6 +220,7 @@ glm::mat4 RenderObject::GetModel() {
 
 	while (!hierarchyStack.empty()) {
 		TransformModelStack(thisModelStack, hierarchyStack.top());
+
 		hierarchyStack.pop();
 	}
 
@@ -187,6 +233,11 @@ void RenderObject::UpdateModelWithParent(glm::mat4 parentModel) {
 	ms.LoadMatrix(parentModel);
 	TransformModelStack(ms, shared_from_this());
 	model = ms.Top();
+
+	auto parent_shared = parent.lock();
+	accumulatedColorFilter = colorFilter * parent_shared->accumulatedColorFilter;
+	accumulatedAlpha = alpha * parent_shared->accumulatedAlpha;
+
 	for (auto child : children) {
 		child->UpdateModelWithParent(model);
 	}
@@ -205,6 +256,18 @@ void RenderObject::CloneChildrenFrom(const RenderObject& parentOfClonedChidren) 
 	for (auto& child : parentOfClonedChidren.children) {
 		children.push_back(child->Clone());
 		children.back()->parent = shared_from_this();
+	}
+}
+
+void RenderObject::DetachFromParent() {
+	if (auto shared_parent = parent.lock()) {
+		for (unsigned i = 0; i < shared_parent->children.size(); i++) {
+			auto& p_child = shared_parent->children[i];
+			if (p_child.get() == this) {
+				shared_parent->children.erase(shared_parent->children.begin() + i);
+				break;
+			}
+		}
 	}
 }
 
@@ -262,6 +325,8 @@ void RenderObject::TransformModelStack(MatrixStack& modelStack, const std::share
 		modelStack.Rotate(obj->offsetRot.z, 0, 0, 1);
 	if (obj->offsetScl != vec3(1))
 		modelStack.Scale(obj->offsetScl.x, obj->offsetScl.y, obj->offsetScl.z);
+
+
 }
 
 /********************************* MeshObject *********************************/

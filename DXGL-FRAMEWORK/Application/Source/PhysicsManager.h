@@ -37,7 +37,7 @@ public:
     Event<void, const rp3d::Body*> contactEvent;
 
     void AddForce(glm::vec3 force) {
-        body->applyLocalForceAtCenterOfMass(Vec3Convert(force));
+        body->applyWorldForceAtCenterOfMass(Vec3Convert(force));
     }
     void AddImpulse(glm::vec3 force);
     // similar to AddImpulse but apply while retaining previous velocity
@@ -72,7 +72,7 @@ public:
     void SetOrientation(glm::vec3 eulerRotation);
     void InterpolateTransform();
     glm::mat4 GetModel();
-    glm::vec3 GetPostion();
+    glm::vec3 GetPosition();
     glm::quat GetOrientation();
 
     // colliderAppearace |
@@ -150,7 +150,7 @@ public:
     // only add none locked events
     void AddToTriggerEvents(PhysicsEvent physicsEvent);
 
-    void UpdateEventValidity(const rp3d::PhysicsWorld* world);
+    void RemoveEventsOf(PhysicsObject* physics);
 
 private:
 
@@ -168,6 +168,9 @@ public:
         return physicsManager;
     }
 
+    rp3d::PhysicsWorld::WorldSettings& GetWorldSettingsObject() {
+        return worldSettings = rp3d::PhysicsWorld::WorldSettings();
+    }
     void InitWorld();
     void CleanUp();
 
@@ -201,6 +204,7 @@ private:
 
     rp3d::PhysicsCommon physicsCommon;
 
+    rp3d::PhysicsWorld::WorldSettings worldSettings;
     rp3d::PhysicsWorld* world;
 
     static constexpr double TIME_STEP = 1 / 60.0;

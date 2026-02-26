@@ -48,6 +48,9 @@ public:
 		U_TEXT_ENABLED,
 		U_TEXT_COLOR,
 
+		U_COLOR_FILTER,
+		U_COLOR_ALPHA,
+
 		U_TOTAL,
 	};
 
@@ -82,10 +85,14 @@ public:
 	BaseScene();
 	virtual~BaseScene() = 0;
 
-	virtual void Init();
-	virtual void Update(double dt);
-	virtual void Render();
-	virtual void Exit();
+	// SceneManager interface
+	virtual void Enter() override { Init(); }
+	virtual void Update(double dt) override;
+	virtual void Render() override;
+	virtual void Exit() override;
+
+	// Your original initialization function
+	virtual void Init(); 
 
 protected:
 

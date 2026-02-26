@@ -194,6 +194,11 @@ bool DialogueManager::CheckActivePack() const
 	return activePack;
 }
 
+bool DialogueManager::IsActive() const
+{
+	return active;
+}
+
 void DialogueManager::BeginCurrentLineScroll()
 {
 	const Dialogue& currentDialogue = activePack->chat[activeDialogueIndex];

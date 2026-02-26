@@ -1,0 +1,29 @@
+
+#ifndef EASE_H
+#define EASE_H
+
+enum class EASE {
+
+	LINEAR,
+	IN_SIN,
+	OUT_SIN,
+	IN_OUT_SIN,
+	IN_QUAD,
+	OUT_QUAD,
+	IN_OUT_QUAD,
+	IN_ELASTIC,
+	OUT_ELASTIC,
+	IN_OUT_ELASTIC,
+	IN_BACK,
+	OUT_BACK,
+	IN_OUT_BACK,
+	IN_QUINT,
+	OUT_QUINT,
+	IN_OUT_QUINT,
+
+	TOTAL_EASE,
+};
+
+float Ease(EASE ease, float t);
+
+#endif

@@ -23,6 +23,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "PhysicsManager.h"
+#include "DialogueManager.h"
 
 #include "Utils.h"
 
@@ -95,6 +96,9 @@ void BaseScene::Init()
 		m_parameters[U_LIGHT_ENABLED] = glGetUniformLocation(m_programID, "lightEnabled");
 		m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 		m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
+
+		m_parameters[U_COLOR_FILTER] = glGetUniformLocation(m_programID, "colorFilter");
+		m_parameters[U_COLOR_ALPHA] = glGetUniformLocation(m_programID, "colorAlp");
 
 		Mesh::SetMaterialLoc(m_parameters[U_MATERIAL_AMBIENT], m_parameters[U_MATERIAL_DIFFUSE], m_parameters[U_MATERIAL_SPECULAR], m_parameters[U_MATERIAL_SHININESS]);
 	
@@ -201,19 +205,21 @@ void BaseScene::Render()
 
 void BaseScene::Exit()
 {
-	// Cleanup VBO here
-	for (auto& mesh : meshList)
-		if (mesh)
-			delete mesh;
+	
+	LightObject::lightList.clear();
+	RObj::worldList.clear();
+	RObj::viewList.clear();
+	RObj::screenList.clear();
+	RObj::physicsList.clear();
 
-	DataManager::GetInstance().SaveData();
-
-	AudioManager::GetInstance().PauseMUS();
 	AudioManager::GetInstance().UnloadAll();
+
+	DialogueManager::GetInstance().ClearDialogueManager();
 
 	worldRoot.reset();
 	viewRoot.reset();
 	screenRoot.reset();
+
 
 	PhysicsManager::GetInstance().CleanUp();
 

@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include "SceneRhythm.h"
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -23,6 +25,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "SceneManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -53,6 +56,11 @@ SceneDemo::~SceneDemo() {
 }
 
 void SceneDemo::Init() {
+
+	// set physics world settings
+	auto& worldSettings = PhysicsManager::GetInstance().GetWorldSettingsObject();
+	//worldSettings.gravity = rp3d::Vector3(0, -9.81, 0); //this is the default gravity
+
 	BaseScene::Init();
 
 	// physics debug init
@@ -190,6 +198,9 @@ void SceneDemo::Init() {
 			physics->UpdateMassProperties(); // must call this after getting all colliders set, if you set another collider after this, you have to call this again
 			physics->SetPosition(vec3(0, 5, 0));
 			});
+		RObj::setDestroyedEvent.Subscribe(PHYSICS_BALL, [&](const std::shared_ptr<RObj>& obj) { // these specific lines is required for all physics object that can be deleted in the programe, its safe to add it for all physics objects to be safe in case if you missed any
+			dirtyWorldList = true;
+			});
 		RObj::setDefaultStat.Subscribe(PHYSICS_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::POLISHED_METAL);
 
@@ -201,6 +212,9 @@ void SceneDemo::Init() {
 			physics->UpdateMassProperties();
 			physics->SetPosition(vec3(0, 5, 0));
 			});
+		RObj::setDestroyedEvent.Subscribe(PHYSICS_BOX, [&](const std::shared_ptr<RObj>& obj) { 
+			dirtyWorldList = true;
+			});
 		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
 
@@ -208,6 +222,9 @@ void SceneDemo::Init() {
 			auto physics = obj->GetPhysics();
 			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
 			physics->SetTrigger(true);
+			});
+		RObj::setDestroyedEvent.Subscribe(TRIGGER_BOX, [&](const std::shared_ptr<RObj>& obj) {
+			dirtyWorldList = true;
 			});
 	}
 
@@ -283,6 +300,15 @@ void SceneDemo::Init() {
 		newObj->trl = vec3(-0.85f, -0.85f, 0);
 		newObj->scl = vec3(80, 80, 1);
 
+		screenRoot->NewChild(TextObject::Create("dial_speaker", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.5f, 0);
+		newObj->scl = vec3(30, 30, 1);
+		screenRoot->NewChild(TextObject::Create("dial_text", "test test", vec3(1), FONT_CASCADIA_MONO, true));
+		newObj->relativeTrl = true;
+		newObj->trl = vec3(0, -0.575f, 0);
+		newObj->scl = vec3(30, 30, 1);
+
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}
@@ -290,11 +316,12 @@ void SceneDemo::Init() {
 	/************************ bellow for external class inits ************************/
 	{
 		// camera init
-		camera.Init(glm::vec3(1, 1.5f, -1));
-		camera.Set(FPCamera::MODE::FIRST_PERSON);
+		camera.Init(glm::vec3(1, 2, -1));
+		camera.Set(Cam::MODE::FIRST_PERSON);
 
 		// player init
-		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
+		player.Init(worldRoot, GROUP, vec3(0, 2, 0));
+		player.allowControl = true;
 	}
 
 	RObj::newObject.reset();
@@ -322,12 +349,6 @@ void SceneDemo::Update(double dt) {
 	// Temporary for now
 	// When the Game State handler, the code snippet below will be stored properly
 	DialogueManager::GetInstance().UpdateDialogue(dt);
-
-	if (DialogueManager::GetInstance().CheckActivePack())
-	{
-		AddDebugText(DialogueManager::GetInstance().GetCurrentSpeaker());
-		AddDebugText(DialogueManager::GetInstance().GetVisibleLine());
-	}
   
   // fps limitation + timer advancement
 	if (dt > 0.1f) {
@@ -349,6 +370,8 @@ void SceneDemo::Update(double dt) {
 		}
 	}
 	AddDebugText("average fps: " + std::to_string(avgFps) + ", simulation average fps: " + std::to_string(simAvgFps));
+	AddDebugText("Camera mode: " + std::to_string((int)camera.GetCurrentMode()));
+	AddDebugText("Player allowControl: " + std::to_string(player.allowControl));
 
 	auto& lightList = LightObject::lightList;
 	auto& worldList = RObj::worldList;
@@ -436,8 +459,29 @@ void SceneDemo::Update(double dt) {
 		}
 		auto obj = screenList[i].lock();
 
-		if (obj->name.find("_debugtxt_") != std::string::npos) {
-			obj->allowRender = debug;
+		
+
+
+
+
+		if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
+			if (textObj->name.find("dial_s") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetCurrentSpeaker();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("dial_t") != std::string::npos) {
+				if (DialogueManager::GetInstance().CheckActivePack()) {
+					textObj->text = DialogueManager::GetInstance().GetVisibleLine();
+				}
+				else
+					textObj->text = "";
+			}
+			if (textObj->name.find("_debugtxt_") != std::string::npos) {
+				textObj->allowRender = debug;
+			}
 		}
 
 		obj->UpdateModel();
@@ -486,8 +530,6 @@ void SceneDemo::Update(double dt) {
 	}
 
 	// update physics
-	PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
-	eventListener.UpdateEventValidity(PhysicsManager::GetInstance().GetWorld());
 	PhysicsManager::GetInstance().UpdatePhysics(dt);
 
 	const auto& debugRenderer = PhysicsManager::GetInstance().GetDebugRenderer();
@@ -500,6 +542,7 @@ void SceneDemo::Update(double dt) {
 	}
 	
 	{
+		PhysicsEventListener& eventListener = PhysicsManager::GetInstance().GetEventListener();
 		using CONTACT_EVENT = rp3d::CollisionCallback::ContactPair::EventType;
 		using OVERLAP_EVENT = rp3d::OverlapCallback::OverlapPair::EventType; // for trigger events
 
@@ -519,11 +562,19 @@ void SceneDemo::Update(double dt) {
 					worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
 					auto& newObj = RenderObject::newObject;
 					auto physics = newObj->GetPhysics();
-
+					newObj->colorFilter = vec3(1, 0.5f, 0.5f);
 					physics->AddTorque(vec3(100, 100, 100));
+
+					newObj.reset();
 					});
 				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
 				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+			}
+			else if (obj->geometryType == PHYSICS_BOX || obj->geometryType == PHYSICS_BALL) { // do not actually write this in yuor code, all input detections should be in HandleKeyPress(), i wrote here is bc i dont want to create a bool member variable just for a test
+				if (MouseController::GetInstance()->IsButtonPressed(MouseController::BUTTON_TYPE::RMB)) {
+					obj->Destroy();
+					obj.reset();
+				}
 			}
 
 			i++;
@@ -542,8 +593,19 @@ void SceneDemo::Update(double dt) {
 	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
 	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
+	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPosition()));
 	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+
+	// clean world list if dirty
+	if (dirtyWorldList) {
+		for (unsigned i = 0; i < worldList.size(); ) {
+			if (worldList[i].expired()) {
+				worldList.erase(worldList.begin() + i);
+				continue;
+			}
+			i++;
+		}
+	}
 
 }
 
@@ -680,6 +742,11 @@ void SceneDemo::HandleKeyPress() {
 		}
 	}
 
+	// switch Scene
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_N)) {
+		SceneManager::GetInstance().RequestChangeState(new SceneRhythm());
+	}
+
 	// debug keys
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_GRAVE_ACCENT)) {
 		debug = !debug;
@@ -807,7 +874,19 @@ void SceneDemo::HandleKeyPress() {
 		}
 
 		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
+			auto& newObj = RenderObject::newObject;
 			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
+			newObj->alpha = 0.75f;
+			newObj->colorFilter = vec3(1, 1, 0);
+			newObj->hasTransparency = true;
+
+			newObj->NewChild(MeshObject::Create(FLASHLIGHT));
+			newObj->alpha = 0.75f;
+			newObj->hasTransparency = true;
+			newObj->colorFilter = vec3(1, 0, 1);
+			newObj->trl = vec3(1);
+
+			newObj.reset();
 		}
 
 		// fake jump lol
@@ -836,6 +915,9 @@ void SceneDemo::RenderObj(const std::shared_ptr<RObj> obj) {
 	if (obj->material.type != Material::MESH_MATERIAL) {
 		meshList[obj->geometryType]->material = obj->material;
 	}
+
+	glUniform3fv(m_parameters[U_COLOR_FILTER], 1, &obj->accumulatedColorFilter.r);
+	glUniform1f(m_parameters[U_COLOR_ALPHA], obj->accumulatedAlpha);
 
 	if (auto textObj = std::dynamic_pointer_cast<TextObject>(obj)) {
 		modelStack.PushMatrix();

@@ -38,7 +38,7 @@ struct Atmosphere {
 };
 
 float getAttenuation(Light light, float distance) {
-	if(light.type == 1)
+	if (light.type == 1)
 		return 1;
 	else
 		return 1 / max(1, light.kC + light.kL * distance + light.kQ * distance * distance);
@@ -66,11 +66,14 @@ uniform vec3 textColor;
 uniform bool atmosphereEnabled;
 uniform Atmosphere atmosphere;
 uniform vec3 atmosphereTargetPos_cameraspace;
+uniform float colorAlp;
+uniform vec3 colorFilter;
 
 void main() {
 	// Material properties
 	vec4 materialColor;
 	vec4 textureColor;
+	vec4 outColor;
 
 	if (colorTextureEnabled == true) {
 		if (textEnabled == true) {
@@ -90,7 +93,7 @@ void main() {
 		vec3 E = normalize(eyeDirection_cameraspace);
 		vec3 N = normalize(vertexNormal_cameraspace);
 
-		color =
+		outColor =
 			// Ambient : simulates indirect lighting
 			materialColor * vec4(material.kAmbient, 1);
 
@@ -128,7 +131,7 @@ void main() {
 			vec3 R = reflect(-L, N);
 			float cosAlpha = clamp(dot(E, R), 0, 1);
 
-			color +=
+			outColor +=
 				// Diffuse : "color" of the object
 				materialColor * vec4(material.kDiffuse, 0) * vec4(lights[i].color, 0) * lights[i].power * cosTheta * attenuationFactor * spotlightEffect +
 
@@ -148,6 +151,9 @@ void main() {
 				accumulatedLightStrength += attenuationFactor * spotlightEffect * fogAttenuation * lights[i].power;
 		}
 
+		outColor *= vec4(colorFilter, 1);
+		outColor *= colorAlp;
+
 		// | atmosphere fog
 		if (atmosphere.fogDensity != 0 && atmosphereEnabled) {
 
@@ -155,7 +161,7 @@ void main() {
 			float distToTarget = length(vertexPosition_cameraspace - atmosphereTargetPos_cameraspace);
 
 			accumulatedLightStrength = clamp(accumulatedLightStrength, 0.0, 1.0);
-			vec4 fogColor = color * accumulatedLightStrength + vec4(atmosphere.color, color.a) * (1 - accumulatedLightStrength);
+			vec4 fogColor = outColor * accumulatedLightStrength + vec4(atmosphere.color, outColor.a) * (1 - accumulatedLightStrength);
 
 			// fog multiplier
 			float fogVisibility = atmosphere.fogVisibility;
@@ -166,15 +172,17 @@ void main() {
 			fogMult = clamp(fogMult, 0.0, 1.0);
 			fogMult *= atmosphere.fogDensity;
 
-			color = color * (1 - fogMult) + fogColor * fogMult;
+			outColor = outColor * (1 - fogMult) + fogColor * fogMult;
 		}
 
 	}
 	else
-		color = materialColor;
+		outColor = materialColor * vec4(colorFilter, colorAlp);
 
 	if (textEnabled == true) {
-		color = materialColor;
-		color.a = textureColor.a;
+		outColor = materialColor * vec4(colorFilter, 1);
+		outColor.a = textureColor.a * colorAlp;
 	}
+
+	color = outColor;
 }

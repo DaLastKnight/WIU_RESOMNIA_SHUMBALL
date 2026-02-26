@@ -17,6 +17,10 @@ public:
 	static constexpr float SCREEN_HEIGHT = 900.f;
 	static constexpr float ASPECT_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT;
 
+	static void EndPrograme() {
+		endPrograme = true;
+	}
+
 private:
 
 	//Declare a window object
@@ -24,6 +28,8 @@ private:
 
 	bool enablePointer = true;
 	bool showPointer = true;
+
+	static bool endPrograme;
 
 };
 

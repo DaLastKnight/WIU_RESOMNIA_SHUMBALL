@@ -1,10 +1,6 @@
 #ifndef DIALOGUE_MANAGER_H
 #define DIALOGUE_MANAGER_H
 
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
-
 #include <vector>
 #include <string>
 
@@ -88,16 +84,20 @@ public:
 	void EndDialogue(); // Resets the dialogue controller for future dialogue
 	void ControlCurrentDialogue(); // Handles the scrolling or skip booleans for the dialogues
 	
-	// Dialogue Getter functions (for rendering maybe)
+	// Dialogue Getter functions
 	std::string GetCurrentSpeaker() const;
 	std::string GetVisibleLine() const;
 	bool CheckActivePack() const;
+	bool IsActive() const;
 
 	// Dialogue textscroll functions
 	void BeginCurrentLineScroll();
 	void UpdateDialogue(double dt); // Updates the visible on-screen dialogue
 
 private:
+	// Data member for toggling DialogueManager
+	bool active = false;
+	
 	// Data members for loading dialoguePack.json
 	std::vector<DialoguePack> globalDialogueJSON;
 
@@ -119,4 +119,4 @@ private:
 	DialogueManager& operator=(const DialogueManager&) = delete;
 };
 
-#endif DIALOGUE_MANAGER_H
+#endif
