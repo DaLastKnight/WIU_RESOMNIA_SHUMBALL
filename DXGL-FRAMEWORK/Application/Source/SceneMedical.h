@@ -140,8 +140,8 @@ private:
 	int maxEntitiesAI = 5;
 	int currentSpawningP = 0;
 	int currentSpawningAI = 0;
-	int remainingEntitiesP = 0;
-	int remainingEntitiesAI = 0;
+	int remainingEntitiesP = 10;
+	int remainingEntitiesAI = 5;
 
 	float bacteriaSpawnTimer = 0.0f;
 	float bacteriaSpawnInterval = 3.0f;

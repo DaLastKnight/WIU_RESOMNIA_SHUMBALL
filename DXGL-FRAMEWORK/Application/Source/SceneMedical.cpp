@@ -126,8 +126,8 @@ void SceneMedical::Init() {
 		meshList[ENV_LIQUID_MODEL]->textureID = TextureLoader::LoadTexture("red_liquid.png");
 		meshList[ENV_LIQUID_FLAT_MODEL] = MeshBuilder::GenerateQuad("Map Liquid Flat Environment", vec3(1), 1, 1, TextureLoader::LoadTexture("red_liquid.png"));
 		
-		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("Bacteria", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
-		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("Virus", "bacteria.obj", "bacteria.mtl", TextureLoader::LoadTexture("virus_skin.png"));
+		meshList[BACTERIA_MODEL] = MeshBuilder::GenerateOBJMTL("Bacteria", "bacteria_optimised.obj", "bacteria_optimised.mtl", TextureLoader::LoadTexture("bacteria_skin.png"));
+		meshList[VIRUS_MODEL] = MeshBuilder::GenerateOBJMTL("Virus", "bacteria_optimised.obj", "bacteria_optimised.mtl", TextureLoader::LoadTexture("virus_skin.png"));
 		meshList[NANOBOT_MODEL] = MeshBuilder::GenerateOBJMTL("Nanobot", "nanobot.obj", "nanobot.mtl", TextureLoader::LoadTexture("nanobot_skin.png"));
 		
 		meshList[GAME_CROSSHAIR] = MeshBuilder::GenerateQuad("Crosshair", vec3(1, 1, 0), 1, 1);
@@ -551,7 +551,13 @@ void SceneMedical::Init() {
 		newObj->trl = glm::vec3(0.825f, 0.84f, 0);
 		newObj->scl = glm::vec3(10.f, 10.f, 1);
 
-		// debug text
+
+
+
+
+		// ***************************************************************
+		// Texts
+		// ***************************************************************
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 		InitSceneMedicalText(FONT_CASCADIA_MONO);
 	}
@@ -970,8 +976,6 @@ void SceneMedical::Update(double dt)
 		{
 			if (nanobots[i].lifetime <= 0.0f)
 			{
-				std::cout << "Destroyed Nanobot by lifetime" << std::endl;
-				
 			    nanobots[i].object->Destroy(); // Remove Physics and Visual Body, struct already destroyed with the shared_ptr so no reset needed
 				nanobots.erase(nanobots.begin() + i); // Remove from container
 				currentActiveNanobotAmmo--;
@@ -1240,8 +1244,6 @@ void SceneMedical::Update(double dt)
 					{
 						virus.virusHP--;
 						virus.virusInvulnerabilityTimer = 1.0f;
-						std::cout << virus.virusHP << std::endl;
-						std::cout << virus.virusInvulnerabilityTimer << std::endl;
 					}
 
 					if (virus.virusHP <= 0)
@@ -1461,6 +1463,10 @@ void SceneMedical::Render() {
 	auto renderObjectList = [&](const std::vector<std::weak_ptr<RObj>>& list, bool ignoreTransparency = false) {
 		for (auto& obj_wptr : list) {
 			auto obj = obj_wptr.lock();
+			if (!obj)
+			{
+				continue;
+			}
 			modelStack.PushMatrix();
 			modelStack.LoadMatrix(obj->model);
 
@@ -1620,19 +1626,12 @@ void SceneMedical::HandleKeyPress() {
 			}
 		}
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
-
 		}
 		if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
-			if (AudioManager::GetInstance().PlayingMUS())
-				AudioManager::GetInstance().PauseMUS();
-			else
-				AudioManager::GetInstance().ResumeMUS();
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) > 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() + 1);
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
-			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
 		}
 
 		// ******************************************************************************************
@@ -1653,9 +1652,15 @@ void SceneMedical::HandleKeyPress() {
 		}
 	}
 
+
+
+
+
+	// ***************************************************************
+	// Replay Mechanic
+	// ***************************************************************
 	if (currentState == MedicalGameState::RESULTS && KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_BACKSPACE))
 	{
-		std::cout << "Backspace detected";
 		ClearResultsMenu();
 		currentState = MedicalGameState::PLAYING;
 		camera.Set(Cam::MODE::FIRST_PERSON);
