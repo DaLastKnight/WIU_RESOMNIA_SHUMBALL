@@ -93,6 +93,16 @@ private:
 	};
 
 	enum SFX_TYPE {
+		SFX_CLICK,
+		SFX_FAIL,
+		SFX_TADA,
+		SFX_SWOOSH,
+		SFX_TICK,
+
+		SFX_LANE0,
+		SFX_LANE1,
+		SFX_LANE2,
+		SFX_LANE3,
 
 		TOTAL_SFX
 	};
@@ -137,6 +147,9 @@ private:
 	bool rmb_pressed;
 	bool rmb_down;
 	bool rmb_released;
+
+	// sfx
+	float resultSFXTimer = 0;
 
 	// debug
 	bool debug = false;

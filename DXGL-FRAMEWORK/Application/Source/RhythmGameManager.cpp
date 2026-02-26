@@ -101,28 +101,16 @@ void RhythmGameManager::Update(double dt) {
 	maxDisplayBeat = currentBeat + chart.ScrollSpeed;
 	int maxDisplayBeat_int = maxDisplayBeat;
 
-	auto checkProgressionMaxed = [&]() {
-		int totalProgression = 0;
-		for (auto& progress : progression) {
-			totalProgression += progress.amount;
-		}
-		return totalProgression == maxProgressionCount;
-		};
-	auto checkProgressionfixed = [&]() {
-		for (auto& progress : progression) {
-			if (progress.type == Progress::PACKET_LOSS) {
-				return false;
-			}
-		}
-		return true;
-		};
-	bool progressionMaxed = checkProgressionMaxed();
-	bool progressionFixed = checkProgressionfixed();
-
 	if (static_cast<int>(currentBeat + chart.musicOffsetBeat) == 0) {
 		if (!AudioManager::GetInstance().PlayingMUS()) {
 			AudioManager::GetInstance().PlayMUS();
 		}
+	}
+
+	int currentBeat_int = currentBeat;
+	if (prevCurrentBeat_int != currentBeat_int && currentBeat_int <= 0) {
+		prevCurrentBeat_int = currentBeat_int;
+		AudioManager::GetInstance().PlaySFX(tickSFXKey);
 	}
 
 	if (prevMaxDisplayBeat_int != maxDisplayBeat_int && musicPlaying) {
@@ -339,26 +327,17 @@ void RhythmGameManager::LoadGame(const std::string& chartFilePath) {
 	gameElapsed += chart.offsetStartBeat / BPS;
 
 	prevMaxDisplayBeat_int = chart.offsetStartBeat;
+	prevCurrentBeat_int = 0;
 
 	score = 0;
-	totalPossibleScore = 0;
 
 	maxProgressionCount = 0;
 	for (auto& note : chart.notes) {
 
 		if (note->type == RhythmNote::TAP) {
-			auto tapNote = static_cast<TapNote*>(note);
-
-			totalPossibleScore += ScoreChart(PERFECT);
-
 			maxProgressionCount++;
 		}
 		else if (note->type == RhythmNote::HOLD) {
-			auto holdNote = static_cast<HoldNote*>(note);
-
-			totalPossibleScore += ScoreChart(PERFECT) * 2;
-			totalPossibleScore += HeldScore(holdNote->endBeat - holdNote->beat);
-
 			maxProgressionCount += 2;
 		}
 	}
@@ -374,7 +353,7 @@ void RhythmGameManager::StartGame() {
 	active = true;
 	musicPlaying = true;
 	AudioManager::GetInstance().SetMUSPosition(0);
-	AudioManager::GetInstance().VolumeMUS(0.5f);
+	AudioManager::GetInstance().VolumeMUS(1.f);
 }
 
 void RhythmGameManager::EndGame() {

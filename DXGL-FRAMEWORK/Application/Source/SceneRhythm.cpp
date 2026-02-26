@@ -78,7 +78,18 @@ void SceneRhythm::Init() {
 	// audio init
 	{
 		// sfx init
-
+		AudioManager::GetInstance().LoadSFX(SFX_CLICK, "click.mp3");
+		AudioManager::GetInstance().LoadSFX(SFX_FAIL, "fail.mp3");
+		AudioManager::GetInstance().VolumeSFX(SFX_FAIL, 0.5f);
+		AudioManager::GetInstance().LoadSFX(SFX_TADA, "tada.mp3");
+		AudioManager::GetInstance().VolumeSFX(SFX_TADA, 0.75f);
+		AudioManager::GetInstance().LoadSFX(SFX_SWOOSH, "swoosh.mp3");
+		AudioManager::GetInstance().LoadSFX(SFX_TICK, "tick.wav");
+		AudioManager::GetInstance().VolumeSFX(SFX_TICK, 0.5f);
+		AudioManager::GetInstance().LoadSFX(SFX_LANE0, "lane0.wav");
+		AudioManager::GetInstance().LoadSFX(SFX_LANE1, "lane1.wav");
+		AudioManager::GetInstance().LoadSFX(SFX_LANE2, "lane2.wav");
+		AudioManager::GetInstance().LoadSFX(SFX_LANE3, "lane3.wav");
 
 	}
 
@@ -724,6 +735,16 @@ void SceneRhythm::Init() {
 			});
 		RhythmNote::hitEvent.Subscribe([&](RhythmNote* note) {
 
+			auto SFXFromLane = [](int laneIndex) {
+				switch (laneIndex) {
+				case 0: return SFX_LANE0;
+				case 1: return SFX_LANE1;
+				case 2: return SFX_LANE2;
+				case 3: return SFX_LANE3;
+				default: return SFX_LANE0;
+				}
+				};
+
 			if (note->type == RhythmNote::TAP) {
 				auto tapNote = static_cast<TapNote*>(note);
 				auto& newObj = RObj::newObject;
@@ -732,6 +753,8 @@ void SceneRhythm::Init() {
 				newObj->colorFilter = ColorByLane(tapNote->lane);
 
 				newObj.reset();
+
+				AudioManager::GetInstance().PlaySFX(SFXFromLane(tapNote->lane));
 			}
 			else if (note->type == RhythmNote::HOLD) {
 				auto holdNote = static_cast<HoldNote*>(note);
@@ -742,6 +765,8 @@ void SceneRhythm::Init() {
 					worldRoot->NewChild(MeshObject::Create(VFX_HOLD_NOTE));
 					newObj->trl = holdNote->startRender.lock()->trl;
 					newObj->colorFilter = ColorByLane(holdNote->lane);
+
+					AudioManager::GetInstance().PlaySFX(SFXFromLane(holdNote->lane));
 				}
 				else if (holdNote->holding) {
 					if (holdNote->holdTimer < 0.1f)
@@ -781,6 +806,7 @@ void SceneRhythm::Init() {
 			lane.SetLane(vec3(xPos, 1, 0), vec3(0, 0, -1), 12.5, -0.5f, -0.1f);
 			xPos += 1;
 		}
+		RhythmGameManager::GetInstance().SetTickSFXKey(SFX_TICK);
 		RhythmGameManager::GetInstance().SetAutoPlay(false);
 	}
 }
@@ -924,7 +950,6 @@ void SceneRhythm::Update(double dt) {
 		if (dynamicStateTimer > 3) {
 			dynamicStateTimer = 0;
 			
-			
 			if (!RhythmGameManager::GetInstance().GetProgressionFixed()) {
 				DialogueManager::GetInstance().EndDialogue();
 				DialogueManager::GetInstance().StartDialogue("System_Timeout");
@@ -943,9 +968,20 @@ void SceneRhythm::Update(double dt) {
 
 	case RESULT:
 		dynamicStateTimer = 0;
+		resultSFXTimer += dt;
+
+		if (resultSFXTimer >= 0.75f && resultSFXTimer < 1) {
+			resultSFXTimer = 1;
+
+			if (RhythmGameManager::GetInstance().GetProgressionFixed())
+				AudioManager::GetInstance().PlaySFX(SFX_TADA);
+			else 
+				AudioManager::GetInstance().PlaySFX(SFX_FAIL);
+		}
 		break;
 
 	case END_RESULT:
+		resultSFXTimer = 0;
 		if (dynamicStateTimer > 3) {
 			dynamicStateTimer = 0;
 
@@ -1358,7 +1394,7 @@ void SceneRhythm::Update(double dt) {
 		}
 
 		float savedPower = properties.power;
-		properties.power *= obj->alpha;
+		properties.power *= obj->accumulatedAlpha;
 
 		UpdateLightUniform(obj);
 		properties.power = savedPower;
@@ -1433,6 +1469,7 @@ void SceneRhythm::Update(double dt) {
 
 						if (lmb_released && currentState == INTERMISSION) {
 							currentState = END_INTERMISSION;
+							AudioManager::GetInstance().PlaySFX(SFX_CLICK);
 						}
 					}
 					else {
@@ -1465,6 +1502,7 @@ void SceneRhythm::Update(double dt) {
 
 						if (lmb_released && currentState == INTERMISSION) {
 							difficulty = 1;
+							AudioManager::GetInstance().PlaySFX(SFX_CLICK);
 						}
 					}
 					else {
@@ -1497,6 +1535,7 @@ void SceneRhythm::Update(double dt) {
 
 						if (lmb_released && currentState == INTERMISSION) {
 							difficulty = 0;
+							AudioManager::GetInstance().PlaySFX(SFX_CLICK);
 						}
 					}
 					else {
@@ -1535,6 +1574,7 @@ void SceneRhythm::Update(double dt) {
 
 						if (lmb_released && currentState == RESULT) {
 							currentState = EXIT;
+							AudioManager::GetInstance().PlaySFX(SFX_CLICK);
 						}
 					}
 					else {
@@ -1564,6 +1604,7 @@ void SceneRhythm::Update(double dt) {
 
 						if (lmb_released && currentState == RESULT) {
 							currentState = END_RESULT;
+							AudioManager::GetInstance().PlaySFX(SFX_CLICK);
 						}
 					}
 					else {
@@ -1589,7 +1630,7 @@ void SceneRhythm::Update(double dt) {
 	camera.Update(dt);
 
 	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("RhythmGameManager.currentBeat: " + std::to_string(RhythmGameManager::GetInstance().GetCurrentBeat()));
+	AddDebugText("RGM.currentBeat: " + std::to_string(RhythmGameManager::GetInstance().GetCurrentBeat()));
 	string progression_s = "";
 	for (auto& progress : RhythmGameManager::GetInstance().GetProgression()) {
 		if (progress.type == RhythmGameManager::Progress::SUCCESS) {

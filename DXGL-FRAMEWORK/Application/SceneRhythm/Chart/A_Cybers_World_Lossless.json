@@ -1186,7 +1186,7 @@
             "type": 1,
             "lane": 2,
             "beat": 141,
-            "endBeat": 141.5
+            "endBeat": 141.25
         },
         {
             "type": 1,
@@ -1252,7 +1252,7 @@
             "type": 1,
             "lane": 2,
             "beat": 157,
-            "endBeat": 157.5
+            "endBeat": 157.25
         },
         {
             "type": 1,
@@ -1596,7 +1596,7 @@
             "type": 1,
             "lane": 1,
             "beat": 197,
-            "endBeat": 197.5
+            "endBeat": 197.25
         },
         {
             "type": 1,
@@ -1631,7 +1631,7 @@
             "type": 1,
             "lane": 2,
             "beat": 205,
-            "endBeat": 205.5
+            "endBeat": 205.25
         },
         {
             "type": 1,
@@ -1667,7 +1667,7 @@
             "type": 1,
             "lane": 1,
             "beat": 213,
-            "endBeat": 213.5
+            "endBeat": 213.25
         },
         {
             "type": 1,
@@ -1702,7 +1702,7 @@
             "type": 1,
             "lane": 2,
             "beat": 221,
-            "endBeat": 221.5
+            "endBeat": 221.25
         },
         {
             "type": 1,
@@ -2594,5 +2594,5 @@
     ],
     "endTime": 166,
     "offsetStartBeat": -4,
-    "musicOffsetBeat": -0.75
+    "musicOffsetBeat": -0.86
 }

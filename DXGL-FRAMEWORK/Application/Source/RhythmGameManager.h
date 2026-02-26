@@ -220,6 +220,10 @@ public:
         return progressionFixed;
     }
 
+    void SetTickSFXKey(unsigned int key) {
+        tickSFXKey = key;
+    }
+
 private:
 
     void LoadChart(const std::string& filePath);
@@ -232,6 +236,7 @@ private:
 
     std::string directory;
 
+    unsigned int tickSFXKey;
     bool active = false;
     bool musicPlaying = false;
     RhythmChart chart;
@@ -244,6 +249,7 @@ private:
     float maxDisplayBeat;
     int prevMaxDisplayBeat_int;
     float currentBeat;
+    int prevCurrentBeat_int = 0;
     float BPS;
     float gameElapsed;
 
@@ -256,7 +262,6 @@ private:
 
     SCORE_TYPE lastestScore;
     int score;
-    int totalPossibleScore;
     float heldScoreTime = 0.1f;
     int heldScoring = 5;
 
