@@ -86,6 +86,7 @@ private:
 	bool renderDebugPhysics = false;
 	Mesh* debugPhysicsWorld;
 	double debugPhysicsTimer = 0;
+
 	
 
 	// ***************************************************************
@@ -213,6 +214,8 @@ private:
 	bool isGameReset = false;
 	void HandleWinCondition();
 	void ChangeWave(int waveNumber);
+
+	bool canChangeScene = false;
 
 
 

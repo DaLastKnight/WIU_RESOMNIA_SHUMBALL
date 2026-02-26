@@ -1453,6 +1453,10 @@ void SceneMedical::Render() {
 		};
 	auto renderTransparencyList = [&]() {
 		for (auto& info : transparencyList) {
+			if (!info.obj)
+			{
+				continue;
+			}
 			modelStack.PushMatrix();
 			modelStack.LoadMatrix(info.model);
 			RenderObj(info.obj);
@@ -1574,10 +1578,12 @@ void SceneMedical::HandleKeyPress() {
 			prevMode = cameraMode;
 			camera.Set(Cam::MODE::PAUSE);
 			player.allowControl = false;
+			canChangeScene = true;
 		}
 		else {
 			camera.Set(prevMode);
 			player.allowControl = true;
+			canChangeScene = false;
 		}
 	}
 
@@ -1837,23 +1843,28 @@ void SceneMedical::HandleWinCondition()
 	}
 
 	// Use if needed for Aizzul's suggestion on average game across all integrated scenes
-	if (bestTimeTaken <= 210.f)
+	if (bestTimeTaken <= 240.f)
 	{
 		gameGrade = "A";
 	}
-	else if (bestTimeTaken <= 270.f && bestTimeTaken > 210.f)
+	else if (bestTimeTaken <= 300.f && bestTimeTaken > 240.f)
 	{
 		gameGrade = "B";
 	}
-	else if (bestTimeTaken <= 330.f && bestTimeTaken > 270.f)
+	else if (bestTimeTaken <= 360.f && bestTimeTaken > 300.f)
 	{
 		gameGrade = "C";
 	}
-	else if (bestTimeTaken > 330.f)
+	else if (bestTimeTaken <= 540.f && bestTimeTaken > 360.f)
 	{
 		gameGrade = "D";
 	}
+	else if (bestTimeTaken > 540.f)
+	{
+		gameGrade = "F";
+	}
 
+	canChangeScene = true;
 	ShowResultsMenu();
 }
 
