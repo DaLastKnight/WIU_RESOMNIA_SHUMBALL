@@ -24,6 +24,7 @@
 #include "DataManager.h"
 #include "DialogueManager.h"
 #include "RhythmGameManager.h"
+#include "SceneManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -811,7 +812,7 @@ void SceneRhythm::Init() {
 	}
 }
 
-void SceneRhythm::Update(double dt) {
+void SceneRhythm::Update(float dt) {
 	BaseScene::Update(dt);
 	ClearDebugText();
 

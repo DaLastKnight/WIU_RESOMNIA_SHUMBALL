@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_inverse.hpp>
 
+#include "SceneRhythm.h"
+
 #include "Light.h"
 #include "shader.hpp"
 #include "Application.h"
@@ -23,6 +25,7 @@
 #include "AudioManager.h"
 #include "DataManager.h"
 #include "DialogueManager.h"
+#include "SceneManager.h"
 
 #include "Console.h"
 #include "Utils.h"
@@ -737,6 +740,11 @@ void SceneDemo::HandleKeyPress() {
 			else
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
+	}
+
+	// switch Scene
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_N)) {
+		SceneManager::GetInstance().RequestChangeState(new SceneRhythm());
 	}
 
 	// debug keys
