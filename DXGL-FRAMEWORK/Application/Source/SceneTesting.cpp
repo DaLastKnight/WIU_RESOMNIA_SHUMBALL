@@ -899,10 +899,10 @@ void SceneBowling::Update(float dt) {
 				}
 			}
 
-			if (obj->name.find("Lay_Out1_BOWLING_PIN_") != std::string::npos)
+			if (obj->name.find("Lay_Out1_BOWLING_PIN_") != std::string::npos) 
 			{
 				// extract up vector from pin's physics model (Y column)
-				glm::vec3 pinUp = glm::normalize(glm::vec3(obj->model[1]));
+				glm::vec3 pinUp = glm::normalize(glm::vec3(obj->model[1])); //A model matrix has 4 columns. Column 1 specifically represents the object's local Y axis
 				float uprightness = glm::dot(pinUp, glm::vec3(0, 1, 0)); // 1 = upright, 0 = sideways, -1 = upside down
 
 				bool isKnockedDown = uprightness < 0.3f; // less than ~72 degrees from horizontal = knocked down
