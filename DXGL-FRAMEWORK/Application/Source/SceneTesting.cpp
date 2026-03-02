@@ -103,17 +103,26 @@ void SceneBowling::Enter() {
 			meshList[i] = nullptr;
 		}
 		meshList[AXES] = MeshBuilder::GenerateAxes("Axes", 10000.f, 10000.f, 10000.f);
-		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("color.tga"));
+		meshList[GROUND] = MeshBuilder::GenerateGround("ground", 1000, 5, TextureLoader::LoadTexture("wooden_flooring.tga"));
 		meshList[SKYBOX] = MeshBuilder::GenerateSkybox("skybox", TextureLoader::LoadTexture("skybox.tga"));
 		meshList[LIGHT] = MeshBuilder::GenerateSphere("light", vec3(1));
 		meshList[GROUP] = MeshBuilder::GenerateSphere("group", vec3(1), 0.15f);
 		meshList[DEBUG_LINE] = MeshBuilder::GenerateLine("debug line", 1);
-
 		meshList[FONT_CASCADIA_MONO] = MeshBuilder::GenerateText("cascadia mono font", 16, 16, FontSpacing(FONT_CASCADIA_MONO), TextureLoader::LoadTexture("Cascadia_Mono.tga"));
 
+		meshList[BUILDING_BLOCKS] = MeshBuilder::GenerateCube("BUILDING_BLOCKS", vec3(1.f), 1);
+		meshList[BUILDING_BLOCKS2] = MeshBuilder::GenerateQuad("BUILDING_BLOCKS", vec3(1.f), 3, 3, TextureLoader::LoadTexture("Trying_again.png"));
+
 		meshList[FLASHLIGHT] = MeshBuilder::GenerateOBJMTL("flashlight", "flashlight.obj", "flashlight.mtl", TextureLoader::LoadTexture("flashlight_texture.tga"));
+
 		meshList[BOWLING_BALL] = MeshBuilder::GenerateOBJMTL("WORLD_BALL", "BOWLING_BALL.obj", "BOWLING_BALL.mtl", TextureLoader::LoadTexture("BOWLING_BALL.tga"));
 		meshList[BOWLING_PIN] = MeshBuilder::GenerateOBJMTL("BOWLING_PIN", "BOWLING_PIN.obj", "BOWLING_PIN.mtl", TextureLoader::LoadTexture("BOWLING_PIN.tga"));
+
+		meshList[TABLES_N_CHAIRS] = MeshBuilder::GenerateOBJ("TABLES_N_CHAIRS", "TABLES_N_CHAIRS.obj");
+		meshList[Bowling_Rack] = MeshBuilder::GenerateOBJ("Bowling_Rack", "Bowling_Rack.obj");
+		meshList[Bowling_Counter] = MeshBuilder::GenerateOBJMTL("Bowling_Counter", "Counter_001.obj", "Counter_001.mtl");
+		
+		meshList[NPC_1] = MeshBuilder::GenerateOBJMTL("NPC_1", "doorman.obj", "doorman.mtl", TextureLoader::LoadTexture("doorman.tga"));
 
 		meshList[HIT_BOX] = MeshBuilder::GenerateCube("Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 0.5f);
 		meshList[BALL_HIT_BOX] = MeshBuilder::GenerateSphere("Ball_Hit_box", glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 16.0f);
@@ -176,12 +185,27 @@ void SceneBowling::Enter() {
 			});
 		RObj::setDefaultStat.Subscribe(FONT_CASCADIA_MONO, [](const std::shared_ptr<RObj>& obj) {
 			});
+
 		RObj::setDefaultStat.Subscribe(FLASHLIGHT, [](const std::shared_ptr<RObj>& obj) {
 			});
 
+
+		RObj::setDefaultStat.Subscribe(BUILDING_BLOCKS, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+
+			obj->AddPhysics(PhysicsObject::STATIC);
+			auto physics = obj->GetPhysics();
+			physics->SetBounciness(0.0f);
+			physics->SetFrictionCoefficient(0.5f);
+			});
+
+		RObj::setDefaultStat.Subscribe(BUILDING_BLOCKS2, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+			});
 		RObj::setDefaultStat.Subscribe(BOWLING_BALL, [](const std::shared_ptr<RObj>& obj) {
 			});
 		RObj::setDefaultStat.Subscribe(BOWLING_PIN, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
 			});
 
 		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
@@ -208,11 +232,17 @@ void SceneBowling::Enter() {
 
 			obj->AddPhysics(PhysicsObject::DYNAMIC); 
 			auto physics = obj->GetPhysics();
-			physics->AddCollider(PhysicsObject::BOX, vec3(0.5f, 0.5f, 0.5f));
+			physics->AddCollider(PhysicsObject::BOX, vec3(0.2f, 0.5f, 0.2f));
 			physics->SetBounciness(0.1f);
-			physics->SetFrictionCoefficient(0.5f);
+			physics->SetFrictionCoefficient(20.f);
+			physics->SetMassDensity(4.0f);
 			physics->UpdateMassProperties();
-			physics->SetPosition(vec3(0, 5, 0));
+			physics->SetPosition(vec3(0, 0, 0));
+
+			// reduce angular damping so they spin and fall freely
+			physics->SetAngularVelocity(glm::vec3(0)); // start clean
+			physics->Getbody()->setAngularDamping(0.01f);  // as low as possible
+			physics->Getbody()->setLinearDamping(0.1f);    // less linear drag too
 			});
 		RObj::setDefaultStat.Subscribe(TRIGGER_BOX, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::MATT);
@@ -233,162 +263,210 @@ void SceneBowling::Enter() {
 
 		worldRoot->NewChild(MeshObject::Create(SKYBOX));
 
-		worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
-		newObj->name = "spawn_box";
-		newObj->GetPhysics()->SetPosition(vec3(5, 0.5f, 5));
-
-		// light init
 		{
-			std::shared_ptr<LightObject> newLightObj;
-
-			worldRoot->NewChild(LightObject::Create(LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj); // casting the obj to its actual type to acess variables only in its actual type
+			//// light init
 			{
-				newLightObj->trl = vec3(0, 20, 0);
-				newLightObj->name = "demo light";
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_POINT;
-				lightProperties.color = vec3(1, 1, 1);
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.001f;
-				lightProperties.kQ = 0.001f;
-				UpdateLightUniform(newLightObj);
-			}
+				std::shared_ptr<LightObject> newLightObj;
 
-			worldRoot->NewChild(LightObject::Create(LIGHT));
-			newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-			{
-				newLightObj->trl = vec3(20, 5, 0);
-				newLightObj->name = "demo light spot";
-				newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
-				newLightObj->rot = vec3(45, 45, 0);
-				auto& lightProperties = newLightObj->lightProperties;
-				lightProperties.type = Light::LIGHT_SPOT;
-				lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
-				lightProperties.power = 1;
-				// 0 - 1 percentage of actual values applies
-				lightProperties.kC = 1;
-				lightProperties.kL = 0.005f;
-				lightProperties.kQ = 0.01f;
-				// spot light variables (yes, these are the only 2 you need to change manually)
-				lightProperties.cosCutoff = 31.f;
-				lightProperties.cosInner = 29.f;
-				UpdateLightUniform(newLightObj);
+				worldRoot->NewChild(LightObject::Create(LIGHT));
+				newLightObj = std::dynamic_pointer_cast<LightObject>(newObj); // casting the obj to its actual type to acess variables only in its actual type
+				{
+					newLightObj->trl = vec3(0, 20, 0);
+					newLightObj->name = "demo light";
+					auto& lightProperties = newLightObj->lightProperties;
+					lightProperties.type = Light::LIGHT_POINT;
+					lightProperties.color = vec3(1, 1, 1);
+					lightProperties.power = 1;
+					// 0 - 1 percentage of actual values applies
+					lightProperties.kC = 1;
+					lightProperties.kL = 0.001f;
+					lightProperties.kQ = 0.001f;
+					UpdateLightUniform(newLightObj);
+				}
+
+				//worldRoot->NewChild(LightObject::Create(LIGHT));
+				//newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
+				//{
+				//	newLightObj->trl = vec3(20, 5, 0);
+				//	newLightObj->name = "demo light spot";
+				//	newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
+				//	newLightObj->rot = vec3(45, 45, 0);
+				//	auto& lightProperties = newLightObj->lightProperties;
+				//	lightProperties.type = Light::LIGHT_SPOT;
+				//	lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
+				//	lightProperties.power = 1;
+				//	// 0 - 1 percentage of actual values applies
+				//	lightProperties.kC = 1;
+				//	lightProperties.kL = 0.005f;
+				//	lightProperties.kQ = 0.01f;
+				//	// spot light variables (yes, these are the only 2 you need to change manually)
+				//	lightProperties.cosCutoff = 31.f;
+				//	lightProperties.cosInner = 29.f;
+				//	UpdateLightUniform(newLightObj);
+				//}
 			}
 		}
 
-		//bowling pins (layout 1)
+		//bowling pins
 		{
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_10";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
+			auto spawnPin = [&](const std::string& name, glm::vec3 pos) {
+				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
+				newObj->name = name;
+				newObj->AddPhysics(PhysicsObject::DYNAMIC);
+				auto physics = newObj->GetPhysics();
+				physics->AddCollider(PhysicsObject::BOX, glm::vec3(0.2f, 0.3f, 0.2f));
+				physics->SetBounciness(0.1f);
+				physics->SetFrictionCoefficient(20.f);
+				physics->SetMassDensity(4.0f);
+				physics->UpdateMassProperties();
+				physics->Getbody()->setAngularDamping(0.01f);
+				physics->Getbody()->setLinearDamping(0.1f);
+				physics->SetPosition(pos);
+				newObj->offsetScl = glm::vec3(1.0f); // adjust to match your pin mesh size
+				};
 
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_9";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_8";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_7";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_6";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_5";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_4";
-			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_3";
-			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_2";
-			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
-
-			worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
-			newObj->name = "Lay_Out1_BOWLING_PIN_1";
-			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
-
+			spawnPin("Lay_Out1_BOWLING_PIN_10", glm::vec3(-20.0f, 0.0f, -0.8f));
+			spawnPin("Lay_Out1_BOWLING_PIN_9", glm::vec3(-20.0f, 0.0f, -0.3f));
+			spawnPin("Lay_Out1_BOWLING_PIN_8", glm::vec3(-20.0f, 0.0f, 0.3f));
+			spawnPin("Lay_Out1_BOWLING_PIN_7", glm::vec3(-20.0f, 0.0f, 0.8f));
+			spawnPin("Lay_Out1_BOWLING_PIN_6", glm::vec3(-19.5f, 0.0f, 0.55f));
+			spawnPin("Lay_Out1_BOWLING_PIN_5", glm::vec3(-19.5f, 0.0f, 0.0f));
+			spawnPin("Lay_Out1_BOWLING_PIN_4", glm::vec3(-19.5f, 0.0f, -0.5f));
+			spawnPin("Lay_Out1_BOWLING_PIN_3", glm::vec3(-19.0f, 0.0f, -0.25f));
+			spawnPin("Lay_Out1_BOWLING_PIN_2", glm::vec3(-19.0f, 0.0f, 0.25f));
+			spawnPin("Lay_Out1_BOWLING_PIN_1", glm::vec3(-18.5f, 0.0f, 0.0f));
 		}
-
-		//hitbox testing (layout 1 pins)
-		/* {
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_10";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.8f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_9";
-			newObj->trl = glm::vec3(0.0f, 0.0f, -0.3f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_8";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.3f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_7";
-			newObj->trl = glm::vec3(0.0f, 0.0f, 0.8f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_6";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.55f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_5";
-			newObj->trl = glm::vec3(0.5f, 0.0f, 0.f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_4";
-			newObj->trl = glm::vec3(0.5f, 0.0f, -0.5f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_3";
-			newObj->trl = glm::vec3(1.0f, 0.0f, -0.25f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_2";
-			newObj->trl = glm::vec3(1.0f, 0.0f, 0.25f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-
-			worldRoot->NewChild(MeshObject::Create(HIT_BOX));
-			newObj->name = "Lay_Out1_Hit_box_1";
-			newObj->trl = glm::vec3(1.5f, 0.0f, 0.f);
-			newObj->scl = glm::vec3(0.7f, 3.7f, 0.7f);
-		}*/
 
 		//bowling ball
 		{
 			worldRoot->NewChild(MeshObject::Create(BOWLING_BALL));
 			newObj->name = "WORLD_BALL";
-			newObj->trl = glm::vec3(3.35f, 0.5f, 0.5f);
+			newObj->trl = glm::vec3(3.35f, -10.7f, 0.5f);
 			newObj->scl = glm::vec3(.5f, .5f, .5f);
+			newObj->allowRender = false;
 
-			worldRoot->NewChild(MeshObject::Create(BALL_HIT_BOX));
-			newObj->name = "Bowling_Ball_Hit_Box";
-			newObj->trl = glm::vec3(1.0f, 1.0f, 1.0f);
-			newObj->scl = glm::vec3(0.4f);
+			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
+			newObj->name = "BALL_PHYSICS_BODY";
+			auto ballPhysics = newObj->GetPhysics();
+			ballPhysics->SetPosition(glm::vec3(3.35f, -10.7f, 0.5f)); // match WORLD_BALL start pos
+			//newObj->allowRender = false; // invisible, purely a hitbox
 		}
 
+		//Bowling Alley decorations
+		{
+			worldRoot->NewChild(MeshObject::Create(Bowling_Counter));
+			newObj->name = "Bowling_Counter";
+			newObj->trl = glm::vec3(10.0f, 0.0f, 0.0f);
+			newObj->scl = glm::vec3(.4f, .4f, .4f);
+			newObj->rot = glm::vec3(0.0f, 180.0f, 0.0f);
+
+			worldRoot->NewChild(MeshObject::Create(NPC_1));
+			newObj->name = "NPC_1";
+			newObj->trl = glm::vec3(11.0f, 0.0f, 0.0f);
+			newObj->scl = glm::vec3(.3f, .3f, .3f);
+			newObj->rot = glm::vec3(0.0f, 270.0f, 0.0f);
+
+			worldRoot->NewChild(MeshObject::Create(TABLES_N_CHAIRS));
+			newObj->name = "TABLES_N_CHAIRS";
+			newObj->trl = glm::vec3(5.0f, 0.0f, 0.0f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(TABLES_N_CHAIRS));
+			newObj->name = "TABLES_N_CHAIRS";
+			newObj->trl = glm::vec3(5.0f, 0.0f, 5.0f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(TABLES_N_CHAIRS));
+			newObj->name = "TABLES_N_CHAIRS";
+			newObj->trl = glm::vec3(5.0f, 0.0f, 10.0f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(TABLES_N_CHAIRS));
+			newObj->name = "TABLES_N_CHAIRS";
+			newObj->trl = glm::vec3(5.0f, 0.0f, -5.0f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(TABLES_N_CHAIRS));
+			newObj->name = "TABLES_N_CHAIRS";
+			newObj->trl = glm::vec3(5.0f, 0.0f, -10.0f);
+			newObj->scl = glm::vec3(.5f, .5f, .5f);
+
+			worldRoot->NewChild(MeshObject::Create(Bowling_Rack));
+			newObj->name = "Bowling_Rack";
+			newObj->trl = glm::vec3(-2.0f, 0.0f, 3.0f);
+		}
+
+		//Trigger zones
+		{
+			worldRoot->NewChild(MeshObject::Create(TRIGGER_BOX));
+			newObj->name = "Counter_Trigger";
+			auto physics = newObj->GetPhysics();
+			physics->SetPosition(glm::vec3(8.0f, 1.0f, 0.0f)); 
+			newObj->offsetScl = glm::vec3(3.0f, 2.0f, 3.0f);
+			newObj->allowRender = false;
+		}
+
+		//right wall
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-13.0f, 0.0f, -1.8f);
+		newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+		
+		//left wall
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-13.0f, 0.0f, 1.8f);
+		newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+
+		//right up
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-20.0f, 1.4f, -1.8f);
+		newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+
+		//left up
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-20.0f, 1.4f, 1.8f);
+		newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+
+		//roof
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-20.0f, 2.5f, 0.0f);
+		newObj->offsetScl = glm::vec3(3.5f, 0.2f, 3.f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.75f, 0.1f, 1.5f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+
+		//backdrop
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-21.0f, 1.5f, 0.0f);
+		newObj->offsetScl = glm::vec3(0.2f, 2.2f, 3.2f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 1.1f, 1.6f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
+
+		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+		newObj->name = "BUILDING_BLOCKS";
+		newObj->trl = glm::vec3(-1.0f, 0.f, 0.0f);
+		newObj->offsetScl = glm::vec3(0.2f, 0.2f, 3.5f);
+		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 0.1f, 1.75f)); // half of scl
+		newObj->GetPhysics()->UpdateMassProperties();
+		newObj->GetPhysics()->SetPosition(newObj->trl);
 	}
 
 	// view space init
@@ -402,12 +480,12 @@ void SceneBowling::Enter() {
 
 	// screen space init
 	{
-		screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		newObj->trl = vec3(-0.85f, -0.85f, 0);
-		newObj->scl = vec3(80, 80, 1);
+		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
+		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
+		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
+		//screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
+		//newObj->trl = vec3(-0.85f, -0.85f, 0);
+		//newObj->scl = vec3(80, 80, 1);
 
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
@@ -420,7 +498,7 @@ void SceneBowling::Enter() {
 		camera.Set(FPCamera::MODE::FIRST_PERSON);
 
 		// player init
-		player.Init(worldRoot, GROUP, vec3(0, 0.5f, 0));
+		player.Init(worldRoot, GROUP, vec3(1, 0.5f, 0));
 	}
 
 	RObj::newObject.reset();
@@ -522,7 +600,7 @@ void SceneBowling::Update(float dt) {
 			obj->isDirty = true; // UpdateModel() cannot detect changes in offsets, so you need to manually set isDirty to true
 		} // tho normally you wont need to touch offsets in Update() at all since you normally will have a group obj that is parented to this
 
-		//if (spin == true)
+		if (!holdingBall && ballThrown)
 		{
 			if (obj->name == "WORLD_BALL") {
 
@@ -534,18 +612,99 @@ void SceneBowling::Update(float dt) {
 				// Roll visually
 				obj->rot.x += 200 * dt;
 
-				if (obj->trl.x > 10.0f || obj->trl.z > 10.0f || obj->trl.x < -10.0f || obj->trl.z < -10.0f)
+				glm::vec3 playerPos = player.renderGroup.lock()->GetPhysics()->GetPostion();
+				glm::vec3 diff = obj->trl - playerPos;
+				float distSqr = diff.x * diff.x + diff.z * diff.z;
+
+				if (distSqr > 22.0f * 22.0f)
 				{
-					obj->trl -= player.direction * moveSpeed * static_cast<float>(dt);
-					//obj->trl = camera.GetFinalPosition() + player.direction * 2.0f - glm::vec3(0, 1.3f, 0);
+					// reset ball state
+					ballThrown = false;
+					holdingBall = false;
+
+					glm::vec3 playerPos = player.renderGroup.lock()->GetPhysics()->GetPostion();
+					obj->trl = playerPos + glm::vec3(-.6f, -0.4f, 0.0f);
+					obj->rot = glm::vec3(0);
+
+					for (auto& other_wptr : worldList)
+					{
+						auto other = other_wptr.lock();
+						if (other && other->name == "BALL_PHYSICS_BODY")
+						{
+							other->GetPhysics()->SetPosition(obj->trl);
+							other->GetPhysics()->SetVelocity(glm::vec3(0));
+							other->GetPhysics()->SetAngularVelocity(glm::vec3(0)); // also stop rotation
+							break;
+						}
+					}
+
+					if (throwCount >= 2)
+					{
+						throwCount = 0;
+						knockedDownPins.clear();
+
+						auto spawnPos = [](const std::string& name) -> glm::vec3 {
+							if (name == "Lay_Out1_BOWLING_PIN_10") return glm::vec3(-20.0f, 0.0f, -0.8f);
+							if (name == "Lay_Out1_BOWLING_PIN_9")  return glm::vec3(-20.0f, 0.0f, -0.3f);
+							if (name == "Lay_Out1_BOWLING_PIN_8")  return glm::vec3(-20.0f, 0.0f, 0.3f);
+							if (name == "Lay_Out1_BOWLING_PIN_7")  return glm::vec3(-20.0f, 0.0f, 0.8f);
+							if (name == "Lay_Out1_BOWLING_PIN_6")  return glm::vec3(-19.5f, 0.0f, 0.55f);
+							if (name == "Lay_Out1_BOWLING_PIN_5")  return glm::vec3(-19.5f, 0.0f, 0.0f);
+							if (name == "Lay_Out1_BOWLING_PIN_4")  return glm::vec3(-19.5f, 0.0f, -0.5f);
+							if (name == "Lay_Out1_BOWLING_PIN_3")  return glm::vec3(-19.0f, 0.0f, -0.25f);
+							if (name == "Lay_Out1_BOWLING_PIN_2")  return glm::vec3(-19.0f, 0.0f, 0.25f);
+							if (name == "Lay_Out1_BOWLING_PIN_1")  return glm::vec3(-18.5f, 0.0f, 0.0f);
+							return glm::vec3(0);
+							};
+
+						for (auto& other_wptr : worldList)
+						{
+							auto other = other_wptr.lock();
+							if (!other || other->name.find("Lay_Out1_BOWLING_PIN_") == std::string::npos)
+								continue;
+							auto pinPhysics = other->GetPhysics();
+							if (!pinPhysics) continue;
+							glm::vec3 resetPos = spawnPos(other->name);
+							pinPhysics->SetPosition(resetPos);
+							pinPhysics->SetTransform(resetPos, glm::vec3(0, 0, 0));
+							pinPhysics->SetVelocity(glm::vec3(0));
+							pinPhysics->SetAngularVelocity(glm::vec3(0));
+						}
+					}
+
 					obj->isDirty = true;
+					i++; // increment before skipping
+					continue; // skip the rest of this loop iteration
+				}
+
+				for (auto& other_wptr : worldList)
+				{
+					auto other = other_wptr.lock();
+					if (other && other->name == "BALL_PHYSICS_BODY")
+					{
+						other->GetPhysics()->SetPosition(obj->trl);
+						
+						float radius = 0.5f;
+						float linearSpeed = 8.0f; 
+						glm::vec3 moveDir = player.direction;
+						glm::vec3 angularVel = glm::cross(moveDir, glm::vec3(0, 1, 0)) * (linearSpeed / radius);
+						other->GetPhysics()->SetAngularVelocity(angularVel);
+
+						break;
+					}
 				}
 
 				obj->isDirty = true;
+
 			}
 		}
 
-		if (obj->name.find("Lay_Out1") != std::string::npos)
+		if (obj->name.find("Lay_Out1_Hit_box") != std::string::npos)
+		{
+			obj->allowRender = hit_Box;
+		}
+
+		if (obj->name.find("BALL_PHYSICS_BODY") != std::string::npos)
 		{
 			obj->allowRender = hit_Box;
 		}
@@ -607,9 +766,9 @@ void SceneBowling::Update(float dt) {
 		}
 		auto obj = screenList[i].lock();
 
-		if (obj->name.find("_debugtxt_") != std::string::npos) {
-			obj->allowRender = debug;
-		}
+		//if (obj->name.find("_debugtxt_") != std::string::npos) {
+		//	obj->allowRender = debug;
+		//}
 
 		obj->UpdateModel();
 		obj->trl.z = 0;
@@ -626,12 +785,6 @@ void SceneBowling::Update(float dt) {
 		auto obj = lightList[i].lock();
 		obj->allowRender = debug;
 		Light& properties = obj->lightProperties;
-
-
-
-		if (debug) {
-
-		}
 
 		obj->UpdateModel();
 
@@ -685,17 +838,77 @@ void SceneBowling::Update(float dt) {
 			physics->InterpolateTransform();
 			obj->UsePhysicsModel(); // physics objects' trl, rot and scl are disabled as they use the physics world's object's model, however the offset version still works (model only affect visual appearance)
 
-			if (obj->name == "spawn_box") {
-				physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
-					worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
-					auto& newObj = RenderObject::newObject;
-					auto physics = newObj->GetPhysics();
+			if (obj->name == "Counter_Trigger")
+			{
+				glm::vec3 playerPos = player.renderGroup.lock()->GetPhysics()->GetPostion();
+				glm::vec3 triggerPos = physics->GetPostion();
+				glm::vec3 triggerHalfExtents = glm::vec3(1.5f, 1.0f, 1.5f); // half of offsetScl
 
-					physics->AddTorque(vec3(100, 100, 100));
-					});
-				eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
-				physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+				nearCounter = (playerPos.x > triggerPos.x - triggerHalfExtents.x &&
+					playerPos.x < triggerPos.x + triggerHalfExtents.x &&
+					playerPos.z > triggerPos.z - triggerHalfExtents.z &&
+					playerPos.z < triggerPos.z + triggerHalfExtents.z);
+
+				if (nearCounter && !ballSpawned)
+				{
+					ballSpawned = true;
+
+					glm::vec3 ballOnCounterPos = glm::vec3(8.5f, 1.2f, 0.0f); // on top of counter
+
+					for (auto& w : RObj::worldList)
+					{
+						auto o = w.lock();
+						if (!o) continue;
+
+						if (o->name == "WORLD_BALL")
+						{
+							o->trl = ballOnCounterPos;
+							o->allowRender = true;
+							o->isDirty = true;
+						}
+						if (o->name == "BALL_PHYSICS_BODY")
+						{
+							o->GetPhysics()->SetPosition(ballOnCounterPos);
+							o->GetPhysics()->SetVelocity(glm::vec3(0));
+							o->GetPhysics()->SetAngularVelocity(glm::vec3(0));
+						}
+					}
+				}
 			}
+
+			if (obj->name.find("Lay_Out1_BOWLING_PIN_") != std::string::npos)
+			{
+				// extract up vector from pin's physics model (Y column)
+				glm::vec3 pinUp = glm::normalize(glm::vec3(obj->model[1]));
+				float uprightness = glm::dot(pinUp, glm::vec3(0, 1, 0)); // 1 = upright, 0 = sideways, -1 = upside down
+
+				bool isKnockedDown = uprightness < 0.3f; // less than ~72 degrees from horizontal = knocked down
+				bool wasKnockedDown = knockedDownPins.count(obj->name) > 0;
+
+				if (isKnockedDown && !wasKnockedDown)
+				{
+					score++;
+					knockedDownPins.insert(obj->name);
+				}
+				else if (!isKnockedDown && wasKnockedDown)
+				{
+					// pin stood back up (edge case), remove from set
+					knockedDownPins.erase(obj->name);
+					score--;
+				}
+			}
+
+			//if (obj->name == "spawn_box") {
+			//	physics->triggerEvent.Subscribe([&](const rp3d::Body* overlapped) {
+			//		worldRoot->NewChild(MeshObject::Create(PHYSICS_BOX));
+			//		auto& newObj = RenderObject::newObject;
+			//		auto physics = newObj->GetPhysics();
+			//
+			//		physics->AddTorque(vec3(100, 100, 100));
+			//		});
+			//	eventListener.AddToTriggerEvents(PEvent(physics, physics->triggerEvent, OVERLAP_EVENT::OverlapStart)); // add to this so the event gets used for detection, must write correct CONTACT_EVENT or OVERLAP_EVENT
+			//	physics->triggerEvent.lock = true; // lock so it dont subscribe or get added to the triggerEvents again
+			//}
 
 			i++;
 		}
@@ -709,12 +922,27 @@ void SceneBowling::Update(float dt) {
 	// camera
 	camera.Update(dt); // this must be right after player's block of code to make sure it is sync
 
-	// yah you can do this to add text, but this must be called every frame since it gets refreshed every frame
-	// you can call AddDebugText() at anywhere after calling BaseScene::Update(); and before calling renderObjectList(RObj::screenList, true); and itll work
-	AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
-	AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
-	AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
-	AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+	//AddDebugText("camera.basePosition: " + VecToString(camera.basePosition)); // VecToString supports vec2, vec3 and vec4 (idfk why i didt that but why not ig)
+	//AddDebugText("camera.finalPosition: " + VecToString(camera.GetPlainPosition()));
+	//AddDebugText("player.physics.postion: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetPostion()));
+	//AddDebugText("player.physics.velocity: " + VecToString(player.renderGroup.lock()->GetPhysics()->GetVelocity()));
+
+	if (nearCounter)
+		AddDebugText("Space to interact");
+
+	if (!ballSpawned)
+		AddDebugText("Go talk to the cashier");
+
+	if (score < 30)
+	{
+		AddDebugText("Score: " + std::to_string(score) + " /30");
+		AddDebugText("Press R to reset the pins");
+	}
+
+	if (score >= 30)
+	{
+		AddDebugText("You win!");
+	}
 
 	if (requestSceneChange)
 	{
@@ -930,17 +1158,51 @@ void SceneBowling::HandleKeyPress() {
 		requestSceneChange = true;
 	}
 
-	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_F)) {
-		spin = !spin;
-	}
-
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_J)) {
 		hit_Box = !hit_Box;
 	}
 
+	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_R))
+	{
+		auto spawnPos = [](const std::string& name) -> glm::vec3 {
+			if (name == "Lay_Out1_BOWLING_PIN_10") return glm::vec3(-20.0f, 0.0f, -0.8f);
+			if (name == "Lay_Out1_BOWLING_PIN_9")  return glm::vec3(-20.0f, 0.0f, -0.3f);
+			if (name == "Lay_Out1_BOWLING_PIN_8")  return glm::vec3(-20.0f, 0.0f, 0.3f);
+			if (name == "Lay_Out1_BOWLING_PIN_7")  return glm::vec3(-20.0f, 0.0f, 0.8f);
+			if (name == "Lay_Out1_BOWLING_PIN_6")  return glm::vec3(-19.5f, 0.0f, 0.55f);
+			if (name == "Lay_Out1_BOWLING_PIN_5")  return glm::vec3(-19.5f, 0.0f, 0.0f);
+			if (name == "Lay_Out1_BOWLING_PIN_4")  return glm::vec3(-19.5f, 0.0f, -0.5f);
+			if (name == "Lay_Out1_BOWLING_PIN_3")  return glm::vec3(-19.0f, 0.0f, -0.25f);
+			if (name == "Lay_Out1_BOWLING_PIN_2")  return glm::vec3(-19.0f, 0.0f, 0.25f);
+			if (name == "Lay_Out1_BOWLING_PIN_1")  return glm::vec3(-18.5f, 0.0f, 0.0f);
+			return glm::vec3(0);
+			};
+
+		for (auto& obj_wptr : RObj::worldList)
+		{
+			auto obj = obj_wptr.lock();
+			if (!obj || obj->name.find("Lay_Out1_BOWLING_PIN_") == std::string::npos)
+				continue;
+
+			auto physics = obj->GetPhysics();
+			if (!physics)
+				continue;
+
+			glm::vec3 resetPos = spawnPos(obj->name);
+
+			// reset position and orientation
+			physics->SetPosition(resetPos);
+			physics->SetTransform(resetPos, glm::vec3(0, 0, 0)); // upright rotation
+			physics->SetVelocity(glm::vec3(0));
+			physics->SetAngularVelocity(glm::vec3(0));
+		}
+
+		// clear knocked down tracking so pins can be scored again
+		knockedDownPins.clear();
+	}
+
 	if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_T))
 	{
-		spin = !spin;
 
 		holdingBall = !holdingBall;
 
@@ -949,14 +1211,30 @@ void SceneBowling::HandleKeyPress() {
 			auto obj = obj_wptr.lock();
 			if (obj && obj->name == "WORLD_BALL")
 			{
-				spin = !spin;
 				obj->allowRender = !holdingBall;
 
 				if (!holdingBall)
 				{
-					obj->trl = camera.GetFinalPosition() + player.direction * 2.0f - glm::vec3(0, 1.3f, 0);
-
+					ballThrown = true;
+					throwCount++;
+					obj->trl = camera.GetFinalPosition() + player.direction * 2.0f - glm::vec3(0, camera.GetFinalPosition().y - 0.5f, 0);
 					obj->isDirty = true;
+				}
+				else // ball is being recalled (holdingBall just became true)
+				{
+					ballThrown = false;
+					obj->rot = glm::vec3(0);
+
+					for (auto& other_wptr : RObj::worldList)
+					{
+						auto other = other_wptr.lock();
+						if (other && other->name == "BALL_PHYSICS_BODY")
+						{
+							other->GetPhysics()->SetVelocity(glm::vec3(0));
+							other->GetPhysics()->SetAngularVelocity(glm::vec3(0));
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -1000,27 +1278,23 @@ void SceneBowling::HandleKeyPress() {
 		}
 
 		// action
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
-			AudioManager::GetInstance().PlayMUS(0, 1);
-		}
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
-			AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
-		}
-		if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
-			if (AudioManager::GetInstance().PlayingMUS())
-				AudioManager::GetInstance().PauseMUS();
-			else
-				AudioManager::GetInstance().ResumeMUS();
-		}
+		//if (MouseController::GetInstance()->IsButtonPressed(MouseController::LMB)) {
+		//	AudioManager::GetInstance().PlayMUS(0, 1);
+		//}
+		//if (MouseController::GetInstance()->IsButtonPressed(MouseController::RMB)) {
+		//	AudioManager::GetInstance().PlaySFX(GOOFY_AHH_ASRIEL_STAR_SOUND);
+		//}
+		//if (MouseController::GetInstance()->IsButtonPressed(MouseController::MMB)) {
+		//	if (AudioManager::GetInstance().PlayingMUS())
+		//		AudioManager::GetInstance().PauseMUS();
+		//	else
+		//		AudioManager::GetInstance().ResumeMUS();
+		//}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) > 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() + 1);
 		}
 		if (MouseController::GetInstance()->GetMouseScrollStatus(MouseController::SCROLL_TYPE_YOFFSET) < 0) {
 			AudioManager::GetInstance().SetMUSPosition(AudioManager::GetInstance().GetMUSPosition() - 1);
-		}
-
-		if (KeyboardController::GetInstance()->IsKeyPressed(GLFW_KEY_Z)) {
-			worldRoot->NewChild(MeshObject::Create(PHYSICS_BALL));
 		}
 
 		// fake jump lol

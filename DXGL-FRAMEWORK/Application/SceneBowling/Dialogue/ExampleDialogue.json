@@ -1,24 +1,23 @@
 [
     {
-        "speaker": "person1",
+        "speaker": "Cashier",
         "lines": [
-            "Yo person2!",
-            "Long time no see!",
-            "How's it going?"
+            "Lovely day for some bowling eh!",
+            "Here's your ball",
+            "On the house!"
         ]
     },
     {
-        "speaker": "person2",
+        "speaker": "Player",
         "lines": [
-            "Doing well at the moment.",
-            "How about you?"
+            "Thanks alot."
         ]
     },
     {
-        "speaker": "person1",
+        "speaker": "Cashier",
         "lines": [
             "Great!",
-            "I need to go now. Bye!"
+            "Score more than 30 points to win!"
         ]
     }
 ]

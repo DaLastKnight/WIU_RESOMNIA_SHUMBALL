@@ -2,7 +2,7 @@
 #define SCENE_BOWLING_H
 
 #include "BaseScene.h"
-
+#include <set>
 
 class SceneBowling : public BaseScene
 {
@@ -20,9 +20,17 @@ public:
 		FONT_CASCADIA_MONO,
 		// add more variables here
 		FLASHLIGHT,
+		BUILDING_BLOCKS,
+		BUILDING_BLOCKS2,
+
 		BOWLING_BALL,
 		BOWLING_PIN,
 
+		TABLES_N_CHAIRS,
+		Bowling_Rack,
+		Bowling_Counter,
+
+		NPC_1,
 
 		HIT_BOX,
 		BALL_HIT_BOX,
@@ -86,13 +94,24 @@ private:
 	glm::vec3 savedBallWorldPos;
 
 	//variables for bowling ball
+	bool ballSpawned = false;
 	bool holdingBall = false;
+	bool ballThrown = false;
 	const float Ball_Radius = 0.4f;
-	bool spin = false;
+	int throwCount = 0;
 
+	//for ALL hitboxes
 	bool hit_Box = false;
 	
+	//for scene manager
 	bool requestSceneChange = false;
+
+	//for scoring system
+	int score = 0;
+	std::set<std::string> knockedDownPins;
+
+	//For interactions
+	bool nearCounter = false;
 };
 
 #endif
