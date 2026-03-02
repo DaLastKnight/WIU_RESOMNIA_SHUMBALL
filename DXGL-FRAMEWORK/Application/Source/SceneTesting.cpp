@@ -121,6 +121,8 @@ void SceneBowling::Enter() {
 		meshList[TABLES_N_CHAIRS] = MeshBuilder::GenerateOBJ("TABLES_N_CHAIRS", "TABLES_N_CHAIRS.obj");
 		meshList[Bowling_Rack] = MeshBuilder::GenerateOBJ("Bowling_Rack", "Bowling_Rack.obj");
 		meshList[Bowling_Counter] = MeshBuilder::GenerateOBJMTL("Bowling_Counter", "Counter_001.obj", "Counter_001.mtl");
+
+		meshList[BALLOONS] = MeshBuilder::GenerateOBJMTL("BALLOONS", "Balloon.obj", "Balloon.mtl");
 		
 		meshList[NPC_1] = MeshBuilder::GenerateOBJMTL("NPC_1", "doorman.obj", "doorman.mtl", TextureLoader::LoadTexture("doorman.tga"));
 
@@ -207,6 +209,9 @@ void SceneBowling::Enter() {
 		RObj::setDefaultStat.Subscribe(BOWLING_PIN, [](const std::shared_ptr<RObj>& obj) {
 			obj->material.Set(Material::POLISHED_METAL);
 			});
+		RObj::setDefaultStat.Subscribe(BALLOONS, [](const std::shared_ptr<RObj>& obj) {
+			obj->material.Set(Material::POLISHED_METAL);
+			});
 
 		RObj::setDefaultStat.Subscribe(UI_TEST, [](const std::shared_ptr<RObj>& obj) {
 			obj->relativeTrl = true;
@@ -283,33 +288,15 @@ void SceneBowling::Enter() {
 					lightProperties.kQ = 0.001f;
 					UpdateLightUniform(newLightObj);
 				}
-
-				//worldRoot->NewChild(LightObject::Create(LIGHT));
-				//newLightObj = std::dynamic_pointer_cast<LightObject>(newObj);
-				//{
-				//	newLightObj->trl = vec3(20, 5, 0);
-				//	newLightObj->name = "demo light spot";
-				//	newLightObj->initialDire = vec3(0, -1, 0); // must have this to define the initial spotDirection for spot light, default vec3(0, -1, 0)
-				//	newLightObj->rot = vec3(45, 45, 0);
-				//	auto& lightProperties = newLightObj->lightProperties;
-				//	lightProperties.type = Light::LIGHT_SPOT;
-				//	lightProperties.color = vec3(1, 0.824f, 0.11f); // orange flame color
-				//	lightProperties.power = 1;
-				//	// 0 - 1 percentage of actual values applies
-				//	lightProperties.kC = 1;
-				//	lightProperties.kL = 0.005f;
-				//	lightProperties.kQ = 0.01f;
-				//	// spot light variables (yes, these are the only 2 you need to change manually)
-				//	lightProperties.cosCutoff = 31.f;
-				//	lightProperties.cosInner = 29.f;
-				//	UpdateLightUniform(newLightObj);
-				//}
 			}
 		}
 
 		//bowling pins
 		{
-			auto spawnPin = [&](const std::string& name, glm::vec3 pos) {
+			auto spawnPin = [&](const std::string& name, glm::vec3 pos) {		
+				//here is deducing the type of a lambda — essentially an anonymous function stored in a variable.
+				// means the shortcut is allowed to use variables from the surrounding code (like worldRoot and newObj)
+				//without needing to pass them in as parameters
 				worldRoot->NewChild(MeshObject::Create(BOWLING_PIN));
 				newObj->name = name;
 				newObj->AddPhysics(PhysicsObject::DYNAMIC);
@@ -406,67 +393,110 @@ void SceneBowling::Enter() {
 			newObj->allowRender = false;
 		}
 
-		//right wall
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-13.0f, 0.0f, -1.8f);
-		newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
-		
-		//left wall
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-13.0f, 0.0f, 1.8f);
-		newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+		//bowling thingy
+		{
+			//right wall
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-13.0f, 0.0f, -1.8f);
+			newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
 
-		//right up
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-20.0f, 1.4f, -1.8f);
-		newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+			//left wall
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-13.0f, 0.0f, 1.8f);
+			newObj->offsetScl = glm::vec3(23.4f, 1.6f, .2f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(11.7f, 0.8f, 0.1f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
 
-		//left up
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-20.0f, 1.4f, 1.8f);
-		newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+			//right up
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-20.0f, 1.4f, -1.8f);
+			newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
 
-		//roof
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-20.0f, 2.5f, 0.0f);
-		newObj->offsetScl = glm::vec3(3.5f, 0.2f, 3.f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.75f, 0.1f, 1.5f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+			//left up
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-20.0f, 1.4f, 1.8f);
+			newObj->offsetScl = glm::vec3(2.0f, 2.f, .2f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.0f, 1.f, 0.1f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
 
-		//backdrop
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-21.0f, 1.5f, 0.0f);
-		newObj->offsetScl = glm::vec3(0.2f, 2.2f, 3.2f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 1.1f, 1.6f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+			//roof
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-20.0f, 2.5f, 0.0f);
+			newObj->offsetScl = glm::vec3(3.5f, 0.2f, 3.f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(1.75f, 0.1f, 1.5f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
 
-		worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
-		newObj->name = "BUILDING_BLOCKS";
-		newObj->trl = glm::vec3(-1.0f, 0.f, 0.0f);
-		newObj->offsetScl = glm::vec3(0.2f, 0.2f, 3.5f);
-		newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 0.1f, 1.75f)); // half of scl
-		newObj->GetPhysics()->UpdateMassProperties();
-		newObj->GetPhysics()->SetPosition(newObj->trl);
+			//backdrop
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-21.0f, 1.5f, 0.0f);
+			newObj->offsetScl = glm::vec3(0.2f, 2.2f, 3.2f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 1.1f, 1.6f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
+
+			worldRoot->NewChild(MeshObject::Create(BUILDING_BLOCKS));
+			newObj->name = "BUILDING_BLOCKS";
+			newObj->trl = glm::vec3(-1.0f, 0.f, 0.0f);
+			newObj->offsetScl = glm::vec3(0.2f, 0.2f, 3.5f);
+			newObj->GetPhysics()->AddCollider(PhysicsObject::BOX, glm::vec3(0.1f, 0.1f, 1.75f)); // half of scl
+			newObj->GetPhysics()->UpdateMassProperties();
+			newObj->GetPhysics()->SetPosition(newObj->trl);
+		}
+
+		//balloons
+		{
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(-13.0f, 2.f, 0.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(-5.0f, 2.f, 11.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(-17.0f, 2.3f, 4.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(-17.0f, 2.6f, -4.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(-9.0f, 2.3f, -12.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(3.0f, 1.f, 5.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(13.0f, 2.8f, 8.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(17.0f, 3.8f, -8.0f);
+
+			worldRoot->NewChild(MeshObject::Create(BALLOONS));
+			newObj->name = "BALLOONS";
+			newObj->trl = glm::vec3(13.0f, 2.1f, 14.0f);
+		}
+	
 	}
 
 	// view space init
@@ -480,13 +510,6 @@ void SceneBowling::Enter() {
 
 	// screen space init
 	{
-		//screenRoot->NewChild(MeshObject::Create(UI_TEST, 1));  // create with 1 as UILayer, default 0
-		//newObj->trl = vec3(-0.8f, -0.8f, 0); // give any number for z, itll be force set to 0 in the loop
-		//newObj->scl = vec3(80, 80, 1); // give any number for z, itll be force set to 1 in the loop
-		//screenRoot->NewChild(MeshObject::Create(UI_TEST_2));
-		//newObj->trl = vec3(-0.85f, -0.85f, 0);
-		//newObj->scl = vec3(80, 80, 1);
-
 		// debug text
 		InitDebugText(FONT_CASCADIA_MONO); // if you want another font for debug text, just change it to another font, tho dont call this in Update(), itll break
 	}
@@ -936,7 +959,8 @@ void SceneBowling::Update(float dt) {
 	if (score < 30)
 	{
 		AddDebugText("Score: " + std::to_string(score) + " /30");
-		AddDebugText("Press R to reset the pins");
+		AddDebugText("Press R to reset the pins manually");
+		AddDebugText("Press T to recall the bowling ball manually");
 	}
 
 	if (score >= 30)
